@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suven's Game Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#f5c851;--gold-lo:#b98a25;--text:#fbf5e3;--muted:#c9bfa8;--ground:#140b05;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(120% 80% at 50% 0%,#3d2513,#1a0e06 60%,var(--ground));color:var(--text);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;padding:48px 16px 64px}
+main{max-width:880px;margin:0 auto}
+h1{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:clamp(40px,8vw,68px);line-height:1;margin:0;color:var(--gold);
+  text-shadow:0 3px 0 #8a5a12,0 10px 24px rgba(0,0,0,.5);text-wrap:balance}
+.lede{color:var(--muted);font-weight:800;font-size:16px;margin:12px 0 0;max-width:60ch}
+h2{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:40px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.game{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--text);border-radius:22px;padding:20px;min-height:180px;position:relative;overflow:hidden;
+  border:2px solid rgba(245,200,81,.35);box-shadow:0 14px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .15s,border-color .15s}
+.game:hover,.game:focus-visible{transform:translateY(-3px);border-color:var(--gold);outline:none}
+.game:focus-visible{box-shadow:0 0 0 3px #fff}
+.game.cb{background:radial-gradient(ellipse at 70% 30%,#24a468,#0b4a2d)}
+.game.tp{background:radial-gradient(ellipse at 70% 30%,#b8314a,#4a0a1c)}
+.game h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:30px;margin:0;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.game p{margin:0;font-weight:700;font-size:14px;line-height:1.45;color:rgba(255,255,255,.85);max-width:30ch}
+.game .suit{position:absolute;right:14px;bottom:-14px;font-size:120px;line-height:1;color:rgba(0,0,0,.18);pointer-events:none}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.tags span{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.35);border-radius:999px;padding:3px 10px}
+.soon{border:2px dashed rgba(245,200,81,.3);border-radius:22px;padding:20px;color:var(--muted);font-weight:800;min-height:120px;display:flex;flex-direction:column;gap:6px}
+.soon b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:22px;color:var(--text)}
+footer{margin-top:48px;color:var(--muted);font-size:13px;font-weight:700}
+footer a{color:var(--gold)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Suven's Game Room</h1>
+  <p class="lede">Nepali card games that run right in your browser. No install, no sign-up. Open one on your phone and play.</p>
+
+  <h2>Card games</h2>
+  <div class="grid">
+    <a class="game cb" href="games/card-games/callbreak/">
+      <h3>Callbreak</h3>
+      <p>Call your tricks, spades are trump. Play the bots or invite friends with a QR code.</p>
+      <div class="tags"><span>4 players</span><span>Online with friends</span></div>
+      <span class="suit" aria-hidden="true">&#9824;&#xFE0E;</span>
+    </a>
+    <a class="game tp" href="games/card-games/teen-patti/">
+      <h3>Teen Patti</h3>
+      <p>Three cards, blind or seen. Chaal, raise, show and sideshow against four bots.</p>
+      <div class="tags"><span>5 players</span><span>Play chips only</span></div>
+      <span class="suit" aria-hidden="true">&#9829;&#xFE0E;</span>
+    </a>
+    <div class="soon"><b>Kitty</b>Coming soon</div>
+    <div class="soon"><b>Dhumbal</b>Coming soon</div>
+    <div class="soon"><b>Marriage</b>Coming soon</div>
+  </div>
+
+  <footer>Source on <a href="https://github.com/9bista-suven7/games">GitHub</a>.</footer>
+</main>
+</body>
+</html>

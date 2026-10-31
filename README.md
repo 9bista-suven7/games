@@ -2,6 +2,8 @@
 
 A collection of browser games. Each game is a self-contained folder; open its `index.html` in a browser to play.
 
+Play online: **https://9bista-suven7.github.io/games/**
+
 ## Card games
 
 | Game | Folder | Description |
