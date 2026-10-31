@@ -24,6 +24,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Carrom | [`games/board-games/carrom`](games/board-games/carrom) | Carrom with real physics vs the computer or 2-4 players pass & play |
 | Chess | [`games/board-games/chess`](games/board-games/chess) | Full-rules chess vs a built-in engine (3 levels) or 2 players on one device |
 | Snakes & Ladders | [`games/board-games/snakes-and-ladders`](games/board-games/snakes-and-ladders) | Classic or random board, exact roll to 100, bots or pass & play |
+| Tic-tac-toe | [`games/board-games/tic-tac-toe`](games/board-games/tic-tac-toe) | 3x3 classic and five in a row vs the computer or 2 players |
 
 ## Adding a game
 
