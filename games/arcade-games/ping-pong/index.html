@@ -1,0 +1,1443 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ping Pong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wood-hi:#8d5629; --wood:#5c3417; --wood-lo:#2b1608;
+  --gold:#f5c851; --gold-lo:#b98a25;
+  --panel:#2a170a; --panel-hi:#4b2c14;
+  --text:#fbf3e6; --muted:#dcc6a6;
+  --ground:#120904;
+  --av:34px;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden}
+body{margin:0;background:var(--ground);overscroll-behavior:none}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 40%,#3a2412 0%,#1e1008 60%,#0d0603 100%);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+button,select{font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* the field: the canvas with the top bar and score plates floating over the floor */
+#field{position:relative;flex:1;min-height:0;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:crosshair}
+#topbar{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:8px 12px 0;pointer-events:none}
+#topbar>*{pointer-events:auto}
+.tbr{display:flex;gap:10px}
+.ibtn{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#6b4220,#2e1a0a);color:var(--gold);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #170c04,inset 0 1px 0 rgba(255,255,255,.15);padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 #170c04}
+.ibtn svg{width:20px;height:20px}
+.ibtn:focus-visible,.btn:focus-visible,.segb:focus-visible,.nrow input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.limits{display:flex;align-items:center;gap:6px 10px;flex-wrap:nowrap;justify-content:center;padding:5px 14px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid rgba(245,200,81,.35);
+  font-weight:900;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none;white-space:nowrap;overflow:hidden}
+.limits b{color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;margin-left:3px}
+.limits .flag{color:#fff;background:#b71c1c;border-radius:999px;padding:1px 8px;letter-spacing:.06em}
+.limits .flag.d{background:#2f6fd0}
+#status{position:absolute;z-index:29;left:50%;top:15px;transform:translateX(-50%);max-width:calc(100% - 220px);box-sizing:border-box}
+#status:empty{display:none}
+#game.wide #status{top:auto;bottom:8px;max-width:calc(100% - 32px)}
+#plates{order:3;flex:1 0 100%;display:flex;justify-content:space-between;gap:8px;pointer-events:none;min-width:0}
+#game.wide #plates{order:0;flex:1 1 0;justify-content:space-between}
+
+/* score plates */
+.plate{display:flex;align-items:center;gap:7px;min-width:0;max-width:210px;flex:0 1 auto;background:rgba(18,9,3,.7);border:1px solid rgba(245,200,81,.3);border-radius:999px;padding:3px 10px 3px 3px;transition:box-shadow .2s,border-color .2s}
+.plate.b{flex-direction:row-reverse;padding:3px 3px 3px 10px}
+.plate.b .pinfo{align-items:flex-end}
+.plate.turn{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(245,200,81,.45)}
+.plate.win{border-color:#7be495;box-shadow:0 0 16px 3px rgba(123,228,149,.5)}
+.avwrap{position:relative;width:var(--av);height:var(--av);flex:none}
+.avatar{width:100%;height:100%;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:calc(var(--av)*.48);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.4);
+  background:radial-gradient(circle at 34% 30%,var(--c1),var(--c2) 85%);border:2px solid var(--gold);box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.srv{position:absolute;right:-3px;bottom:-3px;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffb347 45%,#e07010);box-shadow:0 0 0 2px #2a170a;opacity:0;transition:opacity .2s}
+.plate.b .srv{right:auto;left:-3px}
+.plate.turn .srv{opacity:1}
+.pinfo{display:flex;flex-direction:column;min-width:0;line-height:1.12;gap:3px}
+.pnm{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);max-width:110px}
+.pnm small{font-weight:800;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-left:4px}
+.gms{display:flex;gap:3px;min-height:8px}
+.gms i{width:6px;height:6px;border-radius:50%;border:1.5px solid var(--gold-lo)}
+.gms i.on{background:var(--gold);border-color:var(--gold)}
+.gms small{font-weight:900;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:8px;margin-left:2px}
+.plate.b .gms{flex-direction:row-reverse}
+.plate.b .gms small{margin:0 2px 0 0}
+.pts{font-family:'Lilita One',Impact,sans-serif;font-size:26px;line-height:1;color:var(--gold);min-width:1.25em;text-align:center;font-variant-numeric:tabular-nums}
+.pts.bump{animation:bump .5s ease}
+@keyframes bump{30%{transform:scale(1.3);color:#fff}}
+
+#banner{position:absolute;left:50%;top:42%;z-index:26;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(28px,7vmin,54px);color:var(--gold);text-align:center;
+  text-shadow:0 3px 0 #6b4609,0 0 3px #000,0 8px 20px rgba(0,0,0,.7);transform:translate(-50%,-50%);opacity:0;pointer-events:none;width:max-content;max-width:86%;line-height:1.08;text-wrap:balance}
+#banner.show{animation:banner 1.5s ease forwards}
+#banner.bad{color:#ff9aa2;text-shadow:0 3px 0 #6b0f1a,0 0 3px #000,0 8px 20px rgba(0,0,0,.7)}
+#banner.cool{color:#a6d4ff;text-shadow:0 3px 0 #123a6b,0 0 3px #000,0 8px 20px rgba(0,0,0,.7)}
+@keyframes banner{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+#toast{position:absolute;top:calc(100px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.82);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:999px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#game.wide #toast{top:calc(58px + env(safe-area-inset-top,0px))}
+#toast.show{opacity:1}
+
+/* panels */
+.panel{box-sizing:border-box;background:linear-gradient(180deg,var(--panel-hi),var(--panel));border:2px solid var(--gold-lo);border-radius:18px;padding:16px 18px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ptitle{font-family:'Lilita One',Impact,sans-serif;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.45);margin:0;text-wrap:balance}
+.psub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:4px 0 0;text-wrap:balance}
+.psub:empty{display:none}
+.overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:auto;background:rgba(14,7,2,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.overlay>.panel{width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto}
+.btnrow{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{font-family:'Lilita One',Impact,sans-serif;font-size:20px;letter-spacing:.03em;color:#3a2300;padding:9px 28px;border-radius:999px;border:2px solid #fff3c4;cursor:pointer;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+.btn.green{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--text);border-color:rgba(245,200,81,.5);box-shadow:none;font-size:17px}
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;align-items:stretch}
+.qrbox{background:#fff;border-radius:14px;padding:12px;margin:14px auto 0;width:min(240px,70vw);aspect-ratio:1;max-width:100%;box-sizing:border-box;display:grid;place-items:center;box-shadow:0 0 0 4px var(--gold-lo)}
+.qrbox svg{width:100%;height:100%;display:block}
+.qrbox p{color:#333;font-weight:800;text-align:center;margin:0;font-size:13px}
+.linkrow{display:flex;gap:8px;margin-top:14px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.linkrow .btn{font-size:16px;padding:6px 18px}
+
+/* setup */
+.slabel{margin:14px 0 0;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;gap:8px;margin-top:6px}
+.segb{flex:1 1 0;min-width:0;font-family:'Lilita One',Impact,sans-serif;font-size:17px;letter-spacing:.02em;padding:8px 4px;border-radius:12px;border:2px solid rgba(245,200,81,.45);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+.segb[aria-checked="true"]{background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);color:#3a2300;border-color:#fff3c4;box-shadow:0 3px 0 #6b4609}
+.names{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.nrow{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.25);border-radius:12px;padding:6px 8px;font-weight:900}
+.nrow .dot{width:26px;height:26px;flex:none;border-radius:50%;box-sizing:border-box;border:2px solid var(--gold);background:radial-gradient(circle at 34% 30%,var(--c1),var(--c2) 85%)}
+.nrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:8px;color:var(--text);padding:7px 8px;font:800 15px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.nrow small{flex:none;color:var(--muted);font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;min-width:4.6em;text-align:right}
+
+/* score tables */
+.score{font-family:'Lilita One',Impact,sans-serif;font-size:44px;line-height:1;text-align:center;color:#fff;margin:12px 0 0;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+.score small{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:12px auto 0;max-width:420px}
+.chips:empty{display:none}
+.chip{font-weight:900;font-size:12px;padding:2px 9px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(245,200,81,.35);color:var(--text);font-variant-numeric:tabular-nums}
+.chip.top{background:rgba(245,200,81,.2);color:var(--gold);border-color:var(--gold)}
+.chip.x{color:#ff9aa2;border-color:rgba(214,56,72,.6)}
+
+.rules{font-size:14px;line-height:1.55;font-weight:600;max-width:62ch;margin:10px auto 0}
+.rules h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:17px;margin:14px 0 4px;letter-spacing:.02em}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules b{color:#fff}
+
+/* splash */
+.splash{background:radial-gradient(ellipse at 50% 45%,rgba(60,32,10,.55),rgba(10,5,2,.9))}
+.splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.logo{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(52px,12vmin,104px);line-height:1;color:var(--gold);letter-spacing:.01em;
+  text-shadow:0 3px 0 #8a5a12,0 6px 0 #4a2d06,0 12px 24px rgba(0,0,0,.6)}
+.logo small{display:block;font-family:'Nunito',system-ui,sans-serif;font-weight:900;font-size:.24em;color:var(--muted);text-shadow:none;margin-top:.3em}
+.demo{position:relative;width:clamp(170px,38vmin,260px);height:clamp(84px,18vmin,124px);margin:10px 0 4px}
+.demo .tbl{position:absolute;left:14%;right:14%;top:16%;bottom:16%;border-radius:3px;background:linear-gradient(#2b72c4,#1b4e8e);box-shadow:inset 0 0 0 2px #f4f6fb,0 8px 16px rgba(0,0,0,.5)}
+.demo .tbl::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.7)}
+.demo .tbl::after{content:'';position:absolute;left:50%;top:-10%;bottom:-10%;width:3px;margin-left:-1.5px;background:linear-gradient(#fff 0 12%,#26323e 12%);border-radius:1px}
+.demo .bat{position:absolute;top:38%;width:13%;aspect-ratio:1;border-radius:50%;box-sizing:border-box;border:2px solid #d9b27a}
+.demo .bat.l{left:0;background:radial-gradient(circle at 40% 35%,#ff5a50,#a51a1a);animation:batl 1.6s ease-in-out infinite}
+.demo .bat.r{right:0;background:radial-gradient(circle at 40% 35%,#4a505a,#101216);animation:batr 1.6s ease-in-out infinite}
+.demo .ball{position:absolute;left:12%;top:46%;width:5%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffb347 45%,#e07010);animation:dball 1.6s linear infinite}
+@keyframes dball{0%{left:12%;top:40%}22%{left:36%;top:22%}30%{left:44%;top:30%}38%{left:52%;top:52%}50%{left:83%;top:46%}72%{left:60%;top:28%}80%{left:52%;top:40%}88%{left:44%;top:58%}100%{left:12%;top:40%}}
+@keyframes batl{0%,100%{top:32%;transform:scale(1.12)}50%{top:46%;transform:scale(1)}}
+@keyframes batr{0%,100%{top:40%}50%{top:40%;transform:scale(1.12)}}
+.tag{margin:0 0 10px;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.04em}
+.tag b{color:var(--text)}
+.best{margin:-4px 0 10px;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.best b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:18px;color:var(--gold);letter-spacing:.02em;margin:0 8px 0 4px}
+.best:empty{display:none}
+@media (max-height:520px){.demo{display:none}.logo{font-size:clamp(40px,11vmin,76px)}.slabel{margin-top:8px}.segb{padding:6px 4px}.names{margin-top:8px}}
+@media (max-width:400px){.segb{font-size:15px}.pts{font-size:23px}.pnm{max-width:84px}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="game">
+  <div id="field">
+    <canvas id="cv" role="img" aria-label="Table tennis table seen from above, with both bats and the ball" tabindex="0"></canvas>
+    <div id="topbar">
+      <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div id="plates">
+        <div class="plate" id="pl0" style="--c1:#ff8a80;--c2:#b71c1c"><div class="avwrap"><div class="avatar">Y</div><span class="srv" aria-hidden="true"></span></div><div class="pinfo"><span class="pnm">You</span><span class="gms"></span></div><span class="pts">0</span></div>
+        <div class="plate b" id="pl1" style="--c1:#8f9bb0;--c2:#1c2430"><div class="avwrap"><div class="avatar">C</div><span class="srv" aria-hidden="true"></span></div><div class="pinfo"><span class="pnm">Computer</span><span class="gms"></span></div><span class="pts">0</span></div>
+      </div>
+      <div class="tbr">
+        <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+        </button>
+        <button class="ibtn" id="rulesBtn" aria-label="How to play" title="How to play">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a3 3 0 1 1 4.3 2.7c-.9.5-1.5 1.2-1.5 2.3M12 18h.01"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="status" class="limits"></div>
+    <div id="banner"></div>
+  </div>
+  <div id="toast" role="status"></div>
+  <div id="sr" class="sr" aria-live="polite"></div>
+
+  <div id="splash" class="overlay splash">
+    <div class="splash-in">
+      <div class="logo">Ping Pong<small>टेबल टेनिस</small></div>
+      <div class="demo" aria-hidden="true"><span class="tbl"></span><span class="bat l"></span><span class="bat r"></span><span class="ball"></span></div>
+      <p class="tag"><b>1 or 2 players</b> · First to 11, win by 2</p>
+      <p class="best" id="splashBest"></p>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn green" id="cpuBtn">vs Computer</button>
+        <button class="btn" id="duoBtn">2 players</button>
+      </div>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn ghost" id="splashBack" hidden>Back to game</button>
+        <button class="btn ghost" id="splashRules">How to play</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="setup" class="overlay" hidden>
+    <div class="panel" style="width:min(440px,100%)">
+      <h2 class="ptitle" id="setTitle">vs Computer</h2>
+      <p class="psub" id="setSub"></p>
+      <div id="lvlBox">
+        <div class="slabel" id="lblL">Computer</div>
+        <div class="seg" data-k="level" role="radiogroup" aria-labelledby="lblL">
+          <button class="segb" data-v="easy" role="radio">Easy</button>
+          <button class="segb" data-v="medium" role="radio">Medium</button>
+          <button class="segb" data-v="hard" role="radio">Hard</button>
+        </div>
+      </div>
+      <div class="names" id="nameBox">
+        <div class="nrow"><span class="dot" style="--c1:#ff8a80;--c2:#b71c1c"></span><input id="name0" maxlength="12" placeholder="Player 1" aria-label="Player 1 name" autocomplete="off"><small id="end0">Bottom</small></div>
+        <div class="nrow"><span class="dot" style="--c1:#8f9bb0;--c2:#1c2430"></span><input id="name1" maxlength="12" placeholder="Player 2" aria-label="Player 2 name" autocomplete="off"><small id="end1">Top</small></div>
+      </div>
+      <div class="slabel" id="lblG">Match</div>
+      <div class="seg" data-k="bestOf" role="radiogroup" aria-labelledby="lblG">
+        <button class="segb" data-v="1" role="radio">1 game</button>
+        <button class="segb" data-v="3" role="radio">Best of 3</button>
+        <button class="segb" data-v="5" role="radio">Best of 5</button>
+      </div>
+      <div class="btnrow"><button class="btn green" id="startBtn">Start</button><button class="btn ghost" id="setupBack">Back</button></div>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay" hidden>
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle">Paused</h2>
+      <div class="menu-list">
+        <button class="btn green" id="resumeBtn">Resume</button>
+        <button class="btn" id="newBtn">New game</button>
+        <button class="btn ghost" id="menuRules">How to play</button>
+        <button class="btn ghost" id="soundBtn">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameP" class="overlay" hidden>
+    <div class="panel" style="width:min(400px,100%)">
+      <h2 class="ptitle" id="gpTitle">Game 1</h2>
+      <p class="psub" id="gpSub"></p>
+      <div class="score" id="gpScore"></div>
+      <div class="chips" id="gpChips"></div>
+      <p class="psub" id="gpNext"></p>
+      <div class="btnrow"><button class="btn green" id="gpGo">Next game</button><button class="btn ghost" id="gpHome">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="result" class="overlay" hidden>
+    <div class="panel" style="width:min(400px,100%)">
+      <h2 class="ptitle" id="resTitle">Match over</h2>
+      <p class="psub" id="resSub"></p>
+      <div class="score" id="resScore"></div>
+      <div class="chips" id="resChips"></div>
+      <div class="btnrow"><button class="btn green" id="againBtn">Play again</button><button class="btn ghost" id="homeBtn">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="share" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle">Share Ping Pong</h2>
+      <p class="psub">Friends scan this code to open Ping Pong on their phone.</p>
+      <div class="qrbox" id="qrBox"></div>
+      <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
+      <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle">How to play</h2>
+      <div class="rules">
+        <h3>Your bat</h3>
+        <ul>
+          <li>Drag anywhere on the table area to move your bat; it follows your finger with a little lag. With a mouse, the bat follows the pointer.</li>
+          <li>Put the bat in the ball's path after it bounces on your side. Where the ball meets the bat sets the direction: the <b>left edge</b> sends it left, the <b>right edge</b> right, the middle straight.</li>
+          <li><b>Swipe towards the net</b> as you hit for pace and topspin. A fast swipe is a <b>smash</b>: hard to return, but it can fly long. Swiping sideways adds sidespin, swiping back gives a soft chop.</li>
+          <li>Smash high balls: a hard hit from low down has to clear the net and may go long.</li>
+          <li>Keys: <b>arrows</b> or <b>WASD</b> move the bat (hold <b>Shift</b> to move faster and hit harder), <b>Space</b> serves, <b>Esc</b> pauses.</li>
+        </ul>
+        <h3>Serving</h3>
+        <ul>
+          <li>The server holds the ball behind the end line. <b>Swipe forward</b> or <b>tap</b> to serve. The serve must bounce once on your side, then on the other side.</li>
+          <li>The serve changes every <b>2 points</b>, and every point from <b>10–10</b>. A serve that touches the net and then lands correctly is a <b>let</b>: serve again.</li>
+        </ul>
+        <h3>Winning points</h3>
+        <ul>
+          <li>After every shot the ball must bounce <b>once</b> on the other player's side before they hit it back.</li>
+          <li>You lose the point if you miss the ball, let it bounce twice, hit it into the net, off the table (<b>out</b>), or onto your own side.</li>
+          <li>The first to <b>11</b> wins the game, but you must win by 2: from <b>10–10 (deuce)</b> play goes on until someone is 2 points clear. Play 1 game, or best of 3 or 5.</li>
+        </ul>
+        <h3>Modes</h3>
+        <ul>
+          <li><b>vs Computer</b>: Easy, Medium or Hard. Harder computers react faster, move quicker, aim closer to the lines and smash more. Your wins are saved on this device.</li>
+          <li><b>2 players</b> on one device: each player drags on their own half of the screen (bottom and top when the phone is upright, left and right when it is sideways), both at once. On a keyboard, <b>WASD</b> moves the first player and the <b>arrows</b> the second; <b>Space</b> and <b>Enter</b> serve.</li>
+        </ul>
+      </div>
+      <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+// ==== LOGIC START ====
+/* Ball physics, rally rules, scoring and the computer player, with no DOM access. Units: metres and seconds.
+   The net is on y = 0. Side 0 plays from the +y end (the bottom, or the left when the table is sideways),
+   side 1 from the -y end. x runs across the table and z is height above the table top (the ball's bottom).
+   The game runs at roughly half real speed so it is playable on a phone: gravity is scaled to match. */
+const L = 2.74, HALF = L/2, TW = 1.525, HW = TW/2;   // a real table: 2.74 x 1.525 m
+const NET_H = .1525, NET_OUT = .1525;                // net height and how far the posts stand outside the table
+const R_BALL = .02;
+const GRAV = 3.2;                                    // slowed-down gravity
+const TOPK = 1.3, SIDEK = .7;                        // topspin pulls the ball down, sidespin curves it
+const E_TABLE = .86, KEEP_H = .96, KICK = .35;       // table bounce: restitution, speed kept, topspin kick
+const FLOOR = -.76, E_FLOOR = .5;                    // the floor, 76 cm below the table top
+const DT = 1/240;                                    // fixed physics step
+const R_HIT = .16, RC = R_HIT + R_BALL;              // bat reach (centre to ball edge)
+const Z_LO = -.35, Z_HI = .6;                        // heights at which a bat can reach the ball
+const PAD_FRONT = HALF - .2, PAD_BACK = HALF + .72, PAD_SIDE = HW + .28;  // where each bat can go
+const SERVE_LINE = HALF + .12;                       // the server's bat stays behind the end line
+const HOLD_OFF = .1;                                 // the ball is held this far in front of the server's bat
+const SMASH_PACE = 4.8;
+const WIN_PTS = 11;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+function gauss(rnd){ return Math.sqrt(-2*Math.log(1 - rnd()))*Math.cos(2*Math.PI*rnd()); }
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0)/4294967296; }; }
+const fwdSign = side => side === 0 ? -1 : 1;         // the y direction side's shots travel in
+const endSign = side => side === 0 ? 1 : -1;         // the y sign of side's own end
+const homeY = side => endSign(side)*(HALF + .35);
+
+/* One fixed step of ball flight. Constant acceleration within a step, so the arc is exact.
+   ev (optional): {bounce(half, x, y, speed), net(clip, x), floor(speed)}; half 0 is side 0's half (y > 0). */
+function stepBall(b, dt, ev){
+  const ax = SIDEK*b.ss, az = -(GRAV + TOPK*b.sp);
+  const x0 = b.x, y0 = b.y, z0 = b.z;
+  b.x += b.vx*dt + .5*ax*dt*dt; b.vx += ax*dt;
+  b.y += b.vy*dt;
+  b.z += b.vz*dt + .5*az*dt*dt; b.vz += az*dt;
+  // the net: checked where the ball crosses the centre line, so it can never pass through it
+  if ((y0 > 0) !== (b.y > 0)){
+    const k = y0/(y0 - b.y), xc = x0 + (b.x - x0)*k, zc = z0 + (b.z - z0)*k;
+    if (Math.abs(xc) <= HW + NET_OUT && zc < NET_H && zc > -R_BALL){
+      if (zc > NET_H - .03){                        // clips the tape: dribbles over, much slower
+        b.vy *= .45; b.vx *= .7; b.vz = Math.abs(b.vz)*.25 + .25; b.sp *= .3; b.ss *= .3;
+        if (ev && ev.net) ev.net(true, xc);
+      } else {                                       // into the net: drops back on the hitter's side
+        b.y = (y0 > 0 ? 1 : -1)*(R_BALL + .005);
+        b.vy = -b.vy*.12; b.vx *= .3; b.vz = Math.min(b.vz, 0)*.3; b.sp = 0; b.ss = 0;
+        if (ev && ev.net) ev.net(false, xc);
+      }
+    }
+  }
+  // the table top
+  if (z0 >= 0 && b.z < 0){
+    const k = z0/(z0 - b.z), xc = x0 + (b.x - x0)*k, yc = y0 + (b.y - y0)*k;
+    if (Math.abs(xc) <= HW && Math.abs(yc) <= HALF){
+      const vin = -b.vz;
+      b.z = -b.z*E_TABLE; b.vz = vin*E_TABLE;
+      const h = Math.hypot(b.vx, b.vy) || 1, nh = Math.max(.2, h*KEEP_H + b.sp*KICK);
+      b.vx = b.vx/h*nh + b.ss*.12; b.vy = b.vy/h*nh;
+      b.sp *= .5; b.ss *= .6;
+      if (ev && ev.bounce) ev.bounce(yc > 0 ? 0 : 1, xc, yc, vin);
+    }
+  }
+  if (b.z < FLOOR && b.vz < 0){
+    const vin = -b.vz;
+    b.z = FLOOR + (FLOOR - b.z)*E_FLOOR; b.vz = vin*E_FLOOR; b.vx *= .8; b.vy *= .8; b.sp = 0; b.ss = 0;
+    if (ev && ev.floor) ev.floor(vin);
+  }
+}
+
+/* Aim a rally shot from the ball's position: land on (xt, depth) of the other half at horizontal speed pace.
+   depth is a fraction of the half from the net (over 1 = long). If the arc would not clear the net by
+   `clear`, it is lifted, so a hard flat hit from low down lands deeper (and may go long). */
+function aimShot(b, side, it){
+  const sgn = fwdSign(side), sp = clamp(it.sp || 0, -1, 1), ss = clamp(it.ss || 0, -1, 1);
+  const g = GRAV + TOPK*sp, ax = SIDEK*ss;
+  const yt = sgn*clamp(it.depth, .05, 1.8)*HALF, dx = it.xt - b.x, dy = yt - b.y;
+  const T = Math.hypot(dx, dy)/Math.max(1, it.pace);
+  let vz = (-b.z + .5*g*T*T)/T;
+  const vy = dy/T, tn = -b.y/vy;
+  if (tn > 0 && tn < T){
+    const need = NET_H + (it.clear == null ? .04 : it.clear), zn = b.z + vz*tn - .5*g*tn*tn;
+    if (zn < need) vz = (need - b.z + .5*g*tn*tn)/tn;
+  }
+  b.vx = (dx - .5*ax*T*T)/T; b.vy = vy; b.vz = vz; b.sp = sp; b.ss = ss;
+  return T;
+}
+/* A serve: first bounce on the server's own half, then on the other half near depth. Searches the first
+   bounce point (preferring `first`, a fraction of the half from the net) and the speed for the serve that
+   lands closest to the target while clearing the net. */
+function aimServe(b, side, it){
+  const sgn = fwdSign(side), sp = clamp(it.sp || 0, -.6, .8), g1 = GRAV + TOPK*sp, g2 = GRAV + TOPK*sp*.5;
+  const yt = sgn*clamp(it.depth, .2, 1.2)*HALF, f0 = clamp(it.first || .5, .3, .9);
+  let best = null;
+  for (let f = .3; f < .92; f += .05){
+    const y1 = -sgn*HALF*f;
+    for (let i = 0; i <= 90; i++){
+      const v = 1 + i*.05, T1 = Math.abs(y1 - b.y)/v;
+      const vz0 = (-b.z + .5*g1*T1*T1)/T1, vzL = vz0 - g1*T1;
+      if (vzL >= 0) continue;
+      const vz1 = -vzL*E_TABLE, v2 = Math.max(.2, v*KEEP_H + sp*KICK), T2 = 2*vz1/g2, y2 = y1 + sgn*v2*T2;
+      const tn = Math.abs(y1)/v2, zn = vz1*tn - .5*g2*tn*tn, ok = tn < T2 && zn > NET_H + .035;
+      const err = Math.abs(y2 - yt) + .15*Math.abs(f - f0) + (ok ? 0 : 10 + Math.max(0, NET_H + .035 - zn));
+      if (!best || err < best.err) best = {err, v, T1, T2, vz0, v2};
+    }
+  }
+  b.vx = (it.xt - b.x)/(best.T1 + best.T2*best.v2/best.v); b.vy = sgn*best.v; b.vz = best.vz0; b.sp = sp; b.ss = 0;
+  return best;
+}
+// a person's shot, from where the ball meets the bat and how the bat is moving (vx, vy in m/s)
+function swipeShot(side, b, pad, rnd){
+  const fwd = fwdSign(side)*pad.vy, inSp = Math.hypot(b.vx, b.vy);
+  const off = clamp((b.x - pad.x)/R_HIT, -1, 1);
+  const pace = clamp(2.8 + Math.max(0, fwd)*.42 + inSp*.12, 2.4, 6.4), smash = pace >= SMASH_PACE;
+  return {
+    xt:off*.82*HW + clamp(pad.vx, -4, 4)*.06 + gauss(rnd)*(smash ? .07 : .04),
+    depth:.6 + (pace - 3)*.1 + gauss(rnd)*(smash ? .07 : .045),
+    pace, sp:clamp(fwd/5, -.8, 1), ss:clamp(pad.vx/4, -1, 1)*.7,
+    clear:.04 + gauss(rnd)*(smash ? .025 : .01), smash, power:clamp((pace - 2.4)/4, 0, 1),
+  };
+}
+function swipeServe(side, pad, rnd){
+  const p = clamp(fwdSign(side)*pad.vy/5, 0, 1);
+  return {xt:clamp(-pad.x*.35 + clamp(pad.vx, -4, 4)*.1 + gauss(rnd)*.05, -HW*.75, HW*.75), depth:clamp(.6 + .3*p + gauss(rnd)*.04, .3, .95), sp:.7*p, first:.62 + .2*p, power:p};
+}
+
+/* ---------- the computer ---------- */
+const AI = {   // react (s), bat speed (m/s), misjudgement, aim width, aim errors, pace range, smash chance, loose-shot chance
+  easy:  {react:.34, speed:1.3,  err:.13,  aim:.45, xErr:.13,  dErr:.11,  pace:[2.5, 3.2], smash:.04, loose:.12, clr:.015, wait:1.3},
+  medium:{react:.26, speed:1.55, err:.075, aim:.62, xErr:.08,  dErr:.07,  pace:[2.8, 3.8], smash:.18, loose:.07, clr:.01,  wait:1},
+  hard:  {react:.17, speed:1.8,  err:.045, aim:.78, xErr:.05,  dErr:.05,  pace:[3.2, 4.5], smash:.38, loose:.035, clr:.008, wait:.8},
+};
+/* Where to meet the ball after it bounces on side's half: the highest point it reaches inside the bat's zone
+   (a ball met high is easiest to hit well). null if it will not bounce there, or cannot be reached.
+   skip: bounces on the other half to allow first (1 for a serve that has not bounced yet). */
+function aiPredict(ball, side, skip){
+  const b = Object.assign({}, ball), sg = endSign(side), h = 1/120;
+  let bounced = 0, bad = false, best = null, other = skip || 0;
+  const ev = {bounce(half){ if (half === side && other <= 0) bounced++; else if (half !== side && other > 0 && !bounced) other--; else bad = true; }};
+  for (let t = h; t < 3; t += h){
+    stepBall(b, h, ev);
+    if (bad || bounced >= 2) break;
+    if (bounced === 1){
+      const d = sg*b.y;
+      if (b.z < Z_LO) break;
+      if (d >= PAD_FRONT + .03 && d <= PAD_BACK - .05 && b.z <= Z_HI && b.z >= Z_LO + .05){
+        const score = Math.min(b.z, .32) - (d < HALF + .05 ? .06 : 0);
+        if (!best || score > best.score + .005) best = {x:b.x, y:b.y, z:b.z, t, d, score};
+      }
+      if (best && b.z < best.z - .12) break;
+    }
+    if (Math.abs(b.y) > HALF + 1.2) break;
+  }
+  if (bad || !best) return null;
+  // stand a little behind that point: the ball touches the front of the bat first
+  return {x:best.x, y:best.y + sg*RC*.6, z:best.z, t:best.t};
+}
+function aiShot(level, side, b, rnd){
+  const A = AI[level] || AI.medium, smash = b.z > .2 && rnd() < A.smash, loose = rnd() < A.loose;
+  const pace = Math.min(smash ? 5.1 + rnd()*.8 : A.pace[0] + rnd()*(A.pace[1] - A.pace[0]), 3.1 + 9*Math.max(0, b.z));   // a low ball is played safer
+  const k = loose ? 3 : 1;                           // now and then even a good player mistimes one
+  return {
+    xt:(rnd()*2 - 1)*A.aim*HW + gauss(rnd)*A.xErr*k,
+    depth:(smash ? .78 : .55 + rnd()*.3) + (loose ? .18 : 0) + gauss(rnd)*A.dErr*k,
+    pace, sp:smash ? 1 : .15 + rnd()*.4, ss:(rnd() - .5)*.6, clear:.045 + gauss(rnd)*A.clr*k, smash, power:clamp((pace - 2.4)/4, 0, 1),
+  };
+}
+function aiServe(level, side, rnd){
+  const k = level === 'hard' ? 1 : level === 'medium' ? .7 : .4, p = rnd()*k;
+  return {xt:(rnd()*2 - 1)*HW*(.3 + .35*k), depth:.55 + .35*rnd(), sp:.6*p, first:.6 + .2*p, power:p};
+}
+function newAI(level, side){ return {level, side, hitNo:-1, plan:null, err:0, serveX:null, wait:(AI[level] || AI.medium).wait}; }
+// move the computer's bat for one step: wait out the reaction time, then head for the predicted contact point
+function aiThink(ai, R, pad, dt, rnd){
+  const A = AI[ai.level] || AI.medium, s = ai.side;
+  let tx = pad.x*.6, ty = homeY(s), sp = A.speed*.5;
+  if (R.state === 'hold'){
+    if (R.server === s){
+      if (ai.serveX == null) ai.serveX = (rnd()*2 - 1)*HW*.5;
+      tx = ai.serveX; ty = endSign(s)*(SERVE_LINE + .1); sp = A.speed;
+    } else { ai.serveX = null; tx = 0; }
+  } else if (!R.over && R.last === 1 - s){
+    if (ai.hitNo !== R.hits){ ai.hitNo = R.hits; ai.plan = null; ai.err = gauss(rnd)*A.err*(1 + Math.max(0, Math.hypot(R.ball.vx, R.ball.vy) - 3.5)*1.1); }   // fast balls are harder to judge
+    if (!ai.plan && R.t >= A.react){
+      const p = aiPredict(R.ball, s, R.stage === 0 ? 1 : 0);
+      ai.plan = p ? {x:p.x + ai.err, y:p.y} : {x:pad.x*.5, y:homeY(s), none:true};
+    }
+    if (ai.plan){ tx = ai.plan.x; ty = ai.plan.y; sp = A.speed; }
+    else { tx = pad.x; ty = pad.y; }
+  }
+  const dx = tx - pad.x, dy = ty - pad.y, d = Math.hypot(dx, dy), st = sp*dt;
+  if (d <= st){ pad.x = tx; pad.y = ty; } else { pad.x += dx/d*st; pad.y += dy/d*st; }
+}
+
+/* ---------- a rally ---------- */
+function newRally(server){
+  return {state:'hold', server, last:-1, stage:2, bounce:[0, 0], netTouch:false, over:false, winner:-1, reason:'', t:0, hold:0, hits:0,
+    ball:{x:0, y:endSign(server)*(SERVE_LINE - HOLD_OFF), z:.2, vx:0, vy:0, vz:0, sp:0, ss:0}};
+}
+function clampPad(p, side, serving){
+  const sg = endSign(side);
+  const sx = serving ? HW*.85 : PAD_SIDE;           // serve from behind the table, not from out wide
+  p.x = clamp(p.x, -sx, sx);
+  p.y = sg*clamp(sg*p.y, serving ? SERVE_LINE : PAD_FRONT, PAD_BACK);
+}
+function serveBall(R, it){
+  const b = R.ball;
+  aimServe(b, R.server, it);
+  R.state = 'play'; R.last = R.server; R.stage = 0; R.bounce = [0, 0]; R.netTouch = false; R.t = 0; R.hits++;
+}
+function point(R, w, why, ev){ R.over = true; R.winner = w; R.reason = why; if (ev && ev.point) ev.point(w, why); }
+// the rules for a bounce on half h
+function onBounce(R, h, ev){
+  const s = R.last, r = 1 - s;
+  if (R.stage === 0){ if (h === s) R.stage = 1; else point(R, r, 'Serve fault', ev); return; }
+  if (R.stage === 1){
+    if (h === r){
+      R.stage = 2; R.bounce[r] = 1;
+      if (R.netTouch) point(R, -1, 'Let', ev);
+    } else point(R, r, R.netTouch ? 'Net' : 'Serve fault', ev);
+    return;
+  }
+  if (h === s) point(R, r, R.netTouch ? 'Net' : 'Fault', ev);
+  else if (++R.bounce[r] >= 2) point(R, s, 'Double bounce', ev);
+}
+// the ball can no longer be played: whoever was at fault loses the point
+function ballDead(R, ev){
+  const h = R.last, r = 1 - h;
+  if (R.stage < 2 || R.bounce[r] === 0) point(R, r, R.netTouch ? 'Net' : 'Out', ev);
+  else point(R, h, 'Missed', ev);
+}
+/* Swept test of the ball against a moving bat over one step, in the bat's frame: relative position goes from
+   (ax, ay) to (bx, by). Returns the earliest fraction of the step at which they touch, or -1. Because the whole
+   path is tested, a fast ball can never tunnel through a bat. */
+function sweep(ax, ay, bx, by, r){
+  const c = ax*ax + ay*ay - r*r;
+  if (c <= 0) return 0;
+  const dx = bx - ax, dy = by - ay, a = dx*dx + dy*dy;
+  if (a < 1e-12) return -1;
+  const q = ax*dx + ay*dy, disc = q*q - a*c;
+  if (disc < 0) return -1;
+  const t = (-q - Math.sqrt(disc))/a;
+  return t >= 0 && t <= 1 ? t : -1;
+}
+/* One fixed step of a rally. pads[s] = {x, y, px, py, vx, vy}: px/py where the bat was at the start of the step.
+   intentFn(side, ball, pad) returns the shot when side's bat meets the ball.
+   ev (optional): {bounce, net, floor, hit(side, intent), point(winner, reason)}; winner -1 is a let. */
+function stepRally(R, dt, pads, intentFn, ev){
+  ev = ev || {};
+  const b = R.ball;
+  if (R.state === 'hold'){
+    const p = pads[R.server];
+    R.hold += dt;
+    b.x = p.x; b.y = p.y + fwdSign(R.server)*HOLD_OFF; b.z = .16 + .14*Math.abs(Math.sin(R.hold*3.2));
+    b.vx = b.vy = b.vz = 0; b.sp = b.ss = 0;
+    return;
+  }
+  const x0 = b.x, y0 = b.y, z0 = b.z;
+  R.t += dt;
+  stepBall(b, dt, {
+    bounce:(h, x, y, v) => { if (ev.bounce) ev.bounce(h, x, y, v); if (!R.over) onBounce(R, h, ev); },
+    net:(clip, x) => { if (!R.over) R.netTouch = true; if (ev.net) ev.net(clip, x); },
+    floor:v => { if (ev.floor) ev.floor(v); },
+  });
+  if (!R.over){
+    for (let s = 0; s < 2; s++){
+      if (R.over || s === R.last) continue;
+      if (s === 0 ? b.vy <= 0 : b.vy >= 0) continue;          // only a ball coming towards this end
+      const p = pads[s], t = sweep(x0 - p.px, y0 - p.py, b.x - p.x, b.y - p.y, RC);
+      if (t < 0) continue;
+      const zc = z0 + (b.z - z0)*t, yc = y0 + (b.y - y0)*t;
+      if (zc < Z_LO || zc > Z_HI) continue;
+      if (R.stage < 2 || R.bounce[s] !== 1){
+        // touching a ball that has not bounced: beyond the end line it was going out anyway
+        if (R.bounce[s] === 0 && Math.abs(yc) > HALF){ point(R, s, 'Long', ev); b.vy *= -.25; b.vx *= .5; b.vz = Math.abs(b.vz)*.3; }
+        continue;
+      }
+      b.x = x0 + (b.x - x0)*t; b.y = yc; b.z = zc;
+      const it = intentFn(s, b, p);
+      aimShot(b, s, it);
+      R.last = s; R.bounce = [0, 0]; R.netTouch = false; R.t = 0; R.hits++;
+      if (ev.hit) ev.hit(s, it);
+    }
+  }
+  if (!R.over){
+    const off = Math.abs(b.x) > HW || Math.abs(b.y) > HALF, live = R.stage >= 2 && R.bounce[1 - R.last] === 1;
+    if ((off && (live ? b.z < Z_LO - .02 : b.z < 0 && b.vz < 0)) || Math.abs(b.y) > HALF + 1.05 || Math.abs(b.x) > HW + .8 || R.t > 6) ballDead(R, ev);
+  }
+}
+
+/* ---------- games and the match ---------- */
+function newMatch(bestOf, first){ return {bestOf, need:Math.ceil(bestOf/2), games:[0, 0], score:[0, 0], first, gameFirst:first, log:[], over:false, winner:-1}; }
+// serve changes every 2 points, and every point from 10-10
+function serverOf(M){
+  const p = M.score[0] + M.score[1], d = 2*(WIN_PTS - 1), k = p < d ? Math.floor(p/2) : p - d/2;
+  return (M.gameFirst + k) % 2;
+}
+const gameWon = (sc, w) => sc[w] >= WIN_PTS && sc[w] - sc[1 - w] >= 2;
+function matchStatus(M){
+  const [a, b] = M.score, deuce = a === b && a >= WIN_PTS - 1;
+  let gp = -1;
+  for (const w of [0, 1]) if (M.score[w] >= WIN_PTS - 1 && M.score[w] > M.score[1 - w]) gp = w;
+  return {deuce, gamePoint:gp, matchPoint:gp >= 0 && M.games[gp] + 1 >= M.need ? gp : -1, server:serverOf(M), game:M.games[0] + M.games[1] + 1};
+}
+function pointTo(M, w){
+  if (M.over) return {game:false, match:false, gp:false};
+  const gp = matchStatus(M).gamePoint === w;
+  M.score[w]++;
+  if (!gameWon(M.score, w)) return {game:false, match:false, gp};
+  M.games[w]++; M.log.push(M.score.slice());
+  const res = {game:true, match:false, gp, score:M.score.slice()};
+  if (M.games[w] >= M.need){ M.over = true; M.winner = w; res.match = true; }
+  else { M.score = [0, 0]; M.gameFirst = 1 - M.gameFirst; }
+  return res;
+}
+// ==== LOGIC END ====
+
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/arcade-games/ping-pong/';
+const SETUP_KEY = 'ping-pong-setup', REC_KEY = 'ping-pong-record';
+const LV = {easy:'Easy', medium:'Medium', hard:'Hard'};
+const PCOL = [
+  {c1:'#ff8a80', c2:'#b71c1c', rub:'#e3352f', rubD:'#7a0e0e', hi:'rgba(255,190,180,.45)'},
+  {c1:'#8f9bb0', c2:'#1c2430', rub:'#30343b', rubD:'#060708', hi:'rgba(200,210,225,.3)'},
+];
+const PM = .045, VK = .9, ZK = .62;   // view: perspective per metre of depth, depth squash, how far height lifts things
+const PZ = .1;                        // bats are drawn a little above the table
+const VIS_K = .3;                     // heights below the table top are squashed on screen (the floor would be far below)
+const EXT_X = HW + .3, EXT_Y = HALF + .88;
+const GAIN = 1.25, LAG = 22, PAD_VMAX = 10, KEY_V = 2.4;
+const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const game = $('#game'), field = $('#field'), cvs = $('#cv'), ctx = cvs.getContext('2d');
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const lerp = (a, b, t) => a + (b - a)*t;
+function loadSetup(){
+  const d = {level:'medium', bestOf:3, names:['', '']};
+  try {
+    const s = JSON.parse(localStorage.getItem(SETUP_KEY));
+    if (s && typeof s === 'object'){
+      if (LV[s.level]) d.level = s.level;
+      if ([1, 3, 5].includes(s.bestOf)) d.bestOf = s.bestOf;
+      if (Array.isArray(s.names)) d.names = [0, 1].map(i => String(s.names[i] || '').slice(0, 12));
+    }
+  } catch(e){}
+  return d;
+}
+function saveSetup(s){ try { localStorage.setItem(SETUP_KEY, JSON.stringify(s)); } catch(e){} }
+function loadRec(){
+  const r = {easy:{w:0, l:0}, medium:{w:0, l:0}, hard:{w:0, l:0}};
+  try {
+    const s = JSON.parse(localStorage.getItem(REC_KEY));
+    if (s && typeof s === 'object') for (const k in r) if (s[k] && typeof s[k] === 'object') r[k] = {w:Math.max(0, s[k].w | 0), l:Math.max(0, s[k].l | 0)};
+  } catch(e){}
+  return r;
+}
+function saveRec(r){ try { localStorage.setItem(REC_KEY, JSON.stringify(r)); } catch(e){} }
+
+/* ---------- sound: everything synthesised with WebAudio ---------- */
+let actx = null, soundOn = true, noiseBuf = null;
+function audio(){
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  if (!noiseBuf){
+    noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+  }
+  return actx;
+}
+function env(g, at, vol, len, atk){ g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + (atk || .0015)); g.gain.exponentialRampToValueAtTime(.0005, at + len); }
+function tone(f, at, vol, type, len, f2){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, at);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, at + len);
+  env(g, at, vol, len, .002);
+  o.connect(g).connect(actx.destination); o.start(at); o.stop(at + len + .03);
+}
+function noise(at, vol, len, type, freq, q, atk){
+  const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q || .8;
+  env(g, at, vol, len, atk);
+  src.connect(f).connect(g).connect(actx.destination);
+  src.start(at, Math.random()*.6); src.stop(at + len + .03);
+  return f;
+}
+function voice(at, f0, len, vol){
+  const o = actx.createOscillator(), bp = actx.createBiquadFilter(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(f0*.85, at); o.frequency.linearRampToValueAtTime(f0*1.18, at + len*.3); o.frequency.linearRampToValueAtTime(f0*.92, at + len);
+  lfo.frequency.value = 5 + Math.random()*2.5; lg.gain.value = f0*.03;
+  lfo.connect(lg).connect(o.frequency);
+  bp.type = 'bandpass'; bp.frequency.value = 900 + Math.random()*500; bp.Q.value = 1.3;
+  env(g, at, vol, len, .08);
+  o.connect(bp).connect(g).connect(actx.destination);
+  o.start(at); o.stop(at + len + .05); lfo.start(at); lfo.stop(at + len + .05);
+}
+// the celluloid "pok": a short hollow click; f sets the pitch
+function pok(at, vol, f){
+  tone(f, at, vol*.55, 'sine', .055, f*.78);
+  tone(f*2.4, at, vol*.18, 'triangle', .03, f*2.1);
+  noise(at, vol*.5, .014, 'bandpass', f*2.8, 1.6);
+}
+function sfx(kind, a){
+  if (!soundOn || !G) return;
+  try {
+    audio();
+    const t = actx.currentTime;
+    a = a == null ? .5 : a;
+    switch (kind){
+      case 'pad': pok(t, .45 + .45*a, 600 - 90*a); tone(230, t, .14 + .1*a, 'sine', .05, 160); break;   // bat: lower, woody
+      case 'table': pok(t, .3 + .35*a, 1260 + 80*a); break;                                               // table: higher, brighter
+      case 'clip': pok(t, .2, 880); noise(t, .12, .06, 'lowpass', 1200, .7); break;
+      case 'net': noise(t, .26, .14, 'lowpass', 700, .7); tone(180, t, .1, 'sine', .1, 120); break;
+      case 'floor': pok(t, .08 + .1*a, 760); break;
+      case 'smash': {
+        const f = noise(t, .25, .2, 'bandpass', 600, 1.1, .02);
+        f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(3000, t + .08); f.frequency.exponentialRampToValueAtTime(800, t + .2);
+        break;
+      }
+      case 'cheer': {                                   // the crowd: a swell of voices and claps
+        const v = .5 + .5*a, len = 1.3 + v;
+        noise(t, .12*v, len, 'bandpass', 1000, .45, .25);
+        for (let i = 0; i < 4 + 6*v; i++) voice(t + Math.random()*.35, 260 + Math.random()*320, .5 + Math.random()*.6, .04*v);
+        for (let i = 0; i < 26*v; i++) noise(t + .05 + Math.random()*len*.85, .1*v, .025, 'highpass', 1600, .7);
+        break;
+      }
+      case 'click': tone(740, t, .09, 'sine', .1); break;
+      case 'good': [784, 988].forEach((f, i) => tone(f, t + i*.08, .1, 'sine', .16)); break;
+      case 'bad': [440, 349].forEach((f, i) => tone(f, t + i*.09, .1, 'triangle', .2)); break;
+      case 'start': [523, 659, 784].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .22)); break;
+      case 'win': [660, 880, 1100, 1320].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .24)); break;
+      case 'lose': [440, 349, 262].forEach((f, i) => tone(f, t + i*.12, .12, 'triangle', .26)); break;
+    }
+  } catch(e){}
+}
+
+/* ---------- state ---------- */
+let G = null;            // the match: {mode:'cpu'|'duo', cfg, M, names, phase, running, ...}
+let SCN = null;          // what is on the table: {ctl:[{ai}|{human:true}, ...], R}
+let paused = false, clock = 0, acc = 0, lastNow = 0, raf = 0, gen = 0;
+let timers = [], fx = [], marks = [], trail = [], shakeT = 0, shakeA = 0, hinted = 0;
+const serveReq = [false, false];
+const pads = [mkPad(0), mkPad(1)];
+function mkPad(s){ const y = homeY(s); return {side:s, x:0, y, px:0, py:y, vx:0, vy:0, tx:0, ty:y, swing:0}; }
+function resetPads(){ pads.forEach((p, s) => { const y = homeY(s); Object.assign(p, {x:0, y, px:0, py:y, vx:0, vy:0, tx:0, ty:y, swing:0}); }); }
+function later(sec, fn){ const g = gen; timers.push({at:clock + sec, fn:() => { if (g === gen) fn(); }}); }
+function runTimers(){
+  for (let i = 0; i < timers.length; i++) if (clock >= timers[i].at){ const t = timers.splice(i, 1)[0]; i--; t.fn(); }
+}
+const OVERLAYS = ['#splash', '#setup', '#menu', '#rules', '#share', '#result', '#gameP'], OV_EL = OVERLAYS.map(s => $(s));
+const overlayOpen = () => OV_EL.some(el => !el.hidden);
+function kick(){ if (!raf && !paused) raf = requestAnimationFrame(frame); }
+function setPaused(v){ paused = v; if (!v){ lastNow = 0; kick(); } }
+
+/* ---------- view: a top-down table with a little perspective ---------- */
+let W = 0, H = 0, DPR = 1, ORI = 'p', S = 100, CX = 0, CY = 0, TOP = 60, bg = null;
+// portrait: across = x, depth = y (side 0 near the bottom); landscape: across = -y (side 0 on the left), depth = x
+function proj(x, y, z){
+  const A = ORI === 'p' ? x : -y, D = ORI === 'p' ? y : x, f = 1 + PM*D;
+  return [CX + A*S*f, CY + (D*VK - z*f*ZK)*S, f];
+}
+function unproj(sx, sy, z){
+  z = z || 0;
+  const D = ((sy - CY)/S + z*ZK)/(VK - z*PM*ZK), f = 1 + PM*D, A = (sx - CX)/(S*f);
+  return ORI === 'p' ? {x:A, y:D} : {x:D, y:-A};
+}
+const onTable = (x, y) => Math.abs(x) <= HW && Math.abs(y) <= HALF;
+const visZ = z => z < 0 ? z*VIS_K : z;
+const surfZ = (x, y) => onTable(x, y) ? 0 : FLOOR*VIS_K;
+function sizeAll(){
+  const r = field.getBoundingClientRect();
+  W = Math.max(200, r.width); H = Math.max(160, r.height);
+  ORI = W > H*1.08 ? 'l' : 'p';
+  game.classList.toggle('wide', ORI === 'l');
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  cvs.width = Math.round(W*DPR); cvs.height = Math.round(H*DPR);
+  const tb = $('#topbar').getBoundingClientRect();
+  TOP = Math.max(44, tb.bottom - r.top);
+  fit();
+  buildBg();
+  draw();
+}
+// scale and centre the view: the whole play area fits, and the table (with room for the ball above it) clears the top bar
+function fit(){
+  let mnA = Infinity, mxA = -Infinity, mnV = Infinity, mxV = -Infinity, tV = Infinity;
+  const at = (x, y, z) => { const A = ORI === 'p' ? x : -y, D = ORI === 'p' ? y : x, f = 1 + PM*D; return [A*f, D*VK - z*f*ZK]; };
+  for (const x of [-EXT_X, EXT_X]) for (const y of [-EXT_Y, EXT_Y]){ const [a, v] = at(x, y, 0); mnA = Math.min(mnA, a); mxA = Math.max(mxA, a); mnV = Math.min(mnV, v); mxV = Math.max(mxV, v); }
+  for (const x of [-HW, HW]) for (const y of [-HALF, HALF]) tV = Math.min(tV, at(x, y, .15)[1]);
+  const pad = 8, bottom = ORI === 'l' ? 30 : 8;
+  let top = ORI === 'p' ? TOP + 2 : 0;
+  for (let i = 0; i < 8; i++){
+    const aw = W - 2*pad, ah = Math.max(60, H - top - bottom);
+    S = Math.max(30, Math.min(aw/(mxA - mnA), ah/(mxV - mnV)));
+    CX = W/2 - S*(mnA + mxA)/2;
+    CY = top + (ah - S*(mxV - mnV))/2 - S*mnV;
+    const tt = CY + S*tV;
+    if (tt >= TOP + 3) break;
+    top += TOP + 3 - tt + .5;
+  }
+}
+function poly(g, pts){ g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); }
+const rectAt = (x0, x1, y0, y1, z) => [proj(x0, y0, z), proj(x1, y0, z), proj(x1, y1, z), proj(x0, y1, z)];
+// the floor and the table, painted once per resize
+function buildBg(){
+  bg = bg || document.createElement('canvas');
+  bg.width = cvs.width; bg.height = cvs.height;
+  const g = bg.getContext('2d');
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const [mx, my] = proj(0, 0, 0);
+  // a dark wooden sports floor with a pool of light round the table
+  const fg = g.createRadialGradient(mx, my, 0, mx, my, Math.max(W, H)*.8);
+  fg.addColorStop(0, '#6a3d1c'); fg.addColorStop(.45, '#43240f'); fg.addColorStop(1, '#140a04');
+  g.fillStyle = fg; g.fillRect(0, 0, W, H);
+  const fz = FLOOR*VIS_K;
+  g.lineWidth = 1;
+  for (let x = -6, k = 0; x <= 6; x += .16, k++){
+    const a = proj(x, -9, fz), b = proj(x, 9, fz);
+    g.strokeStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    for (let y = -9 + (k % 3)*.7; y < 9; y += 2.1){
+      const c = proj(x, y, fz), d = proj(x + .16, y, fz);
+      g.strokeStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.moveTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.stroke();
+    }
+  }
+  // court markings: a faint boundary round the play area
+  g.strokeStyle = 'rgba(245,200,81,.16)'; g.lineWidth = 2;
+  poly(g, rectAt(-EXT_X + .05, EXT_X - .05, -EXT_Y + .05, EXT_Y - .05, fz)); g.stroke();
+  // legs and the table's shadow on the floor
+  g.save();
+  g.shadowColor = 'rgba(0,0,0,.65)'; g.shadowBlur = .3*S; g.shadowOffsetY = .06*S;
+  g.fillStyle = 'rgba(0,0,0,.45)'; poly(g, rectAt(-HW, HW, -HALF, HALF, fz)); g.fill();
+  g.restore();
+  g.fillStyle = '#1b1d22';
+  for (const lx of [-HW + .1, HW - .1]) for (const ly of [-HALF + .25, HALF - .25]){
+    const a = proj(lx, ly, fz), b = proj(lx, ly, -.02), w = Math.max(3, .045*S);
+    g.fillRect(a[0] - w/2, Math.min(a[1], b[1]), w, Math.abs(a[1] - b[1]));
+  }
+  // the table's front edge (the side nearest the viewer)
+  const th = .06;
+  g.fillStyle = '#0d2a4f';
+  if (ORI === 'p') poly(g, [proj(-HW, HALF, 0), proj(HW, HALF, 0), proj(HW, HALF, -th), proj(-HW, HALF, -th)]);
+  else poly(g, [proj(HW, -HALF, 0), proj(HW, HALF, 0), proj(HW, HALF, -th), proj(HW, -HALF, -th)]);
+  g.fill();
+  // the top: blue with a soft sheen
+  const top = rectAt(-HW, HW, -HALF, HALF, 0);
+  const tg = g.createRadialGradient(mx, my, 0, mx, my, HALF*S*1.1);
+  tg.addColorStop(0, '#2f7fd6'); tg.addColorStop(1, '#1a4f92');
+  g.fillStyle = tg; poly(g, top); g.fill();
+  // white lines: 2 cm round the edge and the 3 mm centre line
+  const lw = .02;
+  g.fillStyle = '#f4f6fb';
+  poly(g, rectAt(-HW, HW, -HALF, HALF, 0));
+  const inner = rectAt(-HW + lw, HW - lw, -HALF + lw, HALF - lw, 0);
+  g.moveTo(inner[0][0], inner[0][1]); for (let i = 3; i >= 0; i--) g.lineTo(inner[i][0], inner[i][1]); g.closePath();
+  g.fill();
+  const c0 = proj(0, -HALF + lw, 0), c1 = proj(0, HALF - lw, 0);
+  g.strokeStyle = 'rgba(244,246,251,.85)'; g.lineWidth = Math.max(1, .006*S);
+  g.beginPath(); g.moveTo(c0[0], c0[1]); g.lineTo(c1[0], c1[1]); g.stroke();
+}
+
+/* ---------- drawing ---------- */
+function drawNet(){
+  const e = HW + NET_OUT;
+  if (ORI === 'p'){
+    const b0 = proj(-e, 0, 0), b1 = proj(e, 0, 0), t0 = proj(-e, 0, NET_H), t1 = proj(e, 0, NET_H);
+    ctx.fillStyle = 'rgba(14,22,30,.5)';
+    poly(ctx, [b0, b1, t1, t0]); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = -e; x <= e; x += .045){ const a = proj(x, 0, 0), b = proj(x, 0, NET_H); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+    for (let z = .03; z < NET_H; z += .03){ const a = proj(-e, 0, z), b = proj(e, 0, z); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+    ctx.stroke();
+    ctx.strokeStyle = '#f7f7f2'; ctx.lineWidth = Math.max(2, .016*S);
+    ctx.beginPath(); ctx.moveTo(t0[0], t0[1]); ctx.lineTo(t1[0], t1[1]); ctx.stroke();
+    ctx.fillStyle = '#20262c';
+    for (const [b, t] of [[b0, t0], [b1, t1]]){ const w = Math.max(3, .022*S); ctx.fillRect(b[0] - w/2, t[1] - 1, w, b[1] - t[1] + 3); }
+  } else {
+    // seen from the side the net is almost edge-on: a narrow band with the tape on top and a post at each end
+    const nb = proj(0, 0, 0), fb = proj(-e, 0, 0), nt = proj(e, 0, NET_H), ft = proj(-e, 0, NET_H), w = Math.max(2, .012*S);
+    ctx.fillStyle = 'rgba(14,22,30,.55)';
+    ctx.fillRect(nb[0] - w, ft[1], 2*w, proj(e, 0, 0)[1] - ft[1]);
+    ctx.fillStyle = '#f7f7f2';
+    ctx.fillRect(nb[0] - w*.6, ft[1], w*1.2, nt[1] - ft[1]);
+    ctx.fillStyle = '#20262c';
+    const pw = Math.max(4, .03*S);
+    for (const [b, t] of [[fb, ft], [proj(e, 0, 0), nt]]) ctx.fillRect(b[0] - pw/2, t[1] - 1, pw, b[1] - t[1] + 3);
+  }
+}
+function shadowAt(x, y, zv, r, a){
+  const sz = surfZ(x, y), [X, Y] = proj(x, y, sz), h = Math.max(0, zv - sz);
+  ctx.fillStyle = `rgba(0,0,0,${(a/(1 + h*3)).toFixed(3)})`;
+  ctx.beginPath(); ctx.ellipse(X, Y, r*(1 + h*.7), r*(1 + h*.7)*.62, 0, 0, Math.PI*2); ctx.fill();
+}
+function drawPad(p){
+  const s = p.side, c = PCOL[s];
+  const [X, Y, f] = proj(p.x, p.y, PZ);
+  const r = .115*S*f*(1 + .14*p.swing);
+  const [hx, hy] = proj(p.x, p.y + endSign(s)*.3, PZ);
+  const tilt = clamp(p.x/HW*.45 + p.vx*.03, -.8, .8)*(s === 0 ? 1 : -1)*(ORI === 'p' ? 1 : -1) - p.swing*.35*(s === 0 ? 1 : -1);
+  const ang = Math.atan2(hy - Y, hx - X) - Math.PI/2 + tilt;
+  ctx.save(); ctx.translate(X, Y); ctx.rotate(ang);
+  // handle (towards the player), then the blade with its wooden edge and rubber
+  const hw = r*.36, h0 = r*.72, h1 = r*1.95;
+  const hg = ctx.createLinearGradient(-hw, 0, hw, 0);
+  hg.addColorStop(0, '#9a6a35'); hg.addColorStop(.5, '#e2b57a'); hg.addColorStop(1, '#8a5a2a');
+  ctx.fillStyle = hg;
+  ctx.beginPath(); ctx.moveTo(-hw*.8, h0); ctx.lineTo(hw*.8, h0); ctx.lineTo(hw, h1 - hw*.6); ctx.quadraticCurveTo(hw, h1, 0, h1); ctx.quadraticCurveTo(-hw, h1, -hw, h1 - hw*.6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(60,30,10,.35)'; ctx.fillRect(-hw*.85, h0 + r*.12, hw*1.7, r*.12);
+  ctx.fillStyle = '#d9b27a'; ctx.beginPath(); ctx.ellipse(0, 0, r, r*1.04, 0, 0, Math.PI*2); ctx.fill();
+  const rg = ctx.createRadialGradient(-r*.3, -r*.35, r*.1, 0, 0, r);
+  rg.addColorStop(0, c.rub); rg.addColorStop(1, c.rubD);
+  ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(0, 0, r*.9, r*.94, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = c.hi; ctx.lineWidth = Math.max(1, r*.07);
+  ctx.beginPath(); ctx.arc(0, 0, r*.68, Math.PI*1.08, Math.PI*1.55); ctx.stroke();
+  ctx.restore();
+}
+function drawBall(b){
+  const zv = visZ(b.z), [X, Y, f] = proj(b.x, b.y, zv + R_BALL);
+  const r = Math.max(4.5, .032*S)*f*(1 + clamp(zv, -.3, .8)*.25);
+  const g = ctx.createRadialGradient(X - r*.35, Y - r*.4, r*.1, X, Y, r);
+  g.addColorStop(0, '#fffaf0'); g.addColorStop(.35, '#ffbb55'); g.addColorStop(1, '#e06a0c');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(90,40,0,.45)'; ctx.lineWidth = 1; ctx.stroke();
+}
+function drawTrail(){
+  if (trail.length < 2) return;
+  ctx.lineCap = 'round';
+  for (let i = 1; i < trail.length; i++){
+    const a = trail[i - 1], b = trail[i], k = i/trail.length;
+    const A = proj(a.x, a.y, visZ(a.z) + R_BALL), B = proj(b.x, b.y, visZ(b.z) + R_BALL);
+    ctx.strokeStyle = b.hot ? `rgba(255,${Math.round(160 + 80*k)},80,${(.55*k).toFixed(3)})` : `rgba(255,236,200,${(.35*k).toFixed(3)})`;
+    ctx.lineWidth = Math.max(1.5, .032*S*k*(b.hot ? 1.6 : 1.1));
+    ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
+  }
+}
+function drawFx(){
+  for (const m of marks){
+    const k = (clock - m.t0)/1.2, [X, Y, f] = proj(m.x, m.y, 0);
+    ctx.fillStyle = `rgba(255,255,255,${(.22*(1 - k)).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(X, Y, .03*S*f, .03*S*f*.62, 0, 0, Math.PI*2); ctx.fill();
+  }
+  for (const e of fx){
+    const k = (clock - e.t0)/e.d;
+    if (e.t === 'ring'){
+      const [X, Y, f] = proj(e.x, e.y, 0), r = (.03 + .1*k)*S*f;
+      ctx.strokeStyle = `rgba(255,255,255,${(.7*(1 - k)).toFixed(3)})`; ctx.lineWidth = Math.max(1, 2.5*(1 - k));
+      ctx.beginPath(); ctx.ellipse(X, Y, r, r*.62, 0, 0, Math.PI*2); ctx.stroke();
+    } else if (e.t === 'burst'){
+      const [X, Y, f] = proj(e.x, e.y, visZ(e.z) + R_BALL), r0 = (.05 + .1*k)*S*f*(e.big ? 1.5 : 1), r1 = r0 + .05*S*f*(1 - k)*(e.big ? 1.6 : 1);
+      ctx.strokeStyle = e.big ? `rgba(255,214,90,${(1 - k).toFixed(3)})` : `rgba(255,255,255,${(.8*(1 - k)).toFixed(3)})`;
+      ctx.lineWidth = Math.max(1.2, (e.big ? 3.5 : 2)*(1 - k)); ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++){ const a = e.a + i*Math.PI/4; ctx.moveTo(X + Math.cos(a)*r0, Y + Math.sin(a)*r0); ctx.lineTo(X + Math.cos(a)*r1, Y + Math.sin(a)*r1); }
+      ctx.stroke();
+    }
+  }
+}
+function draw(){
+  if (!bg) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  let ox = 0, oy = 0;
+  if (shakeT > clock && !reduceMotion){ const k = (shakeT - clock)/.3; ox = (Math.random()*2 - 1)*shakeA*k; oy = (Math.random()*2 - 1)*shakeA*k; }
+  ctx.translate(ox, oy);
+  ctx.drawImage(bg, 0, 0, W, H);
+  if (!SCN) return;
+  const b = SCN.R.ball;
+  drawFx();
+  // shadows first, then everything in depth order (far to near)
+  for (const p of pads) shadowAt(p.x, p.y, PZ, .1*S, .3);
+  shadowAt(b.x, b.y, visZ(b.z), Math.max(3.5, .026*S), .45);
+  const ballNow = () => { drawTrail(); drawBall(b); };
+  if (ORI === 'p'){
+    drawPad(pads[1]);
+    if (b.y < 0) ballNow();
+    drawNet();
+    drawPad(pads[0]);
+    if (b.y >= 0) ballNow();
+  } else {
+    drawNet();
+    drawPad(pads[0]); drawPad(pads[1]);
+    ballNow();
+  }
+  // a hint over the server's bat while they hold the ball
+  const R = SCN.R;
+  if (G && R.state === 'hold' && !SCN.ctl[R.server].ai && G.phase === 'serve'){
+    const p = pads[R.server], [X, Y, f] = proj(p.x, p.y + endSign(R.server)*.26, PZ);
+    const a = .55 + .45*Math.sin(clock*5);
+    ctx.font = `900 ${Math.round(clamp(.07*S, 11, 16))}px Nunito, system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+    ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 4;
+    ctx.fillText('SERVE', X, Y);
+    ctx.shadowBlur = 0;
+  }
+}
+
+/* ---------- the frame: fixed-step physics, then one paint ---------- */
+function frame(now){
+  raf = 0;
+  const dt = lastNow ? Math.min(.1, (now - lastNow)/1000) : 1/60;
+  lastNow = now;
+  if (!paused && SCN){
+    acc += dt;
+    let n = 0;
+    while (acc >= DT && n < 40){ tick(); acc -= DT; n++; }
+    if (n >= 40) acc = 0;
+    // the trail samples once per frame
+    const b = SCN.R.ball;
+    if (SCN.R.state === 'play'){ trail.push({x:b.x, y:b.y, z:b.z, hot:SCN.hot}); if (trail.length > (SCN.hot ? 14 : 9)) trail.shift(); }
+    else if (trail.length) trail.shift();
+    fx = fx.filter(e => clock - e.t0 < e.d);
+    marks = marks.filter(m => clock - m.t0 < 1.2);
+  }
+  draw();
+  if (!paused) kick(); else lastNow = 0;
+}
+const EV = {
+  bounce(h, x, y, v){ sfx('table', clamp(v/3, 0, 1)); fx.push({t:'ring', x, y, t0:clock, d:.35}); marks.push({x, y, t0:clock}); },
+  net(clip){ sfx(clip ? 'clip' : 'net'); },
+  floor(v){ if (v > .6) sfx('floor', clamp(v/4, 0, 1)); },
+  hit(s, it){
+    const p = pads[s], b = SCN.R.ball;
+    p.swing = 1; SCN.hot = !!it.smash;
+    sfx('pad', it.power);
+    fx.push({t:'burst', x:b.x, y:b.y, z:b.z, t0:clock, d:it.smash ? .35 : .22, big:!!it.smash, a:Math.random()});
+    if (it.smash){ sfx('smash'); if (!reduceMotion){ shakeT = clock + .3; shakeA = clamp(.035*S, 4, 10); } }
+  },
+  point(w, why){ onPoint(w, why); },
+};
+function intentFor(s, b, p){ const c = SCN.ctl[s]; return c.ai ? aiShot(c.ai.level, s, b, Math.random) : swipeShot(s, b, p, Math.random); }
+function tick(){
+  clock += DT;
+  runTimers();
+  const R = SCN.R, k = 1 - Math.exp(-DT/.045);
+  for (let s = 0; s < 2; s++){
+    const p = pads[s], c = SCN.ctl[s];
+    p.px = p.x; p.py = p.y;
+    if (c.ai) aiThink(c.ai, R, p, DT, Math.random); else humanMove(p, s);
+    clampPad(p, s, R.state === 'hold' && R.server === s);
+    p.vx += ((p.x - p.px)/DT - p.vx)*k; p.vy += ((p.y - p.py)/DT - p.vy)*k;
+    p.swing = Math.max(0, p.swing - DT*4);
+  }
+  if (R.state === 'hold' && R.hold > .45 && (!G || G.phase === 'serve')){
+    const s = R.server, c = SCN.ctl[s], p = pads[s];
+    if (c.ai){ if (R.hold > c.ai.wait) doServe(aiServe(c.ai.level, s, Math.random)); }
+    else {
+      if (endSign(s)*p.ty >= SERVE_LINE - .02) p.arm = true;
+      const pushed = p.arm && endSign(s)*p.ty < SERVE_LINE - .06;   // dragged forward from behind the serve line
+      if (serveReq[s] || fwdSign(s)*p.vy > 1.3 || pushed) doServe(swipeServe(s, p, Math.random));
+    }
+  }
+  serveReq[0] = serveReq[1] = false;
+  stepRally(R, DT, pads, intentFor, EV);
+}
+function doServe(it){
+  const R = SCN.R, s = R.server;
+  serveBall(R, it);
+  pads[s].swing = 1; SCN.hot = false;
+  sfx('pad', it.power*.6);
+  if (G && G.phase === 'serve') G.phase = 'play';
+}
+// a person's bat chases its target (finger, mouse or keys) with a little lag
+const KEYS = new Set();
+function keyDir(s){
+  const duo = G && G.mode === 'duo';
+  const wasd = !duo || s === 0, arrows = !duo || s === 1;
+  let dx = 0, dy = 0;
+  if (wasd){ if (KEYS.has('KeyA')) dx--; if (KEYS.has('KeyD')) dx++; if (KEYS.has('KeyW')) dy--; if (KEYS.has('KeyS')) dy++; }
+  if (arrows){ if (KEYS.has('ArrowLeft')) dx--; if (KEYS.has('ArrowRight')) dx++; if (KEYS.has('ArrowUp')) dy--; if (KEYS.has('ArrowDown')) dy++; }
+  if (!dx && !dy) return null;
+  const n = Math.hypot(dx, dy), w = screenDir(dx/n, dy/n), v = KEY_V*(KEYS.has('ShiftLeft') || KEYS.has('ShiftRight') ? 2 : 1);
+  return {x:w.x*v, y:w.y*v};
+}
+// a direction on screen (right, down) as a direction on the table
+const screenDir = (dx, dy) => ORI === 'p' ? {x:dx, y:dy} : {x:dy, y:-dx};
+function clampTarget(p, s){
+  const sg = endSign(s);
+  p.tx = clamp(p.tx, -PAD_SIDE, PAD_SIDE);
+  p.ty = sg*clamp(sg*p.ty, PAD_FRONT, PAD_BACK);
+}
+function humanMove(p, s){
+  if (!paused && !overlayOpen()){
+    const k = keyDir(s);
+    if (k){ p.tx += k.x*DT; p.ty += k.y*DT; clampTarget(p, s); }
+  }
+  const a = 1 - Math.exp(-DT*LAG);
+  let dx = (p.tx - p.x)*a, dy = (p.ty - p.y)*a;
+  const d = Math.hypot(dx, dy), mx = PAD_VMAX*DT;
+  if (d > mx){ dx *= mx/d; dy *= mx/d; }
+  p.x += dx; p.y += dy;
+}
+
+/* ---------- points, games and the match ---------- */
+const nameOf = s => G ? G.names[s] : '';
+const REASON = {'Out':'Out!', 'Long':'Long!', 'Net':'Net!', 'Fault':'Fault!', 'Serve fault':'Serve fault', 'Double bounce':'Two bounces!', 'Missed':'Winner!'};
+function onPoint(w, why){
+  if (!G){ later(1, () => nextRally(1 - SCN.R.server)); return; }
+  if (G.phase !== 'serve' && G.phase !== 'play') return;
+  G.phase = 'after';
+  if (w < 0){
+    banner('Let', 'cool'); toast('The serve touched the net: serve again', 1700);
+    announce('Let. Serve again.');
+    later(1.1, () => nextRally());
+    return;
+  }
+  const M = G.M, res = pointTo(M, w), cpu = G.mode === 'cpu', lost = cpu && w === 1;
+  const sc = res.game ? res.score : M.score;
+  G.shown = res.game ? res.score : null;
+  let msg = REASON[why] || 'Point!';
+  if (why === 'Missed' || why === 'Double bounce') msg = lost ? 'Missed!' : why === 'Double bounce' ? 'Two bounces!' : 'Winner!';
+  if (!res.game) banner(msg, lost ? 'bad' : '');
+  sfx(lost ? 'bad' : 'good');
+  renderHud(w);
+  announce(`Point to ${nameOf(w)}${why === 'Missed' ? '' : ' (' + msg.replace('!', '') + ')'}. ${nameOf(0)} ${sc[0]}, ${nameOf(1)} ${sc[1]}.`);
+  if (res.game){
+    const gw = nameOf(w);
+    sfx('cheer', res.match ? 1 : .6);
+    banner(res.match ? (cpu ? (w === 0 ? 'You win!' : 'Computer wins') : `${gw} wins!`) : (cpu && w === 0 ? 'Game to you!' : `Game to ${gw}`), lost ? 'bad' : '');
+    later(res.match ? 2.2 : 2, () => res.match ? showResult() : showGamePanel(res.score, w));
+  } else later(1.25, () => nextRally());
+}
+function nextRally(server){
+  if (server == null) server = G ? serverOf(G.M) : 0;
+  SCN.R = newRally(server); SCN.hot = false; trail = [];
+  pads.forEach(p => { p.arm = false; });
+  for (const c of SCN.ctl) if (c.ai) c.ai.wait = (AI[c.ai.level] || AI.medium).wait*(G ? 1 : .6) + Math.random()*.4;
+  if (!G) return;
+  G.phase = 'serve'; G.shown = null;
+  renderHud();
+  const st = matchStatus(G.M), key = st.matchPoint >= 0 ? 'm' + st.matchPoint : st.gamePoint >= 0 ? 'g' + st.gamePoint : st.deuce ? 'd' : '';
+  if (key && key !== G.flag){
+    const who = st.gamePoint >= 0 ? nameOf(st.gamePoint) : '';
+    if (st.matchPoint >= 0) banner('Match point', 'cool');
+    else if (st.gamePoint >= 0) banner('Game point', 'cool');
+    else banner('Deuce', 'cool');
+    if (who) toast(`${who} ${st.matchPoint >= 0 ? 'can win the match' : 'can win the game'} with this point`, 1800);
+  }
+  G.flag = key;
+  if (!SCN.ctl[server].ai && hinted < 2 && !(G.mode === 'cpu' && G.M.score[0] + G.M.score[1] > 3)){
+    hinted++;
+    toast(G.mode === 'duo' ? `${nameOf(server)} to serve: swipe forward or tap` : 'Your serve: swipe forward or tap (Space)', 2600);
+  }
+}
+function startMatch(mode, cfg){
+  stopMatch();
+  OVERLAYS.forEach(s => $(s).hidden = true);
+  const names = mode === 'cpu' ? ['You', 'Computer'] : [0, 1].map(i => String(cfg.names[i] || '').trim().slice(0, 12) || 'Player ' + (i + 1));
+  if (mode === 'duo' && names[0] === names[1]) names[1] += ' 2';
+  const first = Math.random() < .5 ? 0 : 1;
+  G = {mode, cfg, level:cfg.level, M:newMatch(cfg.bestOf, first), names, phase:'serve', running:true, flag:'', shown:null};
+  SCN = {ctl:[{human:true}, mode === 'cpu' ? {ai:newAI(cfg.level, 1)} : {human:true}], R:newRally(first), hot:false};
+  resetPads(); fx = []; marks = []; trail = [];
+  buildPlates();
+  sizeAll();
+  sfx('start');
+  banner(mode === 'cpu' ? (first === 0 ? 'You serve first' : 'Computer serves first') : `${names[first]} serves first`, 'cool');
+  nextRally(first);
+  setPaused(false);
+  kick();
+}
+function stopMatch(){
+  gen++; timers = [];
+  KEYS.clear(); ptrs.clear();
+  setPaused(false);
+}
+function startDemo(){
+  gen++; timers = [];
+  G = null;
+  SCN = {ctl:[{ai:newAI('medium', 0)}, {ai:newAI('medium', 1)}], R:newRally(0), hot:false};
+  resetPads(); buildPlates(); renderHud();
+  nextRally(0);
+}
+
+/* ---------- HUD ---------- */
+function buildPlates(){
+  [0, 1].forEach(s => {
+    const el = $('#pl' + s), nm = G ? G.names[s] : s ? 'Computer' : 'You';
+    el.querySelector('.avatar').textContent = (nm || '?').charAt(0).toUpperCase();
+    el.querySelector('.pnm').textContent = nm;
+  });
+}
+function renderHud(bump){
+  const M = G ? G.M : null;
+  [0, 1].forEach(s => {
+    const el = $('#pl' + s), pts = el.querySelector('.pts');
+    const sc = M ? (G.shown || M.score)[s] : 0;
+    pts.textContent = sc;
+    if (bump === s){ pts.classList.remove('bump'); void pts.offsetWidth; pts.classList.add('bump'); }
+    const need = M ? M.need : 0;
+    const lvl = G && G.mode === 'cpu' && s === 1 ? `<small>${LV[G.level]}</small>` : '';
+    el.querySelector('.gms').innerHTML = (need > 1 ? Array.from({length:need}, (_, k) => `<i class="${k < M.games[s] ? 'on' : ''}"></i>`).join('') : '') + lvl;
+    el.classList.toggle('turn', !!(M && !M.over && G.phase !== 'between' && SCN.R.server === s));
+    el.classList.toggle('win', !!(M && M.over && M.winner === s));
+    el.setAttribute('aria-label', M ? `${G.names[s]}: ${sc} points, ${M.games[s]} games${SCN.R.server === s ? ', serving' : ''}` : '');
+  });
+  const st = $('#status');
+  if (!M){ st.innerHTML = ''; return; }
+  const ms = matchStatus(M), parts = [];
+  parts.push(`<span>Game<b>${G.shown || M.over ? M.log.length : ms.game}</b></span>`);
+  if (M.bestOf > 1) parts.push(`<span>Best of<b>${M.bestOf}</b></span>`);
+  if (!G.shown && !M.over){
+    if (ms.matchPoint >= 0) parts.push(`<span class="flag">Match point</span>`);
+    else if (ms.gamePoint >= 0) parts.push(`<span class="flag">Game point</span>`);
+    else if (ms.deuce) parts.push(`<span class="flag d">Deuce</span>`);
+  }
+  st.innerHTML = parts.join('');
+}
+let toastTimer;
+function banner(text, kind){
+  const b = $('#banner');
+  b.textContent = text; b.classList.toggle('bad', kind === 'bad'); b.classList.toggle('cool', kind === 'cool');
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+function toast(text, ms){
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2600);
+}
+const announce = text => { $('#sr').textContent = text; };
+const chipsHtml = (log, focus) => log.map(sc => `<span class="chip${focus != null && sc[focus] > sc[1 - focus] ? ' top' : ''}">${sc[0]}–${sc[1]}</span>`).join('');
+function showGamePanel(score, w){
+  const M = G.M, n = M.log.length;
+  G.phase = 'between';
+  $('#gpTitle').textContent = G.mode === 'cpu' ? (w === 0 ? `You win game ${n}` : `Computer wins game ${n}`) : `${nameOf(w)} wins game ${n}`;
+  $('#gpSub').textContent = score[w] > WIN_PTS ? 'Won after deuce' : '';
+  $('#gpScore').innerHTML = `${M.games[0]}–${M.games[1]}<small>games</small>`;
+  $('#gpChips').innerHTML = chipsHtml(M.log, G.mode === 'cpu' ? 0 : null);
+  const fs = M.gameFirst;
+  $('#gpNext').textContent = `${G.mode === 'cpu' ? (fs === 0 ? 'You serve' : 'The computer serves') : nameOf(fs) + ' serves'} first in game ${n + 1}. First to ${M.need} games wins.`;
+  ['#menu', '#rules', '#share'].forEach(s => $(s).hidden = true);
+  $('#gameP').hidden = false;
+  renderHud();
+  $('#gpGo').focus();
+}
+function showResult(){
+  const M = G.M, w = M.winner, cpu = G.mode === 'cpu';
+  G.running = false; G.phase = 'over';
+  if (cpu){ const r = loadRec(); r[G.level][w === 0 ? 'w' : 'l']++; saveRec(r); }
+  $('#resTitle').textContent = cpu ? (w === 0 ? 'You win!' : 'The computer wins') : `${nameOf(w)} wins!`;
+  const r = cpu ? loadRec()[G.level] : null;
+  $('#resSub').textContent = cpu ? `${LV[G.level]} computer · your record ${r.w}–${r.l}` : `${nameOf(0)} v ${nameOf(1)}`;
+  $('#resScore').innerHTML = M.bestOf > 1 ? `${M.games[0]}–${M.games[1]}<small>games</small>` : `${M.log[0][0]}–${M.log[0][1]}`;
+  $('#resChips').innerHTML = M.bestOf > 1 ? chipsHtml(M.log, cpu ? 0 : null) : '';
+  sfx(!cpu || w === 0 ? 'win' : 'lose');
+  renderHud();
+  ['#menu', '#rules', '#share', '#gameP'].forEach(s => $(s).hidden = true);
+  $('#result').hidden = false;
+  $('#againBtn').focus();
+}
+
+/* ---------- input ---------- */
+const ptrs = new Map();   // pointerId -> {side, x, y, x0, y0, t0, moved, mouse}
+const canPlay = () => !!(G && G.running && !paused && !overlayOpen());
+function sideAt(clientX, clientY){
+  if (!G) return -1;
+  if (G.mode === 'cpu') return 0;
+  const r = cvs.getBoundingClientRect(), [nx, ny] = proj(0, 0, 0);
+  return ORI === 'p' ? (clientY - r.top > ny ? 0 : 1) : (clientX - r.left < nx ? 0 : 1);
+}
+function aimAbs(s, clientX, clientY){
+  const r = cvs.getBoundingClientRect(), p = pads[s];
+  const w = unproj(clientX - r.left, clientY - r.top, PZ);
+  p.tx = w.x; p.ty = w.y; clampTarget(p, s);
+}
+cvs.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  e.preventDefault();
+  try { cvs.focus({preventScroll:true}); } catch(_){}
+  if (soundOn && G) try { audio(); } catch(_){}
+  if (!canPlay()) return;
+  const s = sideAt(e.clientX, e.clientY);
+  if (s < 0 || !SCN.ctl[s] || SCN.ctl[s].ai) return;
+  for (const [id, q] of ptrs) if (q.side === s && !q.mouse) ptrs.delete(id);     // a new finger on a half takes over that bat
+  const mouse = e.pointerType === 'mouse';
+  ptrs.set(e.pointerId, {side:s, x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, t0:performance.now(), moved:false, mouse});
+  try { cvs.setPointerCapture(e.pointerId); } catch(_){}
+  if (mouse) aimAbs(s, e.clientX, e.clientY);
+});
+cvs.addEventListener('pointermove', e => {
+  const q = ptrs.get(e.pointerId);
+  if (!q){
+    // a mouse moves the bat without a button held
+    if (e.pointerType === 'mouse' && canPlay()){ const s = sideAt(e.clientX, e.clientY); if (s >= 0 && !SCN.ctl[s].ai) aimAbs(s, e.clientX, e.clientY); }
+    return;
+  }
+  if (!canPlay()) return;
+  if (q.mouse) aimAbs(q.side, e.clientX, e.clientY);
+  else {
+    const r = cvs.getBoundingClientRect(), a = unproj(q.x - r.left, q.y - r.top, PZ), b = unproj(e.clientX - r.left, e.clientY - r.top, PZ), p = pads[q.side];
+    p.tx += (b.x - a.x)*GAIN; p.ty += (b.y - a.y)*GAIN; clampTarget(p, q.side);
+  }
+  q.x = e.clientX; q.y = e.clientY;
+  if (Math.hypot(q.x - q.x0, q.y - q.y0) > 10) q.moved = true;
+});
+const endPtr = (e, cancel) => {
+  const q = ptrs.get(e.pointerId);
+  if (!q) return;
+  ptrs.delete(e.pointerId);
+  if (!cancel && !q.moved && performance.now() - q.t0 < 350 && canPlay()) serveReq[q.side] = true;   // a tap serves
+};
+cvs.addEventListener('pointerup', e => endPtr(e, false));
+cvs.addEventListener('pointercancel', e => endPtr(e, true));
+cvs.addEventListener('lostpointercapture', e => { if (ptrs.has(e.pointerId) && !ptrs.get(e.pointerId).mouse) ptrs.delete(e.pointerId); });
+const GAME_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight'];
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    if (!$('#rules').hidden) $('#rulesClose').click();
+    else if (!$('#share').hidden) $('#shareClose').click();
+    else if (!$('#menu').hidden) $('#resumeBtn').click();
+    else if (G && G.running && !overlayOpen()) openMenu();
+    return;
+  }
+  if (overlayOpen() || (e.target.closest && e.target.closest('input,select,textarea'))) return;
+  if (e.target.closest && e.target.closest('button')) return;
+  if (GAME_KEYS.includes(e.code)){
+    if (!canPlay()) return;
+    e.preventDefault(); KEYS.add(e.code);
+    if (soundOn) try { audio(); } catch(_){}
+  } else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter'){
+    if (!canPlay()) return;
+    e.preventDefault();
+    if (e.repeat) return;
+    if (soundOn) try { audio(); } catch(_){}
+    serveReq[G.mode === 'duo' && e.code !== 'Space' ? 1 : 0] = true;
+  }
+});
+document.addEventListener('keyup', e => KEYS.delete(e.code));
+window.addEventListener('blur', () => KEYS.clear());
+
+/* ---------- splash and setup ---------- */
+let setup = loadSetup(), draft = null;
+function showSplash(){
+  ['#menu', '#rules', '#share', '#result', '#setup', '#gameP'].forEach(s => $(s).hidden = true);
+  const inGame = !!(G && G.running);
+  if (inGame) setPaused(true);
+  $('#splashBack').hidden = !inGame;
+  const r = loadRec(), any = Object.values(r).some(v => v.w + v.l);
+  $('#splashBest').innerHTML = any ? 'Your wins' + Object.keys(LV).map(k => ` ${LV[k]}<b>${r[k].w}</b>`).join('') : '';
+  $('#splash').hidden = false;
+  $('#cpuBtn').focus();
+}
+function renderSetup(){
+  document.querySelectorAll('#setup .seg').forEach(seg => {
+    const k = seg.dataset.k;
+    seg.querySelectorAll('.segb').forEach(b => b.setAttribute('aria-checked', String(String(draft[k]) === b.dataset.v)));
+  });
+}
+function openSetup(mode){
+  draft = {mode, level:setup.level, bestOf:setup.bestOf, names:setup.names.slice()};
+  const duo = mode === 'duo', wide = ORI === 'l';
+  $('#setTitle').textContent = duo ? '2 players' : 'vs Computer';
+  $('#setSub').textContent = duo ? `One device, one end each: both of you drag at once on your own half of the screen.` : 'You play the red bat. Pick how good the computer is.';
+  $('#lvlBox').hidden = duo; $('#nameBox').hidden = !duo;
+  $('#end0').textContent = wide ? 'Left' : 'Bottom'; $('#end1').textContent = wide ? 'Right' : 'Top';
+  $('#name0').value = draft.names[0]; $('#name1').value = draft.names[1];
+  $('#splash').hidden = true;
+  $('#setup').hidden = false;
+  renderSetup();
+  $('#startBtn').focus();
+}
+document.querySelectorAll('#setup .seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('.segb');
+  if (!b) return;
+  const k = seg.dataset.k;
+  draft[k] = k === 'bestOf' ? +b.dataset.v : b.dataset.v;
+  sfx('click');
+  renderSetup();
+}));
+$('#cpuBtn').addEventListener('click', () => openSetup('cpu'));
+$('#duoBtn').addEventListener('click', () => openSetup('duo'));
+$('#setupBack').addEventListener('click', () => { $('#setup').hidden = true; $('#splash').hidden = false; });
+$('#startBtn').addEventListener('click', () => {
+  draft.names = [$('#name0').value.trim().slice(0, 12), $('#name1').value.trim().slice(0, 12)];
+  setup = {level:draft.level, bestOf:draft.bestOf, names:draft.names}; saveSetup(setup);
+  try { audio(); } catch(_){}
+  startMatch(draft.mode, Object.assign({}, setup));
+});
+$('#splashBack').addEventListener('click', () => { $('#splash').hidden = true; if (G && G.phase === 'between') $('#gameP').hidden = false; setPaused(false); });
+$('#gpGo').addEventListener('click', () => { $('#gameP').hidden = true; G.shown = null; G.flag = ''; renderHud(); banner(`Game ${G.M.log.length + 1}`, 'cool'); sfx('start'); nextRally(); });
+$('#gpHome').addEventListener('click', () => showSplash());
+$('#againBtn').addEventListener('click', () => startMatch(G.mode, G.cfg));
+$('#homeBtn').addEventListener('click', () => { startDemo(); showSplash(); });
+
+/* ---------- overlays ---------- */
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+function drawQR(el, url){
+  try { const qr = qrcode(0, 'M'); qr.addData(url); qr.make(); el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true}); }
+  catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
+}
+let shareFrom = null, rulesFrom = null;
+const inPlay = () => !!(G && G.running);
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true;
+  const url = siteUrl();
+  $('#shareLink').value = url; drawQR($('#qrBox'), url);
+  $('#share').hidden = false; if (inPlay()) setPaused(true); $('#copyBtn').focus();
+}
+function openRules(from){ rulesFrom = from; if (from) $(from).hidden = true; else if (inPlay()) setPaused(true); $('#rules').hidden = false; $('#rulesClose').focus(); }
+const coveringOverlay = () => ['#splash', '#setup', '#result', '#gameP', '#menu'].find(s => !$(s).hidden) || null;
+function openMenu(){ if (coveringOverlay()) return; $('#menu').hidden = false; setPaused(true); KEYS.clear(); ptrs.clear(); $('#resumeBtn').focus(); }
+function resume(){ setPaused(false); }
+$('#menuBtn').addEventListener('click', openMenu);
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; resume(); });
+$('#newBtn').addEventListener('click', () => showSplash());
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+$('#shareBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openShare(coveringOverlay()); });
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else resume(); });
+$('#copyBtn').addEventListener('click', () => {
+  const inp = $('#shareLink'), btn = $('#copyBtn');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+});
+$('#rulesBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openRules(coveringOverlay()); });
+$('#splashRules').addEventListener('click', () => openRules('#splash'));
+$('#menuRules').addEventListener('click', () => openRules('#menu'));
+$('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; else resume(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !overlayOpen()) openMenu(); });
+
+/* ---------- init ---------- */
+startDemo();
+sizeAll();
+showSplash();
+kick();
+let rzT = 0;
+window.addEventListener('resize', () => { sizeAll(); clearTimeout(rzT); rzT = setTimeout(sizeAll, 120); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => sizeAll());
+})();
+</script>
