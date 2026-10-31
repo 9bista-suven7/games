@@ -27,6 +27,9 @@ h2{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;
 .game.kt{background:radial-gradient(ellipse at 70% 30%,#2f6fd0,#0a2459)}
 .game.dh{background:radial-gradient(ellipse at 70% 30%,#21a39a,#06403c)}
 .game.mr{background:radial-gradient(ellipse at 70% 30%,#7a4cc4,#22104a)}
+.game.ld{background:linear-gradient(135deg,#2e9e4f 0 25%,#e8b923 25% 50%,#2f6fd0 50% 75%,#d63a3a 75%)}
+.game.ld::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,6,3,.55),rgba(10,6,3,.75));pointer-events:none}
+.game.ld>*{position:relative}
 .game h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:30px;margin:0;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
 .game p{margin:0;font-weight:700;font-size:14px;line-height:1.45;color:rgba(255,255,255,.85);max-width:30ch}
 .game .suit{position:absolute;right:14px;bottom:-14px;font-size:120px;line-height:1;color:rgba(0,0,0,.18);pointer-events:none}
@@ -41,7 +44,7 @@ footer a{color:var(--gold)}
 <body>
 <main>
   <h1>Suven's Game Room</h1>
-  <p class="lede">Nepali card games that run right in your browser. No install, no sign-up. Open one on your phone and play.</p>
+  <p class="lede">Nepali card and board games that run right in your browser. No install, no sign-up. Open one on your phone and play.</p>
 
   <h2>Card games</h2>
   <div class="grid">
@@ -75,6 +78,18 @@ footer a{color:var(--gold)}
       <div class="tags"><span>4 players</span><span>21 cards</span></div>
       <span class="suit" aria-hidden="true">&#9829;&#xFE0E;</span>
     </a>
+  </div>
+
+  <h2>Board games</h2>
+  <div class="grid">
+    <a class="game ld" href="games/board-games/ludo/">
+      <h3>Ludo</h3>
+      <p>Roll a six to come out, capture your rivals and race all four tokens home. Play bots or pass the phone around.</p>
+      <div class="tags"><span>2&ndash;4 players</span><span>Pass &amp; play</span></div>
+    </a>
+    <div class="soon"><b>Snakes &amp; Ladders</b>Coming soon</div>
+    <div class="soon"><b>Chess</b>Coming soon</div>
+    <div class="soon"><b>Baagchaal</b>Coming soon</div>
   </div>
 
   <footer>Source on <a href="https://github.com/9bista-suven7/games">GitHub</a>.</footer>

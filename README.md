@@ -14,6 +14,12 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Marriage | [`games/card-games/marriage`](games/card-games/marriage) | Nepali rummy with three decks, Maal jokers and maal-point scoring |
 | Teen Patti | [`games/card-games/teen-patti`](games/card-games/teen-patti) | Three-card game with blind/seen betting, show and sideshow; play chips only |
 
+## Board games
+
+| Game | Folder | Description |
+| --- | --- | --- |
+| Ludo | [`games/board-games/ludo`](games/board-games/ludo) | Classic Ludo vs bots or pass & play on one device |
+
 ## Adding a game
 
 Put it in `games/<category>/<game-name>/index.html`, then add a row to the table above.
