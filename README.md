@@ -19,6 +19,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Game | Folder | Description |
 | --- | --- | --- |
 | Ludo | [`games/board-games/ludo`](games/board-games/ludo) | Classic Ludo vs bots or pass & play on one device |
+| Baagchaal | [`games/board-games/baagchaal`](games/board-games/baagchaal) | Nepali tigers-and-goats hunt game vs the computer or 2 players |
 | Chess | [`games/board-games/chess`](games/board-games/chess) | Full-rules chess vs a built-in engine (3 levels) or 2 players on one device |
 | Snakes & Ladders | [`games/board-games/snakes-and-ladders`](games/board-games/snakes-and-ladders) | Classic or random board, exact roll to 100, bots or pass & play |
 
