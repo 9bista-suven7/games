@@ -10,6 +10,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | --- | --- | --- |
 | Callbreak | [`games/card-games/callbreak`](games/card-games/callbreak) | Nepali trick-taking game, spades are trump, 5 rounds; online play with friends |
 | Dhumbal | [`games/card-games/dhumbal`](games/card-games/dhumbal) | Lowest hand total wins; throw sets or runs and call Dhumbal at 5 or less |
+| Jhandi Munda | [`games/card-games/jhandi-munda`](games/card-games/jhandi-munda) | Langur Burja six-symbol dice game; win when your symbol shows 2+ times; play chips only |
 | Kauda | [`games/card-games/kauda`](games/card-games/kauda) | Tihar cowrie-shell game: bet on how many of 16 shells land open; play chips only |
 | Kitty | [`games/card-games/kitty`](games/card-games/kitty) | Nine cards arranged into three hands; win 2 of 3 shows or the pot carries over |
 | Marriage | [`games/card-games/marriage`](games/card-games/marriage) | Nepali rummy with three decks, Maal jokers and maal-point scoring |
