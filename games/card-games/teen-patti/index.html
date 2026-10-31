@@ -110,7 +110,8 @@ button{font:inherit}
 .idx i{font-style:normal;font-size:calc(var(--cw)*.21);margin-top:2px}
 .idx.tl{left:calc(var(--cw)*.05);top:calc(var(--cw)*.06)}
 .idx.br{right:calc(var(--cw)*.05);bottom:calc(var(--cw)*.06);transform:rotate(180deg)}
-.pips{position:absolute;top:15%;bottom:15%;left:30%;right:30%}
+.pips{position:absolute;top:15%;bottom:15%;left:36%;right:36%}
+.card.ten .idx b{letter-spacing:-.12em;font-size:calc(var(--cw)*.24)}
 .pip{position:absolute;font-size:calc(var(--cw)*.22);line-height:1;transform:translate(-50%,-50%)}
 .pip.flip{transform:translate(-50%,-50%) rotate(180deg)}
 .ace{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cw)*.56);line-height:1}
@@ -470,7 +471,7 @@ function sfx(kind){
 /* ---------- rendering ---------- */
 function cardEl(c){
   const el = document.createElement('div');
-  el.className = 'card' + (c.s === 'H' || c.s === 'D' ? ' red' : '');
+  el.className = 'card' + (c.s === 'H' || c.s === 'D' ? ' red' : '') + (c.r === 10 ? ' ten' : '');
   const sym = SYM[c.s], rl = RL(c.r);
   let mid;
   if (c.r === 14) mid = `<div class="ace${c.s==='S'?' big':''}">${sym}</div>`;

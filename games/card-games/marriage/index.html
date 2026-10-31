@@ -1,0 +1,1721 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marriage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt-hi:#7a4cc4; --felt:#4c2a8c; --felt-lo:#1c0b3d;
+  --wood-hi:#8d5629; --wood:#5c3417; --wood-lo:#2b1608;
+  --gold:#f5c851; --gold-lo:#b98a25; --marigold:#ff9f1c;
+  --ink:#16161c; --red:#d0182f; --paper:#fdfbf4;
+  --panel:#1a0c36; --panel-hi:#3a2170;
+  --text:#f6f2fb; --muted:#c8b8e6;
+  --ground:#0a0418;
+  --CW:80px; --cw:var(--CW); --ch:calc(var(--cw)*1.4); --ocw:30px; --tcw:56px; --mcw:20px;
+  --av:clamp(38px,6.6vmin,56px);
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground)}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 40%,#3a2412 0%,#1e1008 60%,#0d0603 100%);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+button{font:inherit}
+
+/* top bar */
+#topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px 4px;position:relative;z-index:30}
+.tbr{display:flex;gap:10px}
+.ibtn{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#5a3a9c,#24124d);color:var(--gold);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #0f0624,inset 0 1px 0 rgba(255,255,255,.15);padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 #0f0624}
+.ibtn svg{width:20px;height:20px}
+.ibtn:focus-visible,.btn:focus-visible,.abtn:focus-visible,.tbtn:focus-visible,#hand .card:focus-visible,#stock:focus-visible,#discard:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.limits{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;justify-content:center;padding:5px 14px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(245,200,81,.35);
+  font-weight:900;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.limits b{color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;margin-left:3px;text-transform:none}
+.limits b.red{color:#ff8a94}
+@media (max-width:520px){.limits .opt2{display:none}}
+@media (max-width:400px){.limits .opt{display:none}}
+
+/* table */
+#tableWrap{position:relative;flex:1;min-height:0;margin:4px 16px 6px;border-radius:9999px;padding:clamp(8px,1.6vmin,16px);
+  background:linear-gradient(160deg,var(--wood-hi),var(--wood) 40%,var(--wood-lo));
+  box-shadow:0 22px 50px rgba(0,0,0,.7),inset 0 2px 2px rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.5)}
+#table{position:relative;width:100%;height:100%;border-radius:9999px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%,var(--felt-hi) 0%,var(--felt) 50%,var(--felt-lo) 100%);
+  box-shadow:inset 0 0 0 2px rgba(245,200,81,.5),inset 0 0 0 8px rgba(0,0,0,.14),inset 0 12px 40px rgba(0,0,0,.5)}
+#table::before{content:"";position:absolute;inset:0;opacity:.22;mix-blend-mode:overlay;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+#table::after{content:"";position:absolute;left:50%;top:var(--cy,50%);width:var(--ovw,60%);height:calc(var(--tcw)*2.5);transform:translate(-50%,-50%);border-radius:9999px;border:2px dashed rgba(245,200,81,.22);pointer-events:none}
+#watermark{position:absolute;left:0;right:0;top:70%;text-align:center;pointer-events:none;color:rgba(0,0,0,.22);text-shadow:0 1px 0 rgba(255,255,255,.06);font-family:'Lilita One',Impact,sans-serif;font-size:min(4.4vmin,26px);letter-spacing:.32em;padding-left:.32em}
+
+/* centre: stock, discard pile, the Maal card (and your show in wide layouts) */
+#center{position:absolute;left:50%;top:var(--cy,50%);transform:translate(-50%,-50%);z-index:8;display:flex;gap:calc(var(--tcw)*.3);align-items:flex-end;
+  --cw:var(--tcw);--ch:calc(var(--cw)*1.4)}
+.cslot{display:flex;flex-direction:column;align-items:center;min-width:0}
+#stock,#discard,#maalSlot{position:relative;box-sizing:border-box;width:var(--cw);height:var(--ch);border-radius:calc(var(--cw)*.09);transition:box-shadow .2s,translate .15s}
+#stock .card,#discard .card,#maalSlot .card{left:0;top:0}
+#discard{width:calc(var(--cw)*1.5);display:flex;justify-content:center}
+#discard .card{left:calc(var(--cw)*.25)}
+#discard .card.under{filter:brightness(.72) saturate(.75)}
+.empty{border:2px dashed rgba(245,200,81,.35)}
+#maalSlot .card.back{rotate:8deg}
+#maalSlot .card.up{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px rgba(245,200,81,.5)}
+.clabel{margin-top:6px;max-width:100%;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;white-space:nowrap;line-height:1.3;min-height:1.3em}
+.clabel b{color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:13px;letter-spacing:.02em;text-transform:none}
+#center.picking #stock{cursor:pointer;box-shadow:0 0 0 3px var(--gold),0 0 18px 5px rgba(245,200,81,.55)}
+#center.picking.canpick #discard .card.top{cursor:pointer;box-shadow:0 0 0 3px var(--gold),0 0 18px 5px rgba(245,200,81,.55)}
+#center.picking.canpick #discardLabel{color:var(--gold)}
+@media (hover:hover){#center.picking #stock:hover,#center.picking.canpick #discard .card.top:hover{translate:0 -6px}}
+#myShowSlot .melds{min-height:var(--ch)}
+
+/* shown melds */
+.melds{--cw:var(--mcw);--ch:calc(var(--cw)*1.4);display:flex;flex-wrap:wrap;justify-content:center;gap:4px 5px}
+.mgrp{display:flex;flex:none}
+.mgrp .card{position:relative;flex:none}
+.mgrp .card+.card{margin-left:calc(var(--cw)*-.48)}
+.melds:empty{display:none}
+
+/* seats */
+.seat{position:absolute;z-index:12;display:flex;align-items:center;gap:8px}
+.seat.bub{z-index:16}
+.seat .who{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.owrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.owrap .melds{max-width:calc(var(--mcw)*4.4 + 6px)}
+.seat[data-pos="top"] .owrap{flex-direction:row;align-items:center}
+.seat[data-pos="top"] .owrap .melds{max-width:none;flex-wrap:nowrap}
+.seat[data-pos="top"]{left:50%;top:clamp(4px,3%,26px);transform:translateX(-50%)}
+.seat[data-pos="left"]{left:clamp(6px,3%,44px);top:var(--sideY,50%);transform:translateY(-50%)}
+.seat[data-pos="right"]{right:clamp(6px,3%,44px);top:var(--sideY,50%);transform:translateY(-50%);flex-direction:row-reverse}
+#game.tall .seat[data-pos="left"],#game.tall .seat[data-pos="right"]{flex-direction:column;top:var(--sideTop,30%);transform:none;gap:4px}
+.avwrap{position:relative;width:var(--av);height:var(--av)}
+.avatar{position:relative;z-index:1;width:100%;height:100%;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;
+  font-family:'Lilita One',Impact,sans-serif;font-size:calc(var(--av)*.46);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);
+  background:linear-gradient(145deg,var(--c1),var(--c2));border:3px solid var(--gold);box-shadow:0 4px 10px rgba(0,0,0,.5);transition:box-shadow .2s,filter .3s}
+.timer{position:absolute;z-index:2;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);transform:rotate(-90deg);opacity:0;pointer-events:none}
+.timer circle{fill:none;stroke-width:5;stroke-linecap:round;stroke:#7be495;stroke-dasharray:100;stroke-dashoffset:0}
+.seat.turn .timer{opacity:1}
+.seat.turn .timer circle{animation:tick var(--t,1s) linear forwards}
+.seat.turn .avatar{box-shadow:0 0 22px 6px rgba(245,200,81,.6)}
+.seat.win .avatar{box-shadow:0 0 0 4px #7be495,0 0 30px 10px rgba(123,228,149,.6)}
+#game.paused .timer circle{animation-play-state:paused}
+@keyframes tick{0%{stroke-dashoffset:0;stroke:#7be495}60%{stroke:#f5c851}100%{stroke-dashoffset:100;stroke:#ef4d5a}}
+.plate{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.6);border:1px solid rgba(245,200,81,.3);border-radius:10px;padding:2px 10px 4px;min-width:68px;box-sizing:border-box}
+.plate .nm{font-weight:900;font-size:13px;line-height:1.25;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plate .pts{font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
+.plate .pts b{color:var(--gold);font-weight:900;font-size:12px}
+.status{position:absolute;z-index:3;top:calc(var(--av) - 10px);left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;padding:1px 7px;border-radius:999px;white-space:nowrap;
+  background:#4a2a00;color:#ffd08a;border:1px solid var(--marigold)}
+.status:empty{display:none}
+.status.done{background:#0b4a22;color:#a6f3b4;border-color:#7be495}
+.dchip{position:absolute;z-index:3;left:-8px;top:-6px;width:20px;height:20px;border-radius:50%;background:radial-gradient(#fff,#ddd);color:#8a1020;font:900 11px/1 'Nunito',sans-serif;display:grid;place-items:center;border:2px solid var(--red);box-shadow:0 2px 3px rgba(0,0,0,.4)}
+.bubble{position:absolute;z-index:5;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,6px) scale(.7);opacity:0;white-space:nowrap;
+  background:#fff;color:#1b1b1b;font-weight:900;font-size:13px;padding:5px 11px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:opacity .2s,transform .2s;pointer-events:none}
+.bubble.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.bubble::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-bottom:0;border-top-color:#fff}
+.seat[data-pos="left"] .bubble,#me .bubble{left:-6px;transform:translate(0,6px) scale(.7);transform-origin:20px 100%}
+.seat[data-pos="left"] .bubble.show,#me .bubble.show{transform:translate(0,0) scale(1)}
+.seat[data-pos="left"] .bubble::after,#me .bubble::after{left:calc(var(--av)/2 + 6px)}
+.seat[data-pos="right"] .bubble{left:auto;right:-6px;transform:translate(0,6px) scale(.7);transform-origin:calc(100% - 20px) 100%}
+.seat[data-pos="right"] .bubble.show{transform:translate(0,0) scale(1)}
+.seat[data-pos="right"] .bubble::after{left:auto;right:calc(var(--av)/2 + 6px);margin:0 -6px 0 0}
+.seat[data-pos="top"] .bubble{bottom:auto;left:auto;top:50%;right:calc(100% + 10px);transform:translate(6px,-50%) scale(.7)}
+.seat[data-pos="top"] .bubble.show{transform:translate(0,-50%) scale(1)}
+.seat[data-pos="top"] .bubble::after{left:100%;top:50%;margin:-6px 0 0;border:6px solid transparent;border-right:0;border-left-color:#fff}
+.bubble.plus{background:linear-gradient(#a6f3b4,#3bb862);color:#04300f;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:16px}
+.bubble.plus::after{border-top-color:#3bb862}
+.seat[data-pos="top"] .bubble.plus::after{border-top-color:transparent;border-left-color:#3bb862}
+.bubble.minus{background:linear-gradient(#ff9aa2,#d63848);color:#fff;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:16px}
+.bubble.minus::after{border-top-color:#d63848}
+.seat[data-pos="top"] .bubble.minus::after{border-top-color:transparent;border-left-color:#d63848}
+.bubble.call{background:linear-gradient(#ffe08a,#e2a92b);color:#3a2300;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:17px}
+.bubble.call::after{border-top-color:#e2a92b}
+.seat[data-pos="top"] .bubble.call::after{border-top-color:transparent;border-left-color:#e2a92b}
+.hname{font-size:11px;font-weight:900;letter-spacing:.04em;color:#fff;background:rgba(0,0,0,.65);border:1px solid rgba(245,200,81,.5);border-radius:8px;padding:2px 8px;white-space:nowrap}
+.hname:empty{display:none}
+.seat.win .hname{background:#0b4a22;border-color:#7be495}
+
+/* cards */
+.card{position:absolute;box-sizing:border-box;width:var(--cw);height:var(--ch);border-radius:calc(var(--cw)*.09);background:var(--paper);color:var(--ink);
+  border:1px solid rgba(0,0,0,.2);box-shadow:0 1px 0 rgba(0,0,0,.08),0 3px 8px rgba(0,0,0,.35);overflow:hidden}
+.card.red{color:var(--red)}
+.idx{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:.9;font-family:'Roboto Condensed','Arial Narrow',sans-serif;font-weight:700}
+.idx b{font-size:calc(var(--cw)*.27);letter-spacing:-.05em}
+.idx i{font-style:normal;font-size:calc(var(--cw)*.21);margin-top:2px}
+.idx.tl{left:calc(var(--cw)*.05);top:calc(var(--cw)*.06)}
+.idx.br{right:calc(var(--cw)*.05);bottom:calc(var(--cw)*.06);transform:rotate(180deg)}
+.pips{position:absolute;top:15%;bottom:15%;left:36%;right:36%}
+.card.ten .idx b{letter-spacing:-.12em;font-size:calc(var(--cw)*.24)}
+.pip{position:absolute;font-size:calc(var(--cw)*.22);line-height:1;transform:translate(-50%,-50%)}
+.pip.flip{transform:translate(-50%,-50%) rotate(180deg)}
+.ace{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cw)*.56);line-height:1}
+.ace.big{font-size:calc(var(--cw)*.82)}
+.ace.big::after{content:"";position:absolute;width:calc(var(--cw)*.74);height:calc(var(--cw)*.74);border-radius:50%;border:1.5px solid rgba(0,0,0,.25)}
+.face{position:absolute;inset:17% 19%;border-radius:4px;border:1.5px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:linear-gradient(160deg,#fff7dc,#f3d47e 60%,#e0b04a)}
+.card.red .face{background:linear-gradient(160deg,#fff4ef,#f6c9b8 60%,#eaa08a)}
+.face svg{width:calc(var(--cw)*.3);height:calc(var(--cw)*.2);fill:currentColor}
+.face .fl{font-family:'Lilita One',Georgia,serif;font-size:calc(var(--cw)*.36);line-height:1}
+.face .fs{font-size:calc(var(--cw)*.2);line-height:1}
+.back{box-sizing:border-box;background-color:#a3132c;border:3px solid #fff;border-radius:calc(var(--cw)*.09);
+  background-image:radial-gradient(circle at 50% 50%,rgba(245,200,81,.35) 0 18%,transparent 19%),repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 1.5px,transparent 1.5px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.14) 0 1.5px,transparent 1.5px 7px);
+  box-shadow:inset 0 0 0 2px #a3132c,inset 0 0 0 3px rgba(255,255,255,.55),0 2px 5px rgba(0,0,0,.45)}
+.card.wild{background:linear-gradient(160deg,#fffdf2,#fff1c4)}
+.mbadge{position:absolute;z-index:2;left:calc(var(--cw)*.05);top:calc(var(--cw)*.53);width:calc(var(--cw)*.2);height:calc(var(--cw)*.2);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff3b0,var(--gold) 55%,var(--gold-lo));color:#3a2300;font:900 calc(var(--cw)*.13)/1 'Nunito',sans-serif;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.ocards{--cw:var(--ocw);--ch:calc(var(--cw)*1.4);position:relative;display:flex;justify-content:center;width:calc(var(--cw)*2.4);height:var(--ch)}
+.ocards .card{position:relative;flex:none}
+.ocards .card+.card{margin-left:calc(var(--cw)*-.8)}
+.ocards .back{border-width:2px}
+.acount{display:none;position:absolute;z-index:3;right:-8px;top:-6px;min-width:20px;height:20px;box-sizing:border-box;padding:0 5px;border-radius:999px;background:#111;border:2px solid var(--gold);color:var(--gold);font:900 11px/16px 'Nunito',sans-serif;text-align:center;font-variant-numeric:tabular-nums}
+#game.tall .seat[data-pos="left"] .acount,#game.tall .seat[data-pos="right"] .acount{display:block}
+#game.tall .seat[data-pos="left"] .ocards,#game.tall .seat[data-pos="right"] .ocards{display:none}
+#game.tall #me .melds{flex-wrap:nowrap;--cw:var(--mymcw,var(--mcw))}
+.ocount{position:absolute;z-index:3;right:-4px;bottom:-4px;min-width:20px;height:20px;box-sizing:border-box;padding:0 5px;border-radius:999px;background:#111;border:2px solid var(--gold);color:var(--gold);font:900 11px/16px 'Nunito',sans-serif;text-align:center;font-variant-numeric:tabular-nums}
+
+/* your tray: you, your hand and the buttons */
+#tray{flex:none;position:relative;z-index:22;display:grid;align-items:end;justify-content:center;gap:6px 14px;padding:2px 16px calc(10px + env(safe-area-inset-bottom,0px));
+  grid-template-columns:auto auto auto;grid-template-areas:"me hand act"}
+#game.tall #tray{grid-template-columns:minmax(0,1fr);grid-template-areas:"me" "hand" "act";justify-items:center;gap:4px}
+#me{grid-area:me;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 0 6px}
+#game.tall #me{flex-direction:row;gap:10px;padding:6px 0 0}
+#me .who{flex-direction:row;gap:8px}
+#me .hname{font-size:12px;padding:3px 10px;font-variant-numeric:tabular-nums}
+#hand{grid-area:hand;position:relative;height:calc(var(--ch) + 30px);width:var(--handW,600px);max-width:100%}
+#hand.two{height:calc(var(--ch)*1.52 + 26px)}
+#hand .card{bottom:18px;transform-origin:50% 130%;transform:translateY(calc(var(--y,0px) - var(--lift,0px))) rotate(var(--r,0deg));transition:left .28s ease,bottom .28s ease,transform .16s ease,filter .2s,box-shadow .2s;outline:none}
+#hand .card.dealin{animation:dealin .35s ease-out backwards}
+@keyframes dealin{from{opacity:0;translate:0 60px}}
+#hand.live .card{cursor:pointer}
+@media (hover:hover){#hand.live .card:not(.sel):hover{--lift:8px}}
+#hand .card.sel{--lift:calc(var(--ch)*.2);box-shadow:0 0 0 3px var(--gold),0 8px 16px rgba(0,0,0,.45)}
+#hand.two .card.sel{--lift:calc(var(--ch)*.16)}
+#hand .card.new{box-shadow:0 0 0 3px #7be495,0 0 18px 4px rgba(123,228,149,.55)}
+#hand .card.new.sel{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px rgba(123,228,149,.55)}
+#actWrap{grid-area:act;display:flex;flex-direction:column;gap:6px;width:var(--actW,260px);padding-bottom:6px}
+#game.tall #actWrap{width:min(560px,100%);padding-bottom:0}
+#hint{height:2.6em;display:flex;align-items:flex-end;justify-content:center;text-align:center;font-weight:800;font-size:12px;line-height:1.3;color:var(--muted);text-wrap:balance}
+#hint b{color:var(--gold)}
+#tools{display:flex;gap:6px}
+.tbtn{flex:1 1 0;min-width:0;height:30px;border-radius:999px;border:1px solid rgba(245,200,81,.5);background:rgba(0,0,0,.35);color:var(--text);cursor:pointer;padding:0 6px;
+  font-weight:900;font-size:12px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn.on{background:linear-gradient(#5a3a9c,#2c1660);border-color:var(--gold);color:var(--gold)}
+.tbtn.find{flex-grow:1.5;background:linear-gradient(#ffe08a33,#e2a92b33);color:var(--gold)}
+.tbtn:active:not(:disabled){transform:translateY(1px)}
+.tbtn:disabled{opacity:.45;cursor:not-allowed}
+#actBtns{display:flex;gap:8px}
+.abtn{flex:1 1 0;min-width:0;height:50px;border-radius:12px;border:2px solid rgba(255,255,255,.55);cursor:pointer;padding:2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;
+  font-family:'Lilita One',Impact,sans-serif;font-size:clamp(14px,2.4vmin,18px);letter-spacing:.02em;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35);box-shadow:0 4px 0 rgba(0,0,0,.45)}
+.abtn small{font-family:'Nunito',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;opacity:.95;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.abtn small:empty{display:none}
+.abtn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.45)}
+.abtn:disabled{filter:grayscale(.7) brightness(.55);cursor:not-allowed}
+.a-draw{background:linear-gradient(#64a8ff,#1f5bc6)}
+.a-pick{background:linear-gradient(#5fe3d6,#138a7f)}
+.a-show{background:linear-gradient(#c48bff,#6d32c4)}
+.a-finish{background:linear-gradient(#ffc46b,#e0790f);color:#3a1a00;text-shadow:none}
+.a-finish.ready:not(:disabled){animation:glow 1.2s ease-in-out infinite alternate}
+@keyframes glow{from{box-shadow:0 4px 0 rgba(0,0,0,.45),0 0 0 0 rgba(255,159,28,.0)}to{box-shadow:0 4px 0 rgba(0,0,0,.45),0 0 18px 6px rgba(255,159,28,.75)}}
+.a-throw{background:linear-gradient(#69e08a,#1f8a44)}
+
+#fx{position:absolute;inset:0;pointer-events:none;z-index:40}
+#banner{position:absolute;left:50%;top:var(--cy,50%);z-index:26;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(22px,5vmin,44px);color:var(--gold);text-align:center;
+  text-shadow:0 3px 0 #6b4609,0 8px 20px rgba(0,0,0,.6);transform:translate(-50%,-50%);opacity:0;pointer-events:none;width:max-content;max-width:86%;line-height:1.08;text-wrap:balance}
+#banner.show{animation:banner 2.2s ease forwards}
+#banner.show.long{animation-duration:3.4s}
+@keyframes banner{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}82%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+#toast{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.82);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:18px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;width:max-content}
+#toast.show{opacity:1}
+
+/* panels */
+.panel{box-sizing:border-box;background:linear-gradient(180deg,var(--panel-hi),var(--panel));border:2px solid var(--gold-lo);border-radius:18px;padding:16px 18px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ptitle{font-family:'Lilita One',Impact,sans-serif;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.45);margin:0;text-wrap:balance}
+.psub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:4px 0 0;text-wrap:balance}
+.overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:auto;background:rgba(10,4,24,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.overlay>.panel{width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto}
+#scores>.panel{width:min(640px,100%)}
+.btnrow{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{font-family:'Lilita One',Impact,sans-serif;font-size:20px;letter-spacing:.03em;color:#3a2300;padding:9px 28px;border-radius:999px;border:2px solid #fff3c4;cursor:pointer;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+.btn.green{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--text);border-color:rgba(245,200,81,.5);box-shadow:none;font-size:17px}
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;align-items:stretch}
+.qrbox{background:#fff;border-radius:14px;padding:12px;margin:14px auto 0;width:min(240px,70vw);aspect-ratio:1;max-width:100%;box-sizing:border-box;display:grid;place-items:center;box-shadow:0 0 0 4px var(--gold-lo)}
+.qrbox svg{width:100%;height:100%;display:block}
+.qrbox p{color:#333;font-weight:800;text-align:center;margin:0;font-size:13px}
+.linkrow{display:flex;gap:8px;margin-top:14px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.linkrow .btn{font-size:16px;padding:6px 18px}
+
+/* scoreboard */
+.stable-wrap{overflow-x:auto;margin-top:12px}
+.stable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-weight:800}
+.stable th,.stable td{padding:7px 6px;text-align:center;border-bottom:1px solid rgba(245,200,81,.14);white-space:nowrap}
+.stable th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900;max-width:80px;overflow:hidden;text-overflow:ellipsis}
+.stable th:first-child,.stable td:first-child{text-align:left;color:var(--muted);font-size:13px}
+.stable th:first-child{max-width:none}
+.stable tr.cur td{background:rgba(245,200,81,.07)}
+.stable tr.sum td{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:18px}
+.stable tr.sum td:first-child{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px}
+.stable .neg{color:#ff8a94}.stable .pos{color:#a6f3b4}.stable .dash{color:rgba(255,255,255,.25)}
+.cmark{display:inline-block;margin-left:4px;vertical-align:2px;font:900 9px/1 'Nunito',sans-serif;letter-spacing:.04em;padding:2px 4px;border-radius:4px;background:var(--gold);color:#3a2300}
+.cmark.s{background:var(--marigold)}
+.stable tfoot td{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:20px;color:var(--gold);border-bottom:0}
+.stable tfoot td.lead{color:#fff;text-shadow:0 0 10px rgba(245,200,81,.8)}
+.rank{display:block;font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.06em}
+.snote{margin:8px 0 0;text-align:center;font-size:11.5px;font-weight:800;color:var(--muted)}
+.shead{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:16px;margin:14px 0 0;letter-spacing:.02em}
+.hands{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.hrow{background:rgba(0,0,0,.25);border-radius:10px;padding:6px 8px}
+.hrow.win{box-shadow:inset 0 0 0 2px #7be495}
+.hwho{display:flex;align-items:center;gap:6px;font-weight:900;font-size:13px;margin-bottom:4px;flex-wrap:wrap}
+.hwho .tagc{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:#4a2a00;color:#ffd08a;border:1px solid var(--marigold)}
+.hwho .tagc.no{background:#2a2a2a;color:#bbb;border-color:#666}
+.hwho .tagc.ok{background:#0b4a22;color:#a6f3b4;border-color:#7be495}
+.hwho .mp{margin-left:auto;color:var(--gold);font-variant-numeric:tabular-nums}
+.hcards{--cw:24px;--ch:calc(var(--cw)*1.4);display:flex;flex-wrap:wrap;gap:5px 9px}
+.hg{display:flex;flex:none;padding:2px;border-radius:5px}
+.hg.shown{background:rgba(255,159,28,.18)}
+.hg .card{position:relative;flex:none}
+.hg .card+.card{margin-left:calc(var(--cw)*-.4)}
+.hg.dead .card{filter:brightness(.62) saturate(.7)}
+
+.rules{font-size:14px;line-height:1.55;font-weight:600;max-width:62ch;margin:10px auto 0}
+.rules h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:17px;margin:14px 0 4px;letter-spacing:.02em}
+.rules ul,.rules ol{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules b{color:#fff}
+.ranks{list-style:none;padding:0!important;margin:6px 0 0!important;display:flex;flex-direction:column;gap:6px}
+.ranks li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:rgba(0,0,0,.25);border-radius:10px;padding:6px 10px}
+.ranks li.no{background:rgba(120,10,25,.28)}
+.eg{font-family:'Roboto Condensed','Arial Narrow',sans-serif;font-weight:700;font-size:15px;background:var(--paper);color:var(--ink);border-radius:6px;padding:1px 8px;white-space:nowrap}
+.eg .r{color:var(--red)}
+
+/* splash */
+.splash{background:radial-gradient(ellipse at 50% 45%,rgba(28,11,61,.55),rgba(8,3,18,.9))}
+.splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.logo{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(46px,11vmin,92px);line-height:1;color:var(--gold);letter-spacing:.01em;
+  text-shadow:0 3px 0 #8a5a12,0 6px 0 #4a2d06,0 12px 24px rgba(0,0,0,.6)}
+.logo small{display:block;font-family:'Nunito',system-ui,sans-serif;font-weight:900;font-size:.24em;color:var(--muted);text-shadow:none;margin-top:.3em}
+.fanshow{position:relative;--cw:clamp(56px,10vmin,80px);--ch:calc(var(--cw)*1.4);width:calc(var(--cw)*2.4);height:calc(var(--ch)*1.15);margin:10px 0 2px}
+.fanshow .card{left:50%;bottom:0;margin-left:calc(var(--cw)/-2);transform-origin:50% 120%}
+.tag{margin:0 0 10px;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.04em}
+.tag b{color:var(--text)}
+@media (max-height:640px){.fanshow{display:none}}
+@media (max-width:480px){.abtn small{font-size:10px}#actBtns{gap:6px}.tbtn{font-size:11px}}
+@media (max-height:520px){
+  #hint{height:1.35em;font-size:11.5px}
+  .abtn{height:42px}
+  .tbtn{height:26px}
+  #actWrap{gap:5px}
+  #me{gap:4px}
+  .tbtn{padding:0 4px}
+  .abtn small{font-size:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="game">
+  <div id="topbar">
+    <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="limits"><span>Round<b id="limRound">1/5</b></span><span class="opt">Maal<b id="limMaal">?</b></span><span class="opt2">Seen<b id="limSeen">0</b></span></div>
+    <div class="tbr">
+      <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+      </button>
+      <button class="ibtn" id="scoreBtn" aria-label="Scoreboard" title="Scoreboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 20v-8M12 20V5M19 20v-11"/></svg>
+      </button>
+      <button class="ibtn" id="rulesBtn" aria-label="How to play" title="How to play">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a3 3 0 1 1 4.3 2.7c-.9.5-1.5 1.2-1.5 2.3M12 18h.01"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="tableWrap">
+    <div id="table">
+      <div id="watermark">MARRIAGE</div>
+      <div id="center">
+        <div class="cslot"><div id="stock" role="button" aria-label="Stock"></div><div class="clabel">Stock <b id="stockCount">0</b></div></div>
+        <div class="cslot"><div id="discard" role="button" aria-label="Discard pile"></div><div class="clabel" id="discardLabel">Discard</div></div>
+        <div class="cslot"><div id="maalSlot" aria-label="Maal card"></div><div class="clabel" id="maalLabel">Maal</div></div>
+        <div class="cslot" id="myShowSlot" hidden><div class="clabel">Your show</div></div>
+      </div>
+      <div id="banner"></div>
+    </div>
+  </div>
+
+  <div id="tray">
+    <div id="hand" aria-label="Your cards"></div>
+    <div id="actWrap">
+      <div id="hint" role="status"></div>
+      <div id="tools">
+        <button class="tbtn" id="tSuit" title="Sort by suit">Suit</button>
+        <button class="tbtn" id="tRank" title="Sort by rank">Rank</button>
+        <button class="tbtn" id="tGroup" title="Put melds together">Group</button>
+        <button class="tbtn find" id="tFind">Find melds</button>
+      </div>
+      <div id="actBtns">
+        <button class="abtn a-draw" id="aStock">Draw<small>from stock</small></button>
+        <button class="abtn a-pick" id="aPick">Pick up<small id="aPickSub"></small></button>
+        <button class="abtn a-show" id="aShow">Show<small id="aShowSub"></small></button>
+        <button class="abtn a-finish" id="aFinish">Finish<small id="aFinishSub"></small></button>
+        <button class="abtn a-throw" id="aDiscard">Discard<small id="aDiscardSub"></small></button>
+      </div>
+    </div>
+  </div>
+  <div id="fx"></div>
+  <div id="toast" role="status"></div>
+
+  <div id="splash" class="overlay splash">
+    <div class="splash-in">
+      <div class="logo">Marriage<small>म्यारिज</small></div>
+      <div class="fanshow" id="fanshow"></div>
+      <p class="tag"><b>4 players</b> · 3 decks · 21 cards · 5 rounds</p>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn green" id="playBtn">Play now</button>
+        <button class="btn ghost" id="splashRules">How to play</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay" hidden>
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle">Paused</h2>
+      <div class="menu-list">
+        <button class="btn green" id="resumeBtn">Resume</button>
+        <button class="btn" id="newBtn">New game</button>
+        <button class="btn ghost" id="menuRules">How to play</button>
+        <button class="btn ghost" id="soundBtn">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scores" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle" id="scoreTitle">Scoreboard</h2>
+      <p class="psub" id="scoreSub"></p>
+      <div id="roundBox"></div>
+      <h3 class="shead" id="totalHead">All rounds</h3>
+      <div class="stable-wrap"><table class="stable" id="scoreTable"></table></div>
+      <p class="snote"><span class="cmark">W</span> finished · <span class="cmark s">S</span> saw the Maal · net points, highest wins after 5 rounds</p>
+      <div class="btnrow" id="scoreBtns"></div>
+    </div>
+  </div>
+
+  <div id="share" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle">Share Marriage</h2>
+      <p class="psub">Friends scan this code to open Marriage on their phone.</p>
+      <div class="qrbox" id="qrBox"></div>
+      <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
+      <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle">How to play</h2>
+      <div class="rules">
+        <h3>The goal</h3>
+        <ul>
+          <li>Arrange all your cards into <b>melds</b> and be the first to <b>finish</b>. Collect <b>Maal</b> (bonus) cards on the way.</li>
+          <li>4 players, <b>3 decks</b> (156 cards), <b>21 cards each</b>. One card is turned face up to start the discard pile. One more is set aside face down: the hidden <b>Maal card</b>. The rest is the stock.</li>
+          <li>Play goes clockwise, starting after the dealer. A game is <b>5 rounds</b>.</li>
+        </ul>
+        <h3>Your turn</h3>
+        <ol>
+          <li><b>Draw</b> one card: tap the stock, or pick up the top discard. You may only pick up the discard if it <b>makes a meld right away</b> with two cards in your hand.</li>
+          <li>Optionally <b>Show</b> (once) or <b>Finish</b> (after showing), see below.</li>
+          <li><b>Discard</b> one card: tap it, then tap <b>Discard</b>. You always hold 21 cards between turns.</li>
+        </ol>
+        <h3>Melds</h3>
+        <ol class="ranks">
+          <li><span><b>Pure sequence</b>: 3 or more in a row, same suit</span><span class="eg"><span class="r">4♥ 5♥ 6♥</span></span></li>
+          <li><span>Ace can be low or high&hellip;</span><span class="eg">A♠ 2♠ 3♠ · Q♠ K♠ A♠</span></li>
+          <li class="no"><span>&hellip;but sequences don't wrap round</span><span class="eg">K♣ A♣ 2♣</span></li>
+          <li><span><b>Tunnela</b>: 3 identical cards (counts as pure)</span><span class="eg">8♣ 8♣ 8♣</span></li>
+          <li><span><b>Trial</b>: 3 of a rank in different suits</span><span class="eg">9♠ <span class="r">9♥ 9♦</span></span></li>
+        </ol>
+        <h3>Show and see the Maal</h3>
+        <ul>
+          <li>After drawing, lay down <b>3 pure melds of 3 cards</b> (pure sequences or tunnelas, no jokers). Select the 9 cards and tap <b>Show</b>. <b>Find melds</b> picks them for you if you have them.</li>
+          <li>Your shown cards stay on the table and still count as yours. Now you <b>see the Maal card</b>, and from now on its jokers are wild for you. Players who haven't shown never get jokers.</li>
+        </ul>
+        <h3>Maal cards (jokers)</h3>
+        <p style="margin:0">Say the Maal card is <span class="eg"><span class="r">7♥</span></span>:</p>
+        <ol class="ranks">
+          <li><span><b>Tiplu</b>: the same card · 3 pts</span><span class="eg"><span class="r">7♥</span></span></li>
+          <li><span><b>Poplu</b>: one rank up, same suit · 2 pts</span><span class="eg"><span class="r">8♥</span></span></li>
+          <li><span><b>Jhiplu</b>: one rank down, same suit · 2 pts</span><span class="eg"><span class="r">6♥</span></span></li>
+          <li><span><b>Alter</b>: same rank and colour, other suit · 5 pts</span><span class="eg"><span class="r">7♦</span></span></li>
+          <li><span><b>Joker</b>: same rank, other colour · 0 pts</span><span class="eg">7♠ 7♣</span></li>
+          <li><span><b>Marriage</b>: Jhiplu + Tiplu + Poplu together · 10 pts</span><span class="eg"><span class="r">6♥ 7♥ 8♥</span></span></li>
+        </ol>
+        <ul style="margin-top:6px">
+          <li>All of these are <b>wild</b> once you've seen the Maal: they can stand in for any card in a sequence or trial. They get a gold <b>M</b> badge in your hand.</li>
+          <li>Every copy counts (there are 3 decks). If the Maal is a King, its Poplu is the Ace; if it's an Ace, its Jhiplu is the King.</li>
+        </ul>
+        <h3>Finishing</h3>
+        <ul>
+          <li>After showing, you finish when, after your draw, <b>every card in your hand</b> but one fits into melds: sequences (jokers allowed), trials (jokers allowed) or tunnelas. Tap <b>Finish</b>: your hand is arranged and your last card goes face down.</li>
+          <li>Example with Maal <span class="eg"><span class="r">7♥</span></span>: <span class="eg">4♠ 7♣ 6♠</span> is a sequence (7♣ stands in for 5♠).</li>
+          <li>If the stock runs out, the round ends with no winner.</li>
+        </ul>
+        <h3>Scoring</h3>
+        <ul>
+          <li><b>Maal points</b> only count for players who have seen the Maal (shown cards included). With <b>T</b> = everyone's Maal points added up, each player gets <b>Maal &times; 4 &minus; T</b>. Players who haven't seen count 0, so they pay T.</li>
+          <li>Example: you have 8, Sunita 3, the others haven't seen. T = 11. You +21, Sunita +1, the others &minus;11 each.</li>
+          <li><b>Game points</b> to the winner: <b>10</b> from each player who hasn't seen, <b>3</b> from each who has.</li>
+          <li>Totals run over 5 rounds. Highest total wins.</li>
+          <li>You have <b>40 seconds</b> per turn. When time runs out you draw from the stock and your least useful card is discarded.</li>
+          <li>Not included: the dublee (7 pairs) finish, Man cards, and kidnap/murder variants.</li>
+        </ul>
+      </div>
+      <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const VS = '︎';
+const SUITS = ['S','H','C','D'];
+const SYM = {S:'♠'+VS, H:'♥'+VS, C:'♣'+VS, D:'♦'+VS};
+const SUIT_NAME = {S:'Spades', H:'Hearts', C:'Clubs', D:'Diamonds'};
+const RL = r => ({1:'A',11:'J',12:'Q',13:'K'})[r] || String(r);
+const RN = r => ({1:'Ace',11:'Jack',12:'Queen',13:'King'})[r] || String(r);
+const N = 4, HAND = 21, ROUNDS = 5, SHOW = 3, GAME_UNSEEN = 10, GAME_SEEN = 3;
+const TURN_TIME = 40000;
+const POS = ['bottom','left','top','right'];      // you, then clockwise
+const NAMES = ['Bikash','Sunita','Rajan','Anita','Prakash','Gita','Sagar','Puja','Kiran','Nabin','Sita','Hari'];
+const COLORS = [['#4f8df0','#1d3f8f'],['#ee6b4d','#8f2f5e'],['#2fc4a4','#0b5d55'],['#f7a531','#a3540a']];
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/card-games/marriage/';
+const PIPS = {
+  2:[[1,0],[1,1]], 3:[[1,0],[1,.5],[1,1]],
+  4:[[0,0],[2,0],[0,1],[2,1]], 5:[[0,0],[2,0],[1,.5],[0,1],[2,1]],
+  6:[[0,0],[2,0],[0,.5],[2,.5],[0,1],[2,1]],
+  7:[[0,0],[2,0],[1,.25],[0,.5],[2,.5],[0,1],[2,1]],
+  8:[[0,0],[2,0],[1,.25],[0,.5],[2,.5],[1,.75],[0,1],[2,1]],
+  9:[[0,0],[2,0],[0,1/3],[2,1/3],[1,.5],[0,2/3],[2,2/3],[0,1],[2,1]],
+  10:[[0,0],[2,0],[1,1/6],[0,1/3],[2,1/3],[0,2/3],[2,2/3],[1,5/6],[0,1],[2,1]],
+};
+const CROWN = '<svg viewBox="0 0 24 16"><path d="M2 15 3.5 4l5 5L12 1l3.5 8 5-5L22 15z"/></svg>';
+
+/* ---------- rules ---------- */
+const SI = {S:0, H:1, C:2, D:3};
+const isRed = s => s === 'H' || s === 'D';
+// 3 decks; the id carries the deck copy (H7a, H7b, H7c)
+function makeDeck(){ const d = []; for (const k of 'abc') for (const s of SUITS) for (let r = 1; r <= 13; r++) d.push({s, r, id:s + r + k}); return d; }
+function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const cardName = c => RL(c.r) + SYM[c.s];
+const keyOf = c => SI[c.s]*13 + c.r - 1;
+const sameCard = (a, b) => a.s === b.s && a.r === b.r;
+const noWild = () => false;
+const sortSuit = h => h.sort((a, b) => SI[a.s] - SI[b.s] || a.r - b.r || (a.id < b.id ? -1 : 1));
+const sortRank = h => h.sort((a, b) => a.r - b.r || SI[a.s] - SI[b.s] || (a.id < b.id ? -1 : 1));
+
+// the Maal card m decides the jokers
+const upR = r => r === 13 ? 1 : r + 1, downR = r => r === 1 ? 13 : r - 1;
+function maalKind(c, m){
+  if (!m) return null;
+  if (c.r === m.r) return c.s === m.s ? 'tiplu' : isRed(c.s) === isRed(m.s) ? 'alter' : 'joker';
+  if (c.s === m.s && c.r === upR(m.r)) return 'poplu';
+  if (c.s === m.s && c.r === downR(m.r)) return 'jhiplu';
+  return null;
+}
+const wildOf = m => m ? (c => maalKind(c, m) !== null) : noWild;
+const MAAL_VALUE = {tiplu:3, poplu:2, jhiplu:2, alter:5, joker:0};
+function maalPoints(cards, m){
+  const n = {tiplu:0, poplu:0, jhiplu:0, alter:0, joker:0};
+  for (const c of cards){ const k = maalKind(c, m); if (k) n[k]++; }
+  const marriage = Math.min(n.tiplu, n.poplu, n.jhiplu);
+  const points = marriage*10 + (n.tiplu - marriage)*3 + (n.poplu - marriage)*2 + (n.jhiplu - marriage)*2 + n.alter*5;
+  return {points, marriage, ...n};
+}
+
+// do these natural ranks (one suit, all different) fit in a run of n cards? Ace low or high, no wrap
+function seqFits(ranks, n){
+  if (n < 3 || n > 13 || new Set(ranks).size !== ranks.length) return false;
+  if (!ranks.length) return true;
+  const fit = (ps, lo0, hi0) => {
+    const mn = Math.min(...ps), mx = Math.max(...ps);
+    for (let lo = lo0; lo + n - 1 <= hi0; lo++) if (lo <= mn && lo + n - 1 >= mx) return true;
+    return false;
+  };
+  if (!ranks.includes(1)) return fit(ranks, 1, 14);
+  return fit(ranks, 1, 13) || fit(ranks.map(r => r === 1 ? 14 : r), 2, 14);
+}
+// what kind of meld is this group? null if it isn't one
+function meldType(cards, isWild = noWild){
+  const n = cards.length;
+  if (n < 3) return null;
+  const nat = cards.filter(c => !isWild(c)), w = n - nat.length;
+  if (!w && n === 3 && sameCard(nat[0], nat[1]) && sameCard(nat[0], nat[2])) return 'tunnela';
+  if (!nat.length) return 'jokers';
+  if (nat.every(c => c.s === nat[0].s) && seqFits(nat.map(c => c.r), n)) return w ? 'sequence' : 'pure';
+  if (n <= 4 && nat.every(c => c.r === nat[0].r) && new Set(nat.map(c => c.s)).size === nat.length) return 'trial';
+  return null;
+}
+const isPureMeld = cards => { const t = meldType(cards); return t === 'pure' || t === 'tunnela'; };
+// the top discard may be taken only if it makes a meld with two cards already in hand
+function canTakeDiscard(hand, card, isWild = noWild){
+  if (!card) return false;
+  for (let a = 0; a < hand.length; a++) for (let b = a + 1; b < hand.length; b++)
+    if (meldType([card, hand[a], hand[b]], isWild)) return true;
+  return false;
+}
+
+function countsOf(cards){
+  const cnt = new Array(52).fill(0), pool = Array.from({length:52}, () => []);
+  for (const c of cards){ const k = keyOf(c); cnt[k]++; pool[k].push(c); }
+  return {cnt, pool};
+}
+// every 3-card pure meld (sequence or tunnela) as a list of card keys
+function pureCandidates(cnt){
+  const out = [];
+  for (let s = 0; s < 4; s++){
+    for (let r = 1; r <= 13; r++){ const k = s*13 + r - 1; if (cnt[k] >= 3) out.push([k, k, k]); }
+    for (let lo = 1; lo <= 12; lo++){        // lo 12 is Q-K-A
+      const ks = [lo, lo + 1, lo + 2].map(q => s*13 + (q === 14 ? 1 : q) - 1);
+      if (ks.every(k => cnt[k] > 0)) out.push(ks);
+    }
+  }
+  return out;
+}
+// ways to pick 3 disjoint 3-card pure melds (backtracking); also reports the most melds reachable
+function pureShowOptions(cards, limit = 80){
+  const {cnt} = countsOf(cards), cands = pureCandidates(cnt), res = [], pick = [];
+  let most = 0;
+  (function go(start){
+    if (res.length >= limit) return;
+    most = Math.max(most, pick.length);
+    if (pick.length === SHOW){ res.push(pick.slice()); return; }
+    for (let i = start; i < cands.length; i++){
+      const ks = cands[i];
+      ks.forEach(k => cnt[k]--);
+      if (ks.every(k => cnt[k] >= 0)){ pick.push(ks); go(i); pick.pop(); }
+      ks.forEach(k => cnt[k]++);
+    }
+  })(0);
+  return {options:res, most};
+}
+function keysToCards(cards, melds){
+  const {pool} = countsOf(cards);
+  return melds.map(ks => ks.map(k => pool[k].pop()));
+}
+// choose 3 pure melds to show, keeping the best possible rest of the hand
+function findPureMelds(hand){
+  const {options} = pureShowOptions(hand);
+  if (!options.length) return null;
+  let best = null, bv = Infinity;
+  for (const opt of options){
+    const melds = keysToCards(hand, opt), used = new Set(melds.flat());
+    if (hand.length === 9) return melds;
+    const rest = hand.filter(c => !used.has(c));
+    const v = arrange(rest, noWild, {dead:true}).cost;
+    if (v < bv){ bv = v; best = melds; }
+  }
+  return best;
+}
+
+// Split cards into melds, fewest leftover cards first (opts.dead allows leftovers; without it, null if impossible).
+// opts.pure: pure sequences and tunnelas only, no jokers. Jokers are a shared pool; runs are tried as
+// windows of 3-5 cards (any longer run splits into those), trials as 3-4 cards. Memoised on the card counts.
+function arrange(cards, isWild = noWild, opts = {}){
+  const pure = !!opts.pure, allowDead = !!opts.dead;
+  const cnt = new Array(52).fill(0), pool = Array.from({length:52}, () => []), wilds = [];
+  for (const c of cards){
+    if (!pure && isWild(c)) wilds.push(c);
+    else { const k = keyOf(c); cnt[k]++; pool[k].push(c); }
+  }
+  const memo = new Map();
+  // cap: how many spare jokers existing melds can still soak up (a run takes any, a 3-trial one more)
+  const endCost = (w, cap) => (!w || w >= 3 || cap >= w) ? 0 : allowDead ? w : Infinity;
+  function solve(w, cap){
+    let k = 0; while (k < 52 && !cnt[k]) k++;
+    if (k === 52) return endCost(w, cap);
+    const key = cnt.join('') + '|' + w + '|' + cap;
+    const hit = memo.get(key);
+    if (hit) return hit.cost;
+    let best = {cost:Infinity, move:null};
+    const consider = (move, extra, w2, cap2) => {
+      if (best.cost === 0) return;
+      const v = solve(w2, cap2) + extra;
+      if (v < best.cost) best = {cost:v, move:{...move, w2, cap2}};
+    };
+    const s = (k / 13) | 0, r = k % 13 + 1;
+    // tunnela
+    if (cnt[k] >= 3){ cnt[k] -= 3; consider({t:'tunnela', slots:[k, k, k]}, 0, w, cap); cnt[k] += 3; }
+    // runs containing this card (it is the lowest card left, so only jokers or a high Ace sit below it)
+    cnt[k]--;
+    for (const p of (r === 1 ? [1, 14] : [r])){
+      for (let L = 3; L <= 5; L++){
+        for (let lo = p - L + 1; lo <= p; lo++){
+          const hi = lo + L - 1;
+          if (lo < 1 || hi > 14 || (p === 1 && hi > 13) || (p === 14 && lo < 2)) continue;
+          const slots = [];
+          const go = (q, wu) => {
+            if (best.cost === 0) return;
+            if (q > hi){ consider({t:'seq', slots:slots.slice()}, 0, w - wu, 2); return; }
+            if (q === p){ slots.push(k); go(q + 1, wu); slots.pop(); return; }
+            const kq = s*13 + (q === 14 ? 1 : q) - 1;
+            if (cnt[kq] > 0){ cnt[kq]--; slots.push(kq); go(q + 1, wu); slots.pop(); cnt[kq]++; }
+            if (!pure && wu < w){ slots.push(-1); go(q + 1, wu + 1); slots.pop(); }
+          };
+          go(lo, 0);
+        }
+      }
+    }
+    cnt[k]++;
+    // trials: this card plus other suits of the same rank, topped up with jokers
+    if (!pure){
+      const others = [];
+      for (let s2 = s + 1; s2 < 4; s2++){ const k2 = s2*13 + r - 1; if (cnt[k2] > 0) others.push(k2); }
+      for (let m = 0; m < (1 << others.length); m++){
+        const nat = [k, ...others.filter((x, i) => m & (1 << i))];
+        for (let size = 3; size <= 4; size++){
+          const wu = size - nat.length;
+          if (wu < 0 || wu > w) continue;
+          nat.forEach(x => cnt[x]--);
+          consider({t:'trial', slots:[...nat, ...Array(wu).fill(-1)]}, 0, w - wu, size === 3 ? Math.min(2, cap + 1) : cap);
+          nat.forEach(x => cnt[x]++);
+        }
+      }
+    }
+    // leave it as deadwood
+    if (allowDead){ cnt[k]--; consider({t:'dead', slots:[k]}, 1, w, cap); cnt[k]++; }
+    memo.set(key, best);
+    return best.cost;
+  }
+  const cost = solve(wilds.length, 0);
+  if (cost === Infinity) return null;
+  // walk the memo to rebuild the chosen melds
+  const groups = [], dead = [], wl = wilds.slice();
+  let w = wilds.length, cap = 0;
+  while (true){
+    let k = 0; while (k < 52 && !cnt[k]) k++;
+    if (k === 52) break;
+    const {move} = memo.get(cnt.join('') + '|' + w + '|' + cap);
+    move.slots.forEach(x => { if (x >= 0) cnt[x]--; });
+    const cs = move.slots.map(x => x >= 0 ? pool[x].pop() : wl.pop());
+    if (move.t === 'dead') dead.push(cs[0]); else groups.push(cs);
+    w = move.w2; cap = move.cap2;
+  }
+  if (wl.length){                        // spare jokers: their own meld, or tacked onto runs/trials
+    if (wl.length >= 3) groups.push(wl.splice(0));
+    else {
+      for (const g of groups){
+        if (!wl.length) break;
+        const t = meldType(g, isWild);
+        if (t === 'sequence' || t === 'pure') while (wl.length) g.push(wl.pop());
+        else if (t === 'trial' && g.length === 3) g.push(wl.pop());
+      }
+      dead.push(...wl.splice(0));
+    }
+  }
+  return {groups, dead, cost};
+}
+const canFinish = (cards, isWild = noWild) => !!arrange(cards, isWild);
+const deadwoodScore = (hand, isWild = noWild, pure = false) => arrange(hand, isWild, {pure, dead:true}).cost;
+
+// which card to let go when finishing: plain cards first (high ones), then jokers worth the fewest points
+function discardOrder(hand, m){
+  const val = c => { const k = maalKind(c, m); return k ? 100 + MAAL_VALUE[k] : 14 - (c.r === 1 ? 14 : c.r); };
+  return hand.slice().sort((a, b) => val(a) - val(b));
+}
+// can this hand (after the draw) finish? returns the discard and the melds of the rest
+function finishPlan(hand, m, prefer){
+  const isW = wildOf(m), tried = new Set();
+  const order = discardOrder(hand, m);
+  if (prefer) order.unshift(prefer);
+  for (const c of order){
+    const sig = c.s + c.r;
+    if (tried.has(sig)) continue;
+    tried.add(sig);
+    const a = arrange(hand.filter(x => x !== c), isW);
+    if (a) return {discard:c, groups:a.groups};
+  }
+  return null;
+}
+
+// how much a loose card could still help: neighbours in its suit, twins (tunnela), same rank (trial)
+const rankGap = (a, b) => { const d = Math.abs(a - b); return Math.min(d, Math.abs((a === 1 ? 14 : a) - b), Math.abs(a - (b === 1 ? 14 : b))); };
+function cardUtility(c, pool, pure){
+  let v = 0;
+  for (const o of pool){
+    if (o === c) continue;
+    if (o.s === c.s){
+      if (o.r === c.r) v += 2.5;
+      else { const d = rankGap(c.r, o.r); if (d === 1) v += 3; else if (d === 2) v += 1.5; }
+    } else if (o.r === c.r) v += pure ? .4 : 1.4;
+  }
+  return v - (c.r === 1 ? 14 : c.r)*.02;           // ties: let the higher card go
+}
+// the least useful card: deadwood that connects to nothing, never a joker once the Maal is seen
+function chooseDiscard(hand, isWild = noWild, pure = true, avoid = null, noise = 0){
+  const a = arrange(hand, isWild, {pure, dead:true});
+  const loose = a.dead.filter(c => !isWild(c));
+  let cands = loose.filter(c => c !== avoid);
+  if (!cands.length) cands = hand.filter(c => !isWild(c) && c !== avoid);
+  if (!cands.length) cands = hand.filter(c => c !== avoid);
+  if (!cands.length) cands = hand.slice();
+  const pool = loose.length > 1 ? loose : hand.filter(c => !isWild(c));
+  let best = null, bv = Infinity;
+  for (const c of cands){ const v = cardUtility(c, pool, pure) + (noise ? Math.random()*noise : 0); if (v < bv){ bv = v; best = c; } }
+  return best;
+}
+// bots take the discard when it is legal and joins their melds at no cost
+function botDrawChoice(hand, seen, m, top, skip = 0){
+  if (!top || Math.random() < skip) return 'stock';
+  const isW = seen ? wildOf(m) : noWild;
+  if (!canTakeDiscard(hand, top, isW)) return 'stock';
+  if (seen && isW(top)) return 'discard';
+  const before = deadwoodScore(hand, isW, !seen), after = deadwoodScore([...hand, top], isW, !seen);
+  return after <= before ? 'discard' : 'stock';
+}
+
+// players: [{seen, cards (all 21: hand and shown)}], winner index or -1 when the stock ran out
+function scoreRound(players, winner, m){
+  const n = players.length;
+  const maal = players.map(p => p.seen ? maalPoints(p.cards, m).points : 0);
+  const sum = maal.reduce((a, b) => a + b, 0);
+  const settle = maal.map(v => v*n - sum);
+  const game = players.map(() => 0);
+  if (winner >= 0) players.forEach((p, i) => {
+    if (i === winner) return;
+    const pay = p.seen ? GAME_SEEN : GAME_UNSEEN;
+    game[i] -= pay; game[winner] += pay;
+  });
+  return {maal, sum, settle, game, total:settle.map((v, i) => v + game[i])};
+}
+
+/* ---------- sound ---------- */
+let actx = null, soundOn = true;
+const TONES = {turn:[740], win:[660,880,1100], call:[523,659,784,1047], bad:[440,349,262], pick:[1900,2400]};
+function sfx(kind){
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime, out = actx.destination;
+    if (TONES[kind]){
+      const notes = TONES[kind], small = kind === 'pick';
+      const gap = small ? .04 : .09, vol = small ? .06 : .12;
+      notes.forEach((f,i) => {
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = small || kind === 'bad' ? 'triangle' : 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, t+i*gap); g.gain.linearRampToValueAtTime(vol, t+i*gap+.005); g.gain.exponentialRampToValueAtTime(.001, t+i*gap+.2);
+        o.connect(g).connect(out); o.start(t+i*gap); o.stop(t+i*gap+.24);
+      });
+      return;
+    }
+    const dur = .07;
+    const buf = actx.createBuffer(1, Math.floor(actx.sampleRate*dur), actx.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 4);
+    const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = .8; g.gain.value = kind === 'deal' ? .22 : .5;
+    src.connect(f).connect(g).connect(out); src.start(t);
+  } catch(e){}
+}
+
+/* ---------- state ---------- */
+const game = $('#game'), tableWrap = $('#tableWrap'), tableEl = $('#table'), centerEl = $('#center'), handEl = $('#hand'),
+      fxEl = $('#fx'), bannerEl = $('#banner'), stockEl = $('#stock'), discardEl = $('#discard'), maalEl = $('#maalSlot');
+let T, gen = 0, paused = false, pending = null, CW = 80, TCW = 56, OCW = 30, MCW = 20, tallMode = false;
+let sel = new Set(), drawn = null, sortMode = 'suit', groupStarts = new Set();
+const myMelds = document.createElement('div'); myMelds.className = 'melds'; myMelds.id = 'myMelds';
+class Cancel extends Error {}
+
+const rand = (a,b) => a + Math.random()*(b-a);
+const center = r => ({x:r.left + r.width/2, y:r.top + r.height/2});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const nameOf = i => i === 0 ? 'You' : T.players[i].name;
+const topDiscard = () => T.discard.length && !T.downTop ? T.discard[T.discard.length - 1] : null;
+const wildFor = i => T.players[i].seen ? wildOf(T.maal) : noWild;
+const allCards = p => [...p.hand, ...p.shown.flat()];
+const fmt = v => v > 0 ? '+' + v : v < 0 ? '−' + (-v) : '0';
+
+async function sleep(ms){
+  const g = gen;
+  await new Promise(r => setTimeout(r, ms));
+  while (paused && g === gen) await new Promise(r => setTimeout(r, 120));
+  if (g !== gen) throw new Cancel();
+}
+function setPaused(v){ paused = v; game.classList.toggle('paused', v); }
+
+function freshGame(){
+  const names = shuffle(NAMES.slice());
+  T = {round:0, dealer:Math.floor(Math.random()*N), turn:-1, inRound:false, revealed:false, winner:-1,
+    stock:[], discard:[], downTop:false, maal:null, history:[], summary:'', players:[]};
+  for (let i = 0; i < N; i++) T.players.push({name:i ? names[i-1] : 'You', color:COLORS[i], bot:i > 0, hand:[], shown:[], seen:false, score:0, arr:null});
+}
+
+/* ---------- rendering ---------- */
+function cardEl(c){
+  const el = document.createElement('div');
+  el.className = 'card' + (c.s === 'H' || c.s === 'D' ? ' red' : '') + (c.r === 10 ? ' ten' : '');
+  if (c.id) el.dataset.id = c.id;
+  const sym = SYM[c.s], rl = RL(c.r);
+  let mid;
+  if (c.r === 1) mid = `<div class="ace${c.s==='S'?' big':''}">${sym}</div>`;
+  else if (c.r > 10) mid = `<div class="face">${c.r > 11 ? CROWN : ''}<div class="fl">${rl}</div><div class="fs">${sym}</div></div>`;
+  else mid = '<div class="pips">' + PIPS[c.r].map(([x,y]) =>
+    `<span class="pip${y>.5?' flip':''}" style="left:${x*50}%;top:${y*100}%">${sym}</span>`).join('') + '</div>';
+  el.innerHTML = `<div class="idx tl"><b>${rl}</b><i>${sym}</i></div>${mid}<div class="idx br"><b>${rl}</b><i>${sym}</i></div>`;
+  el.setAttribute('aria-label', `${RN(c.r)} of ${SUIT_NAME[c.s]}`);
+  return el;
+}
+function backEl(){ const b = document.createElement('div'); b.className = 'card back'; b.setAttribute('aria-label', 'Face-down card'); return b; }
+// a face-up card, with the gold M badge if it is a joker for the viewer
+function cardElW(c, isWild){
+  const el = cardEl(c);
+  if (isWild && isWild(c)){
+    el.classList.add('wild');
+    el.insertAdjacentHTML('beforeend', '<span class="mbadge" aria-hidden="true">M</span>');
+    el.setAttribute('aria-label', el.getAttribute('aria-label') + ', joker');
+  }
+  return el;
+}
+
+const seatEls = [];
+function buildSeats(){
+  POS.forEach((pos, i) => {
+    const s = document.createElement('div');
+    s.className = 'seat'; s.dataset.pos = pos;
+    const who = `<div class="who"><div class="avwrap">
+        <svg class="timer" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>
+        <div class="avatar"></div><div class="dchip" hidden>D</div><span class="acount"></span><div class="bubble"></div><div class="status"></div></div>
+        <div class="plate"><span class="nm"></span><span class="pts">Score <b>0</b></span></div></div>`;
+    if (i === 0){
+      s.id = 'me';
+      s.innerHTML = who + '<div class="hname" id="myInfo"></div>';
+      $('#tray').insertBefore(s, handEl);
+    } else {
+      s.innerHTML = who + '<div class="owrap"><div class="ocards"></div><div class="melds"></div></div>';
+      tableWrap.appendChild(s);
+    }
+    seatEls.push(s);
+  });
+}
+const boxOf = i => seatEls[i].querySelector('.ocards');
+const meldBoxOf = i => i === 0 ? myMelds : seatEls[i].querySelector('.melds');
+
+function updateSeat(i){
+  const s = seatEls[i], p = T.players[i], st = s.querySelector('.status'), av = s.querySelector('.avatar');
+  av.textContent = p.name.charAt(0).toUpperCase();
+  av.style.setProperty('--c1', p.color[0]); av.style.setProperty('--c2', p.color[1]);
+  s.querySelector('.nm').textContent = nameOf(i);
+  s.querySelector('.pts b').textContent = fmt(p.score);
+  s.querySelector('.dchip').hidden = T.dealer !== i || !T.round;
+  st.className = 'status';
+  if (T.winner === i && T.revealed){ st.textContent = 'Finished'; st.classList.add('done'); }
+  else st.textContent = p.seen ? 'Seen' : '';
+  s.querySelector('.avwrap').setAttribute('aria-label', `${nameOf(i)}: score ${p.score}${p.seen ? ', has seen the Maal' : ''}`);
+}
+const updateAll = () => T.players.forEach((p, i) => updateSeat(i));
+const bubbleTimers = {};
+function bubble(i, text, ms = 1600, cls = ''){
+  const b = seatEls[i].querySelector('.bubble');
+  b.textContent = text; b.className = 'bubble show' + (cls ? ' ' + cls : '');
+  seatEls[i].classList.add('bub');
+  clearTimeout(bubbleTimers[i]);
+  bubbleTimers[i] = setTimeout(() => { b.classList.remove('show'); seatEls[i].classList.remove('bub'); }, ms);
+}
+function setTurn(i, ms){
+  seatEls.forEach(s => s.classList.remove('turn'));
+  if (i == null) return;
+  const s = seatEls[i];
+  s.style.setProperty('--t', ms + 'ms');
+  void s.offsetWidth;
+  s.classList.add('turn');
+}
+function banner(text, long){
+  bannerEl.textContent = text;
+  bannerEl.classList.remove('show', 'long'); void bannerEl.offsetWidth;
+  bannerEl.classList.add('show'); if (long) bannerEl.classList.add('long');
+}
+let toastTimer;
+function toast(text, ms = 3200){
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+function renderMelds(i){
+  const box = meldBoxOf(i), p = T.players[i];
+  const isW = i === 0 || T.revealed ? wildFor(i) : noWild;
+  box.innerHTML = '';
+  p.shown.forEach(g => {
+    const d = document.createElement('div'); d.className = 'mgrp';
+    g.forEach(c => d.appendChild(cardElW(c, isW)));
+    box.appendChild(d);
+  });
+  box.setAttribute('aria-label', p.shown.length ? `${nameOf(i)} showed ${p.shown.flat().map(cardName).join(' ')}` : '');
+  if (i === 0) $('#myShowSlot').hidden = tallMode || !p.shown.length;
+}
+function renderOpp(i){
+  const box = boxOf(i), n = T.players[i].hand.length;
+  box.innerHTML = '';
+  for (let k = 0; k < Math.min(4, Math.ceil(n/5)); k++) box.appendChild(backEl());
+  if (n) box.insertAdjacentHTML('beforeend', `<span class="ocount">${n}</span>`);
+  box.setAttribute('aria-label', `${n} cards`);
+  seatEls[i].querySelector('.acount').textContent = n;
+  renderMelds(i);
+}
+// lay the hand out in one overlapping row, or two rows on narrow screens; melds get a small gap
+function layoutHand(){
+  const els = [...handEl.children], n = els.length;
+  if (!n) return;
+  const W = handEl.clientWidth, two = handEl.classList.contains('two');
+  const half = Math.ceil(n/2), rows = two ? [els.slice(0, half), els.slice(half)] : [els];
+  const rowUp = CW*1.4*.52;
+  rows.forEach((row, ri) => {
+    const m = row.length, breaks = row.filter((el, j) => j && groupStarts.has(el.dataset.id)).length;
+    let gap = CW*.2, step = m > 1 ? Math.min(CW*.62, (W - CW - breaks*gap)/(m-1)) : 0;
+    if (step < CW*.3){ gap = 0; step = m > 1 ? Math.min(CW*.62, (W - CW)/(m-1)) : 0; }
+    let x = (W - (CW + step*(m-1) + breaks*gap))/2;
+    const mid = (m-1)/2, rot = two ? .6 : Math.min(3, 10/m), dip = two ? .2 : Math.min(1.6, 3/m);
+    row.forEach((el, j) => {
+      if (j && groupStarts.has(el.dataset.id)) x += gap;
+      const o = j - mid;
+      el.style.left = x + 'px';
+      el.style.bottom = (18 + (two && ri === 0 ? rowUp : 0)) + 'px';
+      el.style.setProperty('--r', (o*rot) + 'deg');
+      el.style.setProperty('--y', (o*o*dip) + 'px');
+      el.style.zIndex = ri*40 + j + 1;
+      x += step;
+    });
+  });
+}
+function applySort(){
+  const me = T.players[0], h = me.hand;
+  groupStarts = new Set();
+  if (sortMode === 'rank') sortRank(h);
+  else if (sortMode === 'suit') sortSuit(h);
+  else {
+    const isW = wildFor(0);
+    const a = arrange(h, isW, {pure:!me.seen, dead:true});
+    const ordered = [];
+    a.groups.forEach(g => { if (ordered.length) groupStarts.add(g[0].id); ordered.push(...g); });
+    const rest = sortSuit(a.dead.slice());
+    if (rest.length && ordered.length) groupStarts.add(rest[0].id);
+    ordered.push(...rest);
+    h.splice(0, h.length, ...ordered);
+  }
+  ['suit','rank','group'].forEach(m => $('#t' + m[0].toUpperCase() + m.slice(1)).classList.toggle('on', sortMode === m));
+}
+function renderHand(deal){
+  handEl.innerHTML = '';
+  const isW = wildFor(0);
+  T.players[0].hand.forEach((c, i) => {
+    const el = cardElW(c, isW);
+    el.tabIndex = -1; el.setAttribute('role', 'button');
+    if (deal){ el.classList.add('dealin'); el.style.animationDelay = (i*35) + 'ms'; }
+    handEl.appendChild(el);
+  });
+  layoutHand();
+  refreshUI();
+}
+const rotOf = id => ((id.charCodeAt(0)*7 + parseInt(id.slice(1), 10)*37 + id.charCodeAt(id.length-1)*13) % 30) - 15;
+function renderCenter(){
+  const n = T.stock.length;
+  stockEl.innerHTML = '';
+  for (let k = 0; k < Math.min(3, Math.ceil(n/12)); k++){
+    const b = backEl(); b.style.left = -k*2 + 'px'; b.style.top = -k*2 + 'px'; stockEl.appendChild(b);
+  }
+  stockEl.classList.toggle('empty', !n);
+  stockEl.setAttribute('aria-label', `Stock, ${n} cards`);
+  $('#stockCount').textContent = n;
+  discardEl.innerHTML = '';
+  const d = T.discard, show = d.slice(-3);
+  show.forEach((c, j) => {
+    const top = j === show.length - 1;
+    const el = top && T.downTop ? backEl() : cardEl(c);
+    if (!top){ el.classList.add('under'); el.style.rotate = rotOf(c.id) + 'deg'; }
+    else { el.classList.add('top'); el.setAttribute('role', 'button'); }
+    discardEl.appendChild(el);
+  });
+  discardEl.classList.toggle('empty', !d.length);
+  const tc = topDiscard();
+  discardEl.setAttribute('aria-label', tc ? `Discard pile, top card ${RN(tc.r)} of ${SUIT_NAME[tc.s]}` : 'Discard pile');
+  maalEl.innerHTML = '';
+  const seeMaal = T.maal && (T.players[0].seen || T.revealed);
+  if (T.maal){ const el = seeMaal ? cardEl(T.maal) : backEl(); if (seeMaal) el.classList.add('up'); maalEl.appendChild(el); }
+  maalEl.classList.toggle('empty', !T.maal);
+  $('#maalLabel').innerHTML = seeMaal ? `Tiplu <b>${cardName(T.maal)}</b>` : 'Maal';
+  maalEl.setAttribute('aria-label', seeMaal ? `Maal card ${RN(T.maal.r)} of ${SUIT_NAME[T.maal.s]}` : 'Maal card, face down');
+  $('#limMaal').textContent = seeMaal ? cardName(T.maal) : '?';
+  $('#limMaal').classList.toggle('red', !!seeMaal && isRed(T.maal.s));
+  $('#limSeen').textContent = T.players.filter(p => p.seen).length;
+  refreshUI();
+}
+function renderAll(){
+  updateAll();
+  renderHand();
+  for (let i = 1; i < N; i++) renderOpp(i);
+  renderMelds(0);
+  renderCenter();
+  $('#limRound').textContent = `${Math.max(1, T.round)}/${ROUNDS}`;
+}
+
+// cached rule checks for your hand (refreshUI runs on every tap)
+const memoCache = new Map();
+function cached(tag, hand, fn){
+  const k = tag + ':' + hand.map(c => c.id).join(',') + ':' + (T.maal ? T.maal.id : '') + T.players[0].seen;
+  if (!memoCache.has(k)){ if (memoCache.size > 60) memoCache.clear(); memoCache.set(k, fn()); }
+  return memoCache.get(k);
+}
+const myFinish = () => { const me = T.players[0]; return me.seen ? cached('fin', me.hand, () => finishPlan(me.hand, T.maal)) : null; };
+const myCanPick = () => { const me = T.players[0], tc = topDiscard(); return !!tc && cached('pick' + tc.id, me.hand, () => canTakeDiscard(me.hand, tc, wildFor(0))); };
+
+function refreshUI(){
+  if (!T) return;
+  const me = T.players[0], k = pending && pending.kind;
+  const drawing = k === 'draw', discarding = k === 'discard', live = T.inRound && !T.revealed;
+  handEl.classList.toggle('live', live);
+  [...handEl.children].forEach(el => {
+    const s = sel.has(el.dataset.id);
+    el.classList.toggle('sel', s);
+    el.classList.toggle('new', !!drawn && el.dataset.id === drawn.id);
+    el.tabIndex = live ? 0 : -1;
+    el.setAttribute('aria-pressed', String(s));
+  });
+  const cards = me.hand.filter(c => sel.has(c.id)), tc = topDiscard();
+  const canPick = drawing && myCanPick();
+  $('#aStock').hidden = $('#aPick').hidden = !drawing;
+  $('#aShow').hidden = drawing || me.seen;
+  $('#aFinish').hidden = drawing;
+  $('#aDiscard').hidden = drawing;
+  $('#aStock').disabled = !drawing || !T.stock.length;
+  $('#aPick').disabled = !canPick;
+  $('#aPickSub').textContent = !tc ? '' : canPick ? cardName(tc) : 'no meld';
+  const fin = discarding ? myFinish() : null;
+  $('#aShow').disabled = !discarding || me.seen;
+  $('#aShowSub').textContent = discarding && !me.seen ? (cards.length ? `${cards.length}/9 picked` : '3 pure melds') : '3 pure melds';
+  $('#aFinish').disabled = !fin;
+  $('#aFinish').classList.toggle('ready', !!fin);
+  $('#aFinishSub').textContent = !me.seen ? 'show first' : fin ? 'ready!' : discarding ? 'not yet' : '';
+  $('#aDiscard').disabled = !(discarding && cards.length === 1);
+  $('#aDiscardSub').textContent = cards.length === 1 ? cardName(cards[0]) : '';
+  ['#tSuit','#tRank','#tGroup','#tFind'].forEach(s => $(s).disabled = !live || !me.hand.length);
+  $('#tFind').textContent = me.seen ? 'Hint' : !tallMode && $('#actWrap').offsetWidth < 270 ? 'Find' : 'Find melds';
+  centerEl.classList.toggle('picking', drawing);
+  centerEl.classList.toggle('canpick', canPick);
+  stockEl.tabIndex = drawing ? 0 : -1;
+  const topEl = discardEl.querySelector('.top');
+  if (topEl) topEl.tabIndex = canPick ? 0 : -1;
+  $('#myInfo').textContent = !T.round ? '' : me.seen ? `Maal ${maalPoints(allCards(me), T.maal).points} pts` : `${me.hand.length} cards`;
+  const hintEl = $('#hint'), hint = {set innerHTML(v){ hintEl.innerHTML = '<span>' + v + '</span>'; }, set textContent(v){ hintEl.textContent = v; }};
+  if (drawing){
+    if (!tc) hint.innerHTML = 'Your turn: tap the <b>stock</b> to draw';
+    else if (canPick) hint.innerHTML = `Your turn: draw from the <b>stock</b>, or pick up the <b>${cardName(tc)}</b>, it makes a meld`;
+    else hint.innerHTML = `Your turn: tap the <b>stock</b> to draw (the ${cardName(tc)} makes no meld for you)`;
+  } else if (discarding){
+    if (fin) hint.innerHTML = 'You can <b>finish</b>! Tap Finish, or keep playing';
+    else if (!cards.length) hint.innerHTML = me.seen ? 'Tap a card, then <b>Discard</b>' : 'Tap a card to <b>discard</b>, or pick 9 cards to <b>Show</b>';
+    else if (cards.length === 1) hint.innerHTML = `Discard the <b>${cardName(cards[0])}</b>?`;
+    else if (!me.seen && cards.length === 9) hint.innerHTML = findPureMelds(cards) ? 'Three pure melds! Tap <b>Show</b> to see the Maal' : 'Those 9 cards are not 3 pure melds of 3';
+    else hint.innerHTML = me.seen ? 'Pick just one card to discard' : `${cards.length} picked: 1 to discard, or 9 to show`;
+  } else if (T.inRound && T.turn > 0 && !T.revealed) hint.textContent = `${nameOf(T.turn)}'s turn`;
+  else hint.textContent = '';
+}
+
+function sizeCards(){
+  const W = game.clientWidth, H = game.clientHeight;
+  const tall = W < 600 || H > W;
+  tallMode = tall;
+  game.classList.toggle('tall', tall);
+  let two = false, handW, actW = 260;
+  if (tall){
+    handW = Math.min(W - 32, 760);
+    CW = Math.round(Math.min(handW/5, H*.08, 84));
+    two = (handW - CW)/21 < CW*.36;
+  } else {
+    actW = Math.round(Math.min(300, Math.max(232, W*.22)));
+    const meW = Math.max(110, $('#me').offsetWidth || 0);
+    const avail = W - 32 - meW - actW - 28 - 24;
+    CW = Math.round(Math.min(H*.13, avail/(1 + 21*.4), 100));
+    handW = Math.round(Math.min(avail, CW + 21*CW*.62));
+  }
+  CW = Math.max(36, CW);
+  handEl.classList.toggle('two', two);
+  const root = document.documentElement.style;
+  root.setProperty('--CW', CW + 'px');
+  game.style.setProperty('--handW', handW + 'px');
+  game.style.setProperty('--actW', actW + 'px');
+  // your shown melds sit next to you on tall screens, in the centre row on wide ones
+  const slot = $('#myShowSlot');
+  if (tall){ if (myMelds.parentNode !== $('#me')) $('#me').appendChild(myMelds); }
+  else if (myMelds.parentNode !== slot) slot.insertBefore(myMelds, slot.firstChild);
+  slot.hidden = tall || !(T && T.players[0].shown.length);
+  layoutHand();
+  const tw = tableEl.clientWidth, th = tableEl.clientHeight;
+  OCW = Math.max(16, Math.round(tall ? Math.min(CW*.42, tw*.075) : Math.min(CW*.5, th*.16/1.4, tw*.045)));
+  MCW = Math.max(14, Math.round(tall ? Math.min(CW*.36, tw*.06, th*.06) : Math.min(CW*.44, th*.12/1.4, tw*.03)));
+  root.setProperty('--ocw', OCW + 'px');
+  root.setProperty('--mcw', MCW + 'px');
+  if (tall){                                          // your melds share a row with your name on tall screens
+    const used = $('#me .who').offsetWidth + ($('#myInfo').offsetWidth || 0) + 34;
+    game.style.setProperty('--mymcw', Math.max(12, Math.min(MCW + 2, Math.floor((Math.min(W - 32, 560) - used - 10)/6.2))) + 'px');
+  }
+  const showW = slot.hidden ? 0 : 6.6*MCW;
+  TCW = Math.max(26, Math.round(Math.min(CW*.8, (tw*(tall ? .9 : .5) - 40 - showW)/4.6, th*(tall ? .17 : .3)/1.4)));
+  root.setProperty('--tcw', TCW + 'px');
+  // place the side seats and the centre in the room the table has
+  const wr = tableWrap.getBoundingClientRect(), tb = tableEl.getBoundingClientRect();
+  const top = seatEls[2].getBoundingClientRect();
+  if (tall) tableWrap.style.setProperty('--sideTop', Math.round(top.bottom - wr.top + 8) + 'px');
+  const sideBottom = Math.max(seatEls[1].getBoundingClientRect().bottom, seatEls[3].getBoundingClientRect().bottom);
+  let chh, lo, hi, cy;
+  const place = () => {
+    chh = centerEl.offsetHeight;
+    lo = (tall ? sideBottom : top.bottom) - tb.top + chh/2 + 10; hi = th - chh/2 - 10;
+    cy = tall ? lo + Math.max(0, hi - lo)*.25 : (top.bottom - tb.top + th)/2;
+    cy = Math.round(Math.min(hi, Math.max(lo, cy)));
+  };
+  place();
+  if (tall){                                          // keep the centre inside the round end of the felt
+    const R0 = tw/2, d = Math.max(0, cy + chh/2 - (th - R0));
+    const halfW = Math.sqrt(Math.max(0, R0*R0 - d*d)) - 8, need = centerEl.offsetWidth/2;
+    if (need > halfW){
+      TCW = Math.max(24, Math.floor(TCW * halfW/need));
+      root.setProperty('--tcw', TCW + 'px');
+      place();
+    }
+  }
+  tableWrap.style.setProperty('--cy', cy + 'px');
+  tableWrap.style.setProperty('--ovw', Math.round(centerEl.offsetWidth + 2*TCW) + 'px');
+  if (!tall) tableWrap.style.setProperty('--sideY', Math.round(cy + tb.top - wr.top) + 'px');
+  const wm = $('#watermark'), wy = cy + chh/2 + 12;
+  wm.style.top = wy + 'px';
+  wm.hidden = wy + 34 > th;
+  if (T) updateAll();
+}
+
+/* ---------- animation ---------- */
+function snap(){
+  const m = new Map();
+  game.querySelectorAll('[data-id]').forEach(el => { if (!el.closest('#fx,.overlay')) m.set(el.dataset.id, el.getBoundingClientRect()); });
+  return m;
+}
+// slide every card that moved from where it was (FLIP)
+function flip(before, extra = {}){
+  game.querySelectorAll('[data-id]').forEach(el => {
+    if (el.closest('#fx,.overlay')) return;
+    const a = before.get(el.dataset.id) || extra[el.dataset.id];
+    if (!a) return;
+    const b = el.getBoundingClientRect();
+    const dx = (a.left + a.width/2) - (b.left + b.width/2), dy = (a.top + a.height/2) - (b.top + b.height/2);
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    el.style.transition = 'none';
+    el.style.translate = `${dx}px ${dy}px`;
+    el.style.scale = String(b.width ? a.width / b.width : 1);
+    void el.offsetWidth;
+    el.style.transition = 'translate .36s cubic-bezier(.2,.75,.25,1), scale .36s ease';
+    el.style.translate = '0px 0px'; el.style.scale = '1';
+    setTimeout(() => { el.style.transition = ''; el.style.translate = ''; el.style.scale = ''; }, 420);
+  });
+}
+const cardRect = (el, w) => { const c = center(el.getBoundingClientRect()); return {left:c.x - w/2, top:c.y - w*.7, width:w, height:w*1.4}; };
+function fly(card, from, to, w0, w1){
+  const gr = game.getBoundingClientRect();
+  const el = card ? cardEl(card) : backEl();
+  el.style.cssText = `--cw:${w0}px;--ch:${w0*1.4}px;left:${from.x - gr.left - w0/2}px;top:${from.y - gr.top - w0*.7}px`;
+  fxEl.appendChild(el);
+  void el.offsetWidth;
+  el.style.transition = 'transform .34s cubic-bezier(.3,.7,.3,1), opacity .12s .26s';
+  el.style.transform = `translate(${to.x - from.x}px,${to.y - from.y}px) scale(${w1/w0}) rotate(${rand(-12,12)}deg)`;
+  el.style.opacity = '0';
+  setTimeout(() => el.remove(), 450);
+}
+async function dealAnim(order){
+  const from = center(stockEl.getBoundingClientRect());
+  for (let k = 0; k < HAND/3; k++){                     // three cards at a time
+    for (const i of order){
+      T.players[i].hand.push(...T.stock.splice(-3));
+      fly(null, from, center((i === 0 ? handEl : boxOf(i)).getBoundingClientRect()), TCW, i === 0 ? CW : OCW);
+      if (i) setTimeout(() => { if (T.inRound && !T.revealed) renderOpp(i); }, 300);
+      $('#stockCount').textContent = T.stock.length;
+      sfx('deal');
+      await sleep(70);
+    }
+  }
+  await sleep(320);
+  for (let i = 1; i < N; i++) renderOpp(i);
+  applySort();
+  renderHand(true);
+  renderCenter();
+  await sleep(500);
+}
+async function flipEl(slot, render){
+  [...slot.children].forEach(el => el.style.scale = '0 1');
+  await sleep(170);
+  render();
+  const els = [...slot.children];
+  els.forEach(el => el.style.scale = '0 1');
+  void slot.offsetWidth;
+  els.forEach(el => el.style.scale = '1 1');
+  sfx('card');
+  await sleep(160);
+}
+
+/* ---------- moves ---------- */
+async function doDraw(i, src){
+  const p = T.players[i], fromDiscard = src === 'discard';
+  const topEl = discardEl.querySelector('.top');
+  const from = fromDiscard && topEl ? topEl.getBoundingClientRect() : cardRect(stockEl, TCW);
+  const card = fromDiscard ? T.discard.pop() : T.stock.pop();
+  const before = snap();
+  p.hand.push(card);
+  if (i === 0){
+    drawn = card;
+    applySort(); renderHand(); renderCenter();
+    flip(before, {[card.id]:from});
+  } else {
+    renderCenter(); flip(before);
+    fly(fromDiscard ? card : null, center(from), center(boxOf(i).getBoundingClientRect()), TCW, OCW);
+    setTimeout(() => { if (T.inRound) renderOpp(i); }, 320);
+    bubble(i, fromDiscard ? `Picked up ${cardName(card)}` : 'Drew', fromDiscard ? 1700 : 1000);
+  }
+  sfx(fromDiscard ? 'pick' : 'card');
+  await sleep(420);
+  return card;
+}
+async function doDiscard(i, card){
+  const p = T.players[i], before = snap(), extra = {};
+  if (i !== 0) extra[card.id] = cardRect(boxOf(i), OCW);
+  p.hand = p.hand.filter(c => c !== card);
+  T.discard.push(card); T.downTop = false;
+  sel.clear(); drawn = null;
+  if (i === 0){ applySort(); renderHand(); } else renderOpp(i);
+  renderCenter();
+  flip(before, extra);
+  sfx('card');
+  await sleep(380);
+}
+async function doShow(i, melds){
+  const p = T.players[i], before = snap(), extra = {}, used = new Set(melds.flat());
+  if (i !== 0){ const r = cardRect(boxOf(i), OCW); used.forEach(c => extra[c.id] = r); }
+  p.hand = p.hand.filter(c => !used.has(c));
+  p.shown = melds.map(g => g.slice().sort((a, b) => a.r - b.r));
+  p.seen = true;
+  sel.clear();
+  if (i === 0){
+    renderMelds(0); sizeCards(); applySort(); renderHand();
+  } else { renderOpp(i); sizeCards(); }
+  updateSeat(i);
+  flip(before, extra);
+  sfx('call');
+  bubble(i, 'Show! Seen the Maal', 1800, 'call');
+  if (i === 0){
+    await sleep(500);
+    await flipEl(maalEl, renderCenter);
+    const m = T.maal, other = SUITS.find(s => s !== m.s && isRed(s) === isRed(m.s));
+    banner(`Maal is ${cardName(m)}`);
+    toast(`Jokers now: Tiplu ${cardName(m)}, Poplu ${RL(upR(m.r))}${SYM[m.s]}, Jhiplu ${RL(downR(m.r))}${SYM[m.s]}, Alter ${RL(m.r)}${SYM[other]} and every other ${RL(m.r)}`, 5200);
+    renderHand();
+    await sleep(700);
+  } else {
+    renderCenter();
+    await sleep(900);
+  }
+}
+async function doFinish(i, plan){
+  const p = T.players[i], before = snap(), extra = {};
+  if (i !== 0) extra[plan.discard.id] = cardRect(boxOf(i), OCW);
+  p.hand = p.hand.filter(c => c !== plan.discard);
+  T.discard.push(plan.discard); T.downTop = true;
+  p.arr = {groups:plan.groups, dead:[]};
+  sel.clear(); drawn = null;
+  if (i === 0){
+    sortMode = 'group'; groupStarts = new Set();
+    p.hand = plan.groups.flat();
+    plan.groups.forEach((g, j) => { if (j) groupStarts.add(g[0].id); });
+    renderHand();
+  } else renderOpp(i);
+  renderCenter();
+  flip(before, extra);
+  bubble(i, 'Finished!', 2600, 'call');
+  sfx('win');
+  await sleep(600);
+}
+
+/* ---------- your turn ---------- */
+function waitHuman(kind, clock, fallback){
+  return new Promise((resolve, reject) => {
+    const iv = setInterval(() => { if (paused) return; clock.left -= 100; if (clock.left <= 0) finish(fallback()); }, 100);
+    function finish(v){ if (!pending || pending.iv !== iv) return; clearInterval(iv); pending = null; resolve(v); }
+    pending = {kind, iv, finish, cancel(){ clearInterval(iv); pending = null; reject(new Cancel()); }};
+  });
+}
+async function ask(kind, clock, fallback){
+  const p = waitHuman(kind, clock, fallback);
+  refreshUI();
+  try { return await p; } finally { refreshUI(); }
+}
+async function humanTurn(){
+  const me = T.players[0], clock = {left:TURN_TIME};
+  setTurn(0, TURN_TIME); sfx('turn'); bubble(0, 'Your turn', 1200);
+  const src = await ask('draw', clock, () => 'stock');
+  const timedOut = clock.left <= 0;
+  await doDraw(0, src);
+  if (timedOut){
+    toast('Time up: drew from the stock and discarded your least useful card');
+    await doDiscard(0, chooseDiscard(me.hand, wildFor(0), !me.seen, null));
+    setTurn(null);
+    return 'done';
+  }
+  while (true){
+    const a = await ask('discard', clock, () => ({type:'discard', card:chooseDiscard(me.hand, wildFor(0), !me.seen, null), auto:true}));
+    if (a.type === 'show'){ await doShow(0, a.melds); continue; }
+    if (a.type === 'finish'){ setTurn(null); await doFinish(0, a.plan); return 'finish'; }
+    if (a.auto) toast('Time up: discarded your least useful card');
+    await doDiscard(0, a.card);
+    break;
+  }
+  setTurn(null);
+  return 'done';
+}
+handEl.addEventListener('click', e => {
+  const el = e.target.closest('.card');
+  if (!el || !T.inRound || T.revealed) return;
+  const id = el.dataset.id;
+  if (sel.has(id)) sel.delete(id); else sel.add(id);
+  sfx('deal');
+  refreshUI();
+});
+handEl.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')){ e.preventDefault(); e.target.click(); }
+});
+const isDraw = () => pending && pending.kind === 'draw', isDiscard = () => pending && pending.kind === 'discard';
+$('#aStock').addEventListener('click', () => { if (isDraw() && T.stock.length) pending.finish('stock'); });
+$('#aPick').addEventListener('click', () => { if (isDraw() && myCanPick()) pending.finish('discard'); });
+$('#aDiscard').addEventListener('click', () => {
+  if (!isDiscard()) return;
+  const cards = T.players[0].hand.filter(c => sel.has(c.id));
+  if (cards.length === 1) pending.finish({type:'discard', card:cards[0]});
+});
+$('#aShow').addEventListener('click', () => {
+  const me = T.players[0];
+  if (!isDiscard() || me.seen) return;
+  const cards = me.hand.filter(c => sel.has(c.id));
+  if (cards.length !== 9){ toast(cards.length ? `Pick exactly 9 cards for 3 pure melds (you picked ${cards.length}). Try Find melds.` : 'Pick 9 cards: 3 pure sequences or tunnelas of 3. Find melds can pick them for you.'); return; }
+  const melds = findPureMelds(cards);
+  if (!melds){ toast('Those 9 cards are not 3 pure melds. Each meld: 3 in a row of one suit, or 3 identical cards. No trials yet.'); return; }
+  pending.finish({type:'show', melds});
+});
+$('#aFinish').addEventListener('click', () => {
+  if (!isDiscard()) return;
+  const me = T.players[0], cards = me.hand.filter(c => sel.has(c.id));
+  const plan = cards.length === 1 ? finishPlan(me.hand, T.maal, cards[0]) : myFinish();
+  if (plan) pending.finish({type:'finish', plan});
+});
+function resortHand(mode){
+  if (!T.inRound || T.revealed) return;
+  sortMode = mode;
+  const before = snap();
+  applySort(); renderHand(); flip(before);
+  sfx('deal');
+}
+$('#tSuit').addEventListener('click', () => resortHand('suit'));
+$('#tRank').addEventListener('click', () => resortHand('rank'));
+$('#tGroup').addEventListener('click', () => resortHand('group'));
+$('#tFind').addEventListener('click', () => {
+  if (!T.inRound || T.revealed) return;
+  const me = T.players[0], mine = isDiscard();
+  if (!me.seen){
+    const melds = findPureMelds(me.hand);
+    if (!melds){
+      const most = pureShowOptions(me.hand, 1).most;
+      toast(most ? `Only ${most} pure meld${most > 1 ? 's' : ''} so far. You need 3 (3 in a row of one suit, or 3 identical cards).` : 'No pure melds yet. You need 3: 3 in a row of one suit, or 3 identical cards.');
+      return;
+    }
+    sel = new Set(melds.flat().map(c => c.id));
+    resortHand('group');
+    toast(mine ? 'Found 3 pure melds: tap Show to see the Maal' : 'Found 3 pure melds: show them on your turn, after you draw');
+    return;
+  }
+  resortHand('group');
+  const plan = mine ? myFinish() : null;
+  if (plan){ sel = new Set([plan.discard.id]); toast(`Discard the ${cardName(plan.discard)} and tap Finish!`); }
+  else {
+    const left = deadwoodScore(me.hand, wildFor(0));
+    if (mine){ const c = chooseDiscard(me.hand, wildFor(0), false, null); sel = new Set([c.id]); toast(`${left} card${left === 1 ? '' : 's'} not in melds yet. Suggested discard: ${cardName(c)}`); }
+    else toast(`${left} card${left === 1 ? '' : 's'} not in melds yet`);
+  }
+  refreshUI();
+});
+centerEl.addEventListener('click', e => {
+  if (!isDraw()) return;
+  if (e.target.closest('#stock')){ if (T.stock.length) pending.finish('stock'); return; }
+  if (e.target.closest('#discard .top')){
+    if (myCanPick()) pending.finish('discard');
+    else toast(`You can only pick up the ${cardName(topDiscard())} if it makes a meld with two of your cards`);
+  }
+});
+centerEl.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && (e.target === stockEl || e.target.closest('#discard .top'))){ e.preventDefault(); e.target.click(); }
+});
+
+/* ---------- bot turn ---------- */
+async function botTurn(i){
+  const p = T.players[i];
+  setTurn(i, 1200);
+  await sleep(rand(600, 1200));
+  const src = botDrawChoice(p.hand, p.seen, T.maal, topDiscard(), .2);   // a little human: sometimes skip a useful pickup
+  const got = await doDraw(i, src);
+  if (!p.seen){
+    const melds = findPureMelds(p.hand);
+    if (melds){ await sleep(rand(300, 500)); await doShow(i, melds); }
+  }
+  if (p.seen){
+    const plan = finishPlan(p.hand, T.maal);
+    if (plan){ await sleep(rand(400, 700)); setTurn(null); await doFinish(i, plan); return 'finish'; }
+  }
+  await sleep(rand(250, 500));
+  await doDiscard(i, chooseDiscard(p.hand, wildFor(i), !p.seen, src === 'discard' ? got : null, 2));
+  setTurn(null);
+  return 'done';
+}
+
+/* ---------- round flow ---------- */
+async function endRound(winner){
+  T.revealed = true; T.winner = winner;
+  setTurn(null);
+  pending = null;
+  sel.clear(); drawn = null;
+  if (winner < 0){ banner('Stock ran out: no winner', true); sfx('bad'); }
+  else { banner(winner === 0 ? 'You finished!' : `${nameOf(winner)} finished!`, true); }
+  T.players.forEach((p, i) => {
+    if (i === winner) return;
+    p.arr = arrange(p.hand, wildFor(i), {dead:true});
+  });
+  await sleep(500);
+  await flipEl(maalEl, renderCenter);
+  for (let i = 0; i < N; i++) renderMelds(i);
+  updateAll(); refreshUI();
+  if (winner >= 0) seatEls[winner].classList.add('win');
+  const res = scoreRound(T.players.map(p => ({seen:p.seen, cards:allCards(p)})), winner, T.maal);
+  T.players.forEach((p, i) => {
+    p.score += res.total[i];
+    bubble(i, fmt(res.total[i]), 2800, res.total[i] > 0 ? 'plus' : res.total[i] < 0 ? 'minus' : '');
+  });
+  T.history.push({round:T.round, winner, seen:T.players.map(p => p.seen), ...res});
+  const seenN = T.players.filter(p => p.seen).length;
+  T.summary = (winner < 0 ? 'The stock ran out, so nobody gets game points.' : `${winner === 0 ? 'You' : nameOf(winner)} finished.`) +
+    ` Maal ${cardName(T.maal)} · ${seenN} player${seenN === 1 ? '' : 's'} saw it · total Maal ${res.sum}.`;
+  updateAll();
+  await sleep(2800);
+}
+async function playRound(){
+  T.round++;
+  T.dealer = (T.dealer + 1) % N;
+  Object.assign(T, {inRound:true, revealed:false, winner:-1, turn:-1, stock:shuffle(makeDeck()), discard:[], downTop:false, maal:null});
+  T.players.forEach(p => { p.hand = []; p.shown = []; p.seen = false; p.arr = null; });
+  sel.clear(); drawn = null; memoCache.clear();
+  seatEls.forEach(s => s.classList.remove('win'));
+  sizeCards();
+  renderAll();
+  banner(`Round ${T.round} of ${ROUNDS}`);
+  await sleep(1000);
+  const order = []; for (let k = 1; k <= N; k++) order.push((T.dealer + k) % N);
+  await dealAnim(order);
+  // one card face up starts the discard pile; the next is the hidden Maal card
+  let before = snap(), from = cardRect(stockEl, TCW);
+  const first = T.stock.pop();
+  T.discard.push(first);
+  renderCenter(); flip(before, {[first.id]:from}); sfx('card');
+  await sleep(450);
+  T.maal = T.stock.pop();
+  renderCenter();
+  fly(null, center(stockEl.getBoundingClientRect()), center(maalEl.getBoundingClientRect()), TCW, TCW);
+  sfx('card');
+  toast('The Maal card is set aside face down. Show 3 pure melds to see it.', 3000);
+  await sleep(600);
+  let turn = order[0];
+  while (true){
+    if (!T.stock.length){ await endRound(-1); break; }
+    T.turn = turn; refreshUI();
+    const r = turn === 0 ? await humanTurn() : await botTurn(turn);
+    if (r === 'finish'){ await endRound(turn); break; }
+    turn = (turn + 1) % N;
+  }
+  T.inRound = false; T.turn = -1;
+  refreshUI();
+}
+async function run(){
+  const g = gen;
+  try {
+    while (g === gen){
+      await playRound();
+      if (T.round >= ROUNDS){ showScores('final'); return; }
+      await showScores('next');
+    }
+  } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
+}
+function newGame(){
+  gen++;
+  if (pending) pending.cancel();
+  setPaused(false);
+  ['#splash','#menu','#rules','#share','#scores'].forEach(s => $(s).hidden = true);
+  fxEl.innerHTML = '';
+  freshGame();
+  sel.clear(); drawn = null; sortMode = 'suit';
+  seatEls.forEach(s => s.classList.remove('win', 'turn'));
+  sizeCards();
+  renderAll();
+  run();
+}
+
+/* ---------- scoreboard ---------- */
+const ORD = ['1st','2nd','3rd','4th'];
+const standings = () => T.players.map((p, i) => i).sort((a, b) => T.players[b].score - T.players[a].score || a - b);
+const numCell = v => `<td class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${fmt(v)}</td>`;
+function handsHtml(){
+  const isW = wildOf(T.maal);
+  const wrap = document.createElement('div'); wrap.className = 'hands';
+  T.players.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'hrow' + (i === T.winner ? ' win' : '');
+    const mp = p.seen ? maalPoints(allCards(p), T.maal) : null;
+    const tagc = i === T.winner ? '<span class="tagc ok">Finished</span>' : p.seen ? '<span class="tagc">Seen</span>' : '<span class="tagc no">Not seen</span>';
+    const extra = mp && mp.marriage ? ` · ${mp.marriage > 1 ? mp.marriage + '× ' : ''}Marriage!` : '';
+    row.innerHTML = `<div class="hwho">${esc(nameOf(i))} ${tagc}<span class="mp">${mp ? `Maal ${mp.points}${extra}` : 'No Maal'}</span></div><div class="hcards"></div>`;
+    const cards = row.querySelector('.hcards'), wf = p.seen ? isW : noWild;
+    const add = (g, cls) => { const d = document.createElement('div'); d.className = 'hg' + (cls ? ' ' + cls : ''); g.forEach(c => d.appendChild(cardElW(c, wf))); cards.appendChild(d); };
+    p.shown.forEach(g => add(g, 'shown'));
+    const arr = p.arr || {groups:[], dead:p.hand};
+    arr.groups.forEach(g => add(g));
+    if (arr.dead.length) add(sortSuit(arr.dead.slice()), 'dead');
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+function roundTable(h){
+  const ps = T.players;
+  let html = '<thead><tr><th>This round</th>' + ps.map((p, i) => `<th>${esc(nameOf(i))}</th>`).join('') + '</tr></thead><tbody>';
+  html += '<tr><td>Maal points</td>' + ps.map((p, i) => h.seen[i] ? `<td>${h.maal[i]}</td>` : '<td class="dash">–</td>').join('') + '</tr>';
+  html += `<tr><td>Maal &times;${N} &minus; ${h.sum}</td>` + h.settle.map(numCell).join('') + '</tr>';
+  html += '<tr><td>Game points</td>' + h.game.map((v, i) => h.winner < 0 ? '<td class="dash">–</td>' : numCell(v)).join('') + '</tr>';
+  html += '<tr class="sum"><td>Round total</td>' + h.total.map(numCell).join('') + '</tr></tbody>';
+  const t = document.createElement('table'); t.className = 'stable'; t.innerHTML = html;
+  const w = document.createElement('div'); w.className = 'stable-wrap'; w.appendChild(t);
+  return w;
+}
+function showScores(mode){         // view | next | final
+  const ps = T.players, order = standings();
+  const lead = Math.max(...ps.map(p => p.score));
+  let html = '<thead><tr><th>Round</th>' + ps.map((p, i) => `<th>${esc(nameOf(i))}</th>`).join('') + '</tr></thead><tbody>';
+  T.history.forEach((h, r) => {
+    const cur = r === T.history.length - 1 && mode !== 'view';
+    html += `<tr${cur ? ' class="cur"' : ''}><td>Round ${h.round}</td>` + ps.map((p, i) => {
+      const v = h.total[i], marks = (i === h.winner ? '<span class="cmark" title="Finished">W</span>' : '') + (h.seen[i] && i !== h.winner ? '<span class="cmark s" title="Saw the Maal">S</span>' : '');
+      return `<td class="${v > 0 ? 'pos' : v < 0 ? 'neg' : ''}">${fmt(v)}${marks}</td>`;
+    }).join('') + '</tr>';
+  });
+  if (!T.history.length) html += `<tr><td colspan="${N+1}" class="dash" style="text-align:center">No rounds played yet</td></tr>`;
+  html += '</tbody><tfoot><tr><td>Total</td>' + ps.map((p, i) => {
+    const c = T.history.length && p.score === lead ? 'lead' : '';
+    const rk = mode === 'final' ? ORD[order.indexOf(i)] : '';
+    return `<td class="${c}">${fmt(p.score)}${rk ? `<span class="rank">${rk}</span>` : ''}</td>`;
+  }).join('') + '</tr></tfoot>';
+  $('#scoreTable').innerHTML = html;
+
+  const title = $('#scoreTitle'), sub = $('#scoreSub'), btns = $('#scoreBtns'), box = $('#roundBox');
+  btns.innerHTML = ''; box.innerHTML = '';
+  const last = T.history[T.history.length - 1];
+  const withRound = mode !== 'view' && last;
+  if (withRound){
+    box.innerHTML = '<h3 class="shead">Hands</h3>';
+    box.appendChild(handsHtml());
+    box.appendChild(roundTable(last));
+  }
+  $('#totalHead').hidden = !withRound;
+  const addBtn = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn); btns.appendChild(b); return b; };
+  $('#scores').hidden = false;
+  $('#scores').scrollTop = 0; $('#scores > .panel').scrollTop = 0;
+
+  if (mode === 'final'){
+    const w = order[0], tie = ps.filter(p => p.score === ps[w].score).length > 1;
+    if (tie) title.textContent = 'A tie at the top!';
+    else if (w === 0){ title.textContent = 'You win!'; sfx('win'); }
+    else title.textContent = `${nameOf(w)} wins`;
+    sub.textContent = `${T.summary} Final after ${ROUNDS} rounds: ${order.map(i => `${nameOf(i)} ${fmt(ps[i].score)}`).join(', ')}.`;
+    addBtn('Play again', 'green', newGame).focus({preventScroll:true});
+    addBtn('Close', 'ghost', () => { $('#scores').hidden = true; });
+    return;
+  }
+  if (mode === 'next'){
+    title.textContent = last.winner < 0 ? `Round ${T.round}: no winner` : last.winner === 0 ? `Round ${T.round}: you finished!` : `Round ${T.round}: ${nameOf(last.winner)} finished`;
+    sub.textContent = T.summary;
+    const p = waitHuman('next', {left:Infinity}, () => {});
+    addBtn('Next round', 'green', () => { if (pending && pending.kind === 'next') pending.finish(); }).focus({preventScroll:true});
+    return p.finally(() => { $('#scores').hidden = true; });
+  }
+  title.textContent = 'Scoreboard';
+  sub.textContent = T.round ? `Round ${T.round} of ${ROUNDS}` : 'No rounds played yet';
+  setPaused(true);
+  addBtn('Close', '', () => { $('#scores').hidden = true; setPaused(false); }).focus();
+}
+
+/* ---------- overlays ---------- */
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+function drawQR(el, url){
+  try { const qr = qrcode(0, 'M'); qr.addData(url); qr.make(); el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true}); }
+  catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
+}
+let shareFrom = null;
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true;
+  const url = siteUrl();
+  $('#shareLink').value = url; drawQR($('#qrBox'), url);
+  $('#share').hidden = false; setPaused(true); $('#copyBtn').focus();
+}
+let rulesFrom = null;
+function openRules(from){ rulesFrom = from; if (from) $(from).hidden = true; else setPaused(true); $('#rules').hidden = false; $('#rulesClose').focus(); }
+
+$('#playBtn').addEventListener('click', () => { sfx('turn'); newGame(); });
+$('#menuBtn').addEventListener('click', () => { $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus(); });
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; setPaused(false); });
+$('#newBtn').addEventListener('click', () => newGame());
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+$('#scoreBtn').addEventListener('click', () => { if ($('#scores').hidden && $('#splash').hidden) showScores('view'); });
+$('#shareBtn').addEventListener('click', () => openShare(null));
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else setPaused(false); });
+$('#copyBtn').addEventListener('click', () => {
+  const inp = $('#shareLink'), btn = $('#copyBtn');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+});
+$('#rulesBtn').addEventListener('click', () => openRules(null));
+$('#splashRules').addEventListener('click', () => openRules('#splash'));
+$('#menuRules').addEventListener('click', () => openRules('#menu'));
+$('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; else setPaused(false); });
+
+const fan = $('#fanshow');
+[{s:'H',r:11},{s:'H',r:12},{s:'H',r:13}].forEach((c, i) => {
+  const el = cardEl(c); el.style.transform = `rotate(${(i-1)*16}deg)`; fan.appendChild(el);
+});
+buildSeats();
+freshGame();
+sizeCards();
+renderAll();
+window.addEventListener('resize', sizeCards);
+})();
+</script>
