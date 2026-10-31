@@ -1,0 +1,1979 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Changa Chet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wood-hi:#8d5629; --wood:#5c3417; --wood-lo:#2b1608;
+  --gold:#f5c851; --gold-lo:#b98a25;
+  --panel:#2a170a; --panel-hi:#4b2c14;
+  --text:#fbf3e6; --muted:#dcc6a6;
+  --ground:#120904;
+  --dock:76px; --av:30px;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground)}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 40%,#3a2412 0%,#1e1008 60%,#0d0603 100%);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+button,select{font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* the sky: canvas with the top bar floating over it */
+#field{position:relative;flex:1;min-height:0;overflow:hidden;border-radius:0 0 16px 16px;background:#8cc0ea;box-shadow:0 0 0 2px rgba(245,200,81,.35),0 10px 30px rgba(0,0,0,.6)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none}
+#topbar{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:8px 12px 0;pointer-events:none}
+#topbar>*{pointer-events:auto}
+.tbr{display:flex;gap:10px}
+.ibtn{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#6b4220,#2e1a0a);color:var(--gold);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #170c04,inset 0 1px 0 rgba(255,255,255,.15);padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 #170c04}
+.ibtn svg{width:20px;height:20px}
+.ibtn:focus-visible,.btn:focus-visible,#pullBtn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.limits{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;justify-content:center;padding:5px 14px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(245,200,81,.35);
+  font-weight:900;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none}
+.limits b{color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;margin-left:3px}
+#plates{order:3;flex:1 0 100%;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;pointer-events:none;min-width:0}
+#plates:empty{display:none}
+#game.wide #plates{order:0;flex:0 1 auto;flex-wrap:nowrap}
+
+/* score plates (Battle) */
+.plate{display:flex;align-items:center;gap:5px;min-width:0;max-width:150px;flex:0 1 auto;background:rgba(18,9,3,.66);border:1px solid rgba(245,200,81,.3);border-radius:999px;padding:2px 10px 2px 2px;transition:opacity .3s,border-color .2s,box-shadow .2s}
+.plate.me{border-color:var(--gold);box-shadow:0 0 12px 1px rgba(245,200,81,.4)}
+.plate.out{opacity:.45}
+.plate.out .pnm{text-decoration:line-through}
+.plate.win{border-color:#7be495;box-shadow:0 0 14px 2px rgba(123,228,149,.5)}
+.kd{width:var(--av);height:var(--av);flex:none;display:grid;place-items:center}
+.kd i{display:block;width:58%;height:58%;transform:rotate(45deg);border:2px solid rgba(255,255,255,.9);border-radius:2px;box-sizing:border-box;background:linear-gradient(90deg,var(--c1) 50%,var(--c2) 50%);box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.pinfo{display:flex;flex-direction:column;min-width:0;line-height:1.1}
+.pnm{font-weight:900;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);max-width:80px}
+.ppts{font-family:'Lilita One',Impact,sans-serif;font-size:15px;color:var(--gold);white-space:nowrap}
+.ppts small{font-family:'Nunito',sans-serif;font-weight:900;font-size:10px;letter-spacing:.04em;color:#ffe08a;margin-left:3px}
+
+#banner{position:absolute;left:50%;top:40%;z-index:26;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(28px,7vmin,54px);color:var(--gold);text-align:center;
+  text-shadow:0 3px 0 #6b4609,0 0 3px #000,0 8px 20px rgba(0,0,0,.7);transform:translate(-50%,-50%);opacity:0;pointer-events:none;width:max-content;max-width:86%;line-height:1.08;text-wrap:balance}
+#banner.show{animation:banner 1.9s ease forwards}
+#banner.bad{color:#ff9aa2;text-shadow:0 3px 0 #6b0f1a,0 0 3px #000,0 8px 20px rgba(0,0,0,.7)}
+@keyframes banner{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+#qlabel{position:absolute;left:50%;top:27%;z-index:25;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(22px,5vmin,38px);transform:translateX(-50%);opacity:0;pointer-events:none;white-space:nowrap;
+  text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 3px #000,0 6px 14px rgba(0,0,0,.6)}
+#qlabel.show{animation:ql 1.1s ease forwards}
+#qlabel.p{color:#a6f3b4}#qlabel.g{color:var(--gold)}#qlabel.w{color:#ffc7a1}
+@keyframes ql{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.7)}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.1)}25%{transform:translateX(-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-12px)}}
+#toast{position:absolute;top:calc(100px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.82);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:999px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#game.wide #toast{top:calc(58px + env(safe-area-inset-top,0px))}
+#toast.show{opacity:1}
+
+/* dock: the manjha reel, the height / pecha meter and the pull button */
+#dock{flex:none;height:var(--dock);box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 16px;position:relative;z-index:20}
+.reelw{display:flex;align-items:center;gap:6px;flex:none;transition:opacity .2s}
+#reel{position:relative;width:24px;height:calc(var(--dock) - 16px);box-sizing:border-box;border-radius:12px;background:rgba(0,0,0,.55);border:2px solid var(--gold-lo);overflow:hidden;box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+#reel .rfill{position:absolute;left:0;right:0;bottom:0;height:calc(var(--r,1)*100%);background:repeating-linear-gradient(0deg,#c41e3a 0 3px,#e8475e 3px 5px)}
+#reel.low .rfill{animation:low .5s steps(2) infinite}
+@keyframes low{50%{opacity:.35}}
+.llbl{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:3.6em;text-align:center}
+.llbl b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;color:var(--text)}
+.meterw{flex:1 1 auto;max-width:440px;min-width:0;display:flex;flex-direction:column;gap:6px;transition:opacity .2s}
+#mlbl{font-weight:900;font-size:13px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.3em;line-height:1.3}
+#mlbl.hot{color:#ffe08a}
+#meter{position:relative;height:20px;box-sizing:border-box;border-radius:10px;border:2px solid var(--gold-lo);background:#1a0d05;box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+#meter .zones{position:absolute;inset:0;border-radius:8px;opacity:.95}
+#needle{position:absolute;top:-5px;bottom:-5px;left:calc(var(--m,.5)*100%);width:5px;margin-left:-2.5px;border-radius:3px;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.7),0 0 8px rgba(255,255,255,.9)}
+#dock.off .meterw,#dock.off .reelw{opacity:.5}
+#pullBtn{width:64px;height:64px;flex:none;border-radius:50%;padding:0;font-family:'Lilita One',Impact,sans-serif;font-size:18px;line-height:1;letter-spacing:.03em;color:#3a2300;border:2px solid #fff3c4;cursor:pointer;touch-action:none;-webkit-touch-callout:none;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+#pullBtn small{display:block;font-family:'Nunito',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;opacity:.7;margin-top:2px}
+#pullBtn.on{transform:translateY(3px);box-shadow:0 1px 0 #6b4609;background:linear-gradient(#fff0b8,#f0bb3a 55%,#d39a24)}
+#pullBtn:disabled{opacity:.45;cursor:default}
+#pullBtn.skip{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4);font-size:16px}
+#pullBtn.hot{animation:hot .5s ease-in-out infinite alternate}
+@keyframes hot{to{box-shadow:0 4px 0 #6b4609,0 0 0 7px rgba(245,200,81,.4),0 8px 16px rgba(0,0,0,.4)}}
+#game.paused #pullBtn.hot{animation-play-state:paused}
+
+/* panels */
+.panel{box-sizing:border-box;background:linear-gradient(180deg,var(--panel-hi),var(--panel));border:2px solid var(--gold-lo);border-radius:18px;padding:16px 18px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ptitle{font-family:'Lilita One',Impact,sans-serif;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.45);margin:0;text-wrap:balance}
+.psub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:4px 0 0;text-wrap:balance}
+.psub:empty{display:none}
+.overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:auto;background:rgba(14,7,2,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.overlay>.panel{width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto}
+.btnrow{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{font-family:'Lilita One',Impact,sans-serif;font-size:20px;letter-spacing:.03em;color:#3a2300;padding:9px 28px;border-radius:999px;border:2px solid #fff3c4;cursor:pointer;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+.btn.green{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--text);border-color:rgba(245,200,81,.5);box-shadow:none;font-size:17px}
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;align-items:stretch}
+.qrbox{background:#fff;border-radius:14px;padding:12px;margin:14px auto 0;width:min(240px,70vw);aspect-ratio:1;max-width:100%;box-sizing:border-box;display:grid;place-items:center;box-shadow:0 0 0 4px var(--gold-lo)}
+.qrbox svg{width:100%;height:100%;display:block}
+.qrbox p{color:#333;font-weight:800;text-align:center;margin:0;font-size:13px}
+.linkrow{display:flex;gap:8px;margin-top:14px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.linkrow .btn{font-size:16px;padding:6px 18px}
+
+/* score tables */
+.score{font-family:'Lilita One',Impact,sans-serif;font-size:44px;line-height:1;text-align:center;color:#fff;margin:12px 0 0;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+.score:empty{display:none}
+.score small{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:12px auto 0;max-width:420px}
+.chips:empty{display:none}
+.chip{font-weight:900;font-size:12px;padding:2px 9px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(245,200,81,.35);color:var(--text);font-variant-numeric:tabular-nums}
+.chip.top{background:rgba(245,200,81,.2);color:var(--gold);border-color:var(--gold)}
+.ranks{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.ranks:empty{display:none}
+.ranks li{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 12px;font-weight:900}
+.ranks li.me{background:rgba(245,200,81,.14);box-shadow:inset 0 0 0 1px rgba(245,200,81,.5)}
+.ranks .pl{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--muted);font-size:15px;min-width:1.6em}
+.ranks .kd{--av:28px}
+.ranks .nm2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ranks .n{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:20px;text-align:right;white-space:nowrap}
+.ranks small{display:block;color:var(--muted);font-weight:800;font-size:12px;overflow:hidden;text-overflow:ellipsis}
+
+.rules{font-size:14px;line-height:1.55;font-weight:600;max-width:62ch;margin:10px auto 0}
+.rules h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:17px;margin:14px 0 4px;letter-spacing:.02em}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules b{color:#fff}
+
+/* splash: the sky keeps flying behind it */
+.splash{background:radial-gradient(ellipse at 50% 45%,rgba(40,20,6,.42),rgba(10,5,2,.84))}
+.splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.logo{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(52px,12vmin,104px);line-height:1;color:var(--gold);letter-spacing:.01em;
+  text-shadow:0 3px 0 #8a5a12,0 6px 0 #4a2d06,0 12px 24px rgba(0,0,0,.6)}
+.logo small{display:block;font-family:'Nunito',system-ui,sans-serif;font-weight:900;font-size:.24em;color:var(--muted);text-shadow:none;margin-top:.3em}
+.demo{width:clamp(150px,34vmin,240px);height:auto;aspect-ratio:4/3;margin:6px 0 2px;overflow:visible}
+.demo .ka{transform-box:fill-box;transform-origin:50% 60%;animation:kwob 2.6s ease-in-out infinite}
+.demo .kb{transform-box:fill-box;transform-origin:50% 60%;animation:kwob 2.2s ease-in-out infinite reverse}
+.demo .spark{transform-box:fill-box;transform-origin:50% 50%;animation:spark .45s ease-in-out infinite alternate}
+@keyframes kwob{0%,100%{transform:rotate(-7deg) translateY(0)}50%{transform:rotate(7deg) translateY(-3px)}}
+@keyframes spark{from{transform:scale(.6) rotate(0);opacity:.6}to{transform:scale(1.25) rotate(30deg);opacity:1}}
+.tag{margin:0 0 10px;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.04em}
+.tag b{color:var(--text)}
+.best{margin:-4px 0 10px;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.best b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:18px;color:var(--gold);letter-spacing:.02em;margin-left:4px}
+.best:empty{display:none}
+@media (max-height:520px){:root{--dock:64px}.overlay{padding:10px}.panel{padding:12px 16px}.ranks{gap:4px;margin-top:8px}.ranks li{padding:4px 12px}.ranks .kd{--av:22px}.score{font-size:36px;margin-top:6px}.chips{margin-top:8px}.btnrow{margin-top:10px}.ptitle{font-size:22px}.demo{display:none}.logo{font-size:clamp(40px,11vmin,76px)}#pullBtn{width:54px;height:54px;font-size:15px}#pullBtn small{font-size:10px}#mlbl{font-size:12px}.meterw{gap:4px}}
+@media (max-width:440px){#topbar{padding:8px 10px 0;gap:6px}.tbr{gap:6px}.limits{padding:5px 9px;gap:4px 8px;letter-spacing:.03em;font-size:10px}.limits b{font-size:13px;margin-left:2px}}
+@media (max-width:400px){#dock{gap:9px;padding:6px 12px}.btn{padding:9px 22px}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="game">
+  <div id="field">
+    <canvas id="cv" role="img" aria-label="Dashain sky over the Kathmandu rooftops, full of kites" tabindex="0"></canvas>
+    <div id="topbar">
+      <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="limits" id="limits"><span id="limA">Dashain Sky</span><span id="limB">Chet<b>0</b></span><span id="limC">Best<b>0</b></span></div>
+      <div id="plates"></div>
+      <div class="tbr">
+        <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+        </button>
+        <button class="ibtn" id="rulesBtn" aria-label="How to play" title="How to play">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a3 3 0 1 1 4.3 2.7c-.9.5-1.5 1.2-1.5 2.3M12 18h.01"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="qlabel"></div>
+    <div id="banner"></div>
+  </div>
+  <div id="dock" class="off">
+    <div class="reelw">
+      <div id="reel" role="meter" aria-label="Manjha left on the reel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="rfill"></div></div>
+      <span class="llbl">Manjha<b id="reelTxt">100%</b></span>
+    </div>
+    <div class="meterw">
+      <div id="mlbl">Pick a mode to start</div>
+      <div id="meter" aria-hidden="true"><div class="zones" id="zones"></div><div id="needle"></div></div>
+    </div>
+    <button id="pullBtn" disabled aria-label="Pull the string (hold)">Pull<small>तान</small></button>
+  </div>
+  <div id="toast" role="status"></div>
+  <div id="sr" class="sr" aria-live="polite"></div>
+
+  <div id="splash" class="overlay splash">
+    <div class="splash-in">
+      <div class="logo">Changa Chet<small>चङ्गा चेट</small></div>
+      <svg class="demo" viewBox="0 0 200 150" aria-hidden="true">
+        <path d="M20 148 L130 54" stroke="#f4e3c3" stroke-width="1.6" fill="none"/>
+        <path d="M180 148 L66 46" stroke="#cfe2f5" stroke-width="1.6" fill="none"/>
+        <g class="ka"><polygon points="130,22 143,37 130,52 117,37" fill="#d7263d"/><polygon points="130,22 143,37 130,52" fill="#f5c851"/><polygon points="130,50 125,60 135,60" fill="#f5c851"/><path d="M130 22V52M117 37Q130 26 143 37" stroke="#5a2a10" stroke-width="1.2" fill="none"/></g>
+        <g class="kb"><polygon points="66,14 79,29 66,44 53,29" fill="#1f6fd1"/><polygon points="56.5,25 75.5,25 79,29 76.4,32 55.6,32 53,29" fill="#f4f1e6"/><polygon points="66,14 79,29 66,44 53,29" fill="none" stroke="#123" stroke-width=".8"/><polygon points="66,42 61,52 71,52" fill="#f4f1e6"/><path d="M66 14V44M53 29Q66 18 79 29" stroke="#123" stroke-width="1.2" fill="none"/></g>
+        <g class="spark"><path d="M102 67 L104.5 74.5 L112 77 L104.5 79.5 L102 87 L99.5 79.5 L92 77 L99.5 74.5Z" fill="#fff4b0"/><circle cx="102" cy="77" r="3" fill="#fff"/></g>
+      </svg>
+      <p class="tag"><b>Dashain kite fighting</b> · Cut their strings, keep yours</p>
+      <p class="best" id="splashBest"></p>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn green" id="skyBtn">Dashain Sky</button>
+        <button class="btn" id="battleBtn">Battle</button>
+      </div>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn ghost" id="splashBack" hidden>Back to game</button>
+        <button class="btn ghost" id="splashRules">How to play</button>
+        <button class="btn ghost" id="splashCtrl">Controls: Classic</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay" hidden>
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle">Paused</h2>
+      <div class="menu-list">
+        <button class="btn green" id="resumeBtn">Resume</button>
+        <button class="btn" id="newBtn">New game</button>
+        <button class="btn ghost" id="menuRules">How to play</button>
+        <button class="btn ghost" id="ctrlBtn">Controls: Classic</button>
+        <button class="btn ghost" id="soundBtn">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="roundP" class="overlay" hidden>
+    <div class="panel" style="width:min(420px,100%)">
+      <h2 class="ptitle" id="rpTitle">Round over</h2>
+      <p class="psub" id="rpSub"></p>
+      <ul class="ranks" id="rpList"></ul>
+      <p class="psub" id="rpNext"></p>
+      <div class="btnrow"><button class="btn green" id="rpGo">Next round</button><button class="btn ghost" id="rpHome">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="result" class="overlay" hidden>
+    <div class="panel" style="width:min(420px,100%)">
+      <h2 class="ptitle" id="resTitle">Game over</h2>
+      <p class="psub" id="resSub"></p>
+      <div class="score" id="resScore"></div>
+      <div class="chips" id="resChips"></div>
+      <ul class="ranks" id="resList"></ul>
+      <div class="btnrow"><button class="btn green" id="againBtn">Play again</button><button class="btn ghost" id="homeBtn">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="share" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle">Share Changa Chet</h2>
+      <p class="psub">Friends scan this code to open Changa Chet on their phone.</p>
+      <div class="qrbox" id="qrBox"></div>
+      <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
+      <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle">How to play</h2>
+      <div class="rules">
+        <h3>The game</h3>
+        <ul>
+          <li>Flying kites is a big part of <b>Dashain</b>. In the weeks around the festival the sky over Kathmandu fills with kites, and from the rooftops you hear <b>"Changa chet!"</b> every time someone cuts a rival's string.</li>
+          <li>You fly the <b>red and gold kite</b> from your rooftop (marked <b>YOU</b>). Cut the other kites' strings and keep yours in one piece.</li>
+        </ul>
+        <h3>Flying your kite</h3>
+        <ul>
+          <li><b>Hold</b> (anywhere on the sky, the <b>Pull</b> button, or <b>Space</b>) to pull: the kite flies the way its <b>nose points</b> (the white dots), and you wind in a little string.</li>
+          <li><b>Let go</b> to give string (<b>dheel</b>): string runs off your reel, the kite drifts with the wind and sinks slowly, and its nose turns. It first swings back towards the sky, then keeps turning. Pull again when it points where you want to go.</li>
+          <li>The <b>manjha</b> meter shows the string left on your reel. More string lets you fly further and higher. When the reel is empty your kite just hangs on the wind.</li>
+          <li><b>Simple controls</b> (switch them on in the menu): hold to climb, and drag left or right while you hold to steer (or <b>←</b> <b>→</b>).</li>
+        </ul>
+        <h3>Pecha: the string fight</h3>
+        <ul>
+          <li>When your string crosses another kite's string they lock together. Sparks fly at the crossing and the meter in the dock turns into a tug-of-war.</li>
+          <li><b>Tanne (ड्याङ)</b>: quick, steady pulls, about <b>three a second</b>. Too fast or too slow is much weaker.</li>
+          <li><b>Dheel (ढिल)</b>: let go and keep letting go. It grows stronger the longer you hold steady, but only while there is string left on your reel.</li>
+          <li>Holding a long pull barely helps. The needle moves towards whoever is winning: reach the end and the other string snaps. After 6 seconds the string of whoever is behind gives way.</li>
+          <li>Good rhythm beats dheel, and dheel beats sloppy pulling.</li>
+        </ul>
+        <h3>Loot and points</h3>
+        <ul>
+          <li>Cut kites flutter down over the city. <b>Touch one with your string</b> before it lands to loot it: <b>+50</b>.</li>
+          <li><b>+100</b> for every kite you cut. Cut again within 4 seconds for a combo (<b>Double chet!</b>), worth +50 more for each extra kite.</li>
+          <li>A small bonus, <b>+2 a second</b>, while your kite is in the high sky (the gold part of the height meter).</li>
+        </ul>
+        <h3>Modes</h3>
+        <ul>
+          <li><b>Dashain Sky</b>: endless. Cut kites are flown again from their roofs and the rivals get sharper. It ends when your kite is cut. Your best score is saved on this device.</li>
+          <li><b>Battle</b>: you and 3 rivals, 3 rounds. Nothing is flown again: the last kite flying wins the round (+200). Most rounds won takes the battle; points break ties. After 2 minutes the best score among the kites still flying takes the round. If you are cut, watch or press <b>Skip</b>.</li>
+          <li>Rivals: <b>hunters</b> chase strings and pull hard, <b>cautious</b> flyers keep away and like to dheel, <b>wanderers</b> roam the sky.</li>
+        </ul>
+        <h3>Keys</h3>
+        <ul>
+          <li><b>Space</b> or <b>↑</b> to pull, <b>←</b> <b>→</b> to steer with simple controls, <b>Esc</b> for the menu.</li>
+        </ul>
+      </div>
+      <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+// ==== LOGIC START ====
+/* Kite physics, strings, pecha (string fights), bots, scoring and the round flow, with no DOM access.
+   World units: x runs left to right from 0 to W.w; y is the height above the rooftops' base line (0).
+   A kite's nose angle `ang` is 0 straight up and grows clockwise (towards +x): pulling flies it along
+   (sin ang, cos ang). Each flyer holds the string at a fixed hand point (ax, ay) on a rooftop. */
+const KITE_R = 2.2, FLOOR = 7, TOP_PAD = 2.6;
+const PULL_SPEED = 21, PULL_ACC = 4.5;                 // pulling: speed along the nose and how fast it gets there (1/s)
+const DRIFT_ACC = 1.5, SINK = 1.8, HOVER = 1.2;          // slack: settles to the wind drift and sinks; taut at full line it hangs on the wind
+const SPIN = 2.6, STEER_MAX = 1.2, STEER_RATE = 5;     // slack nose turn (rad/s); simple controls: max tilt and how fast the nose follows
+const PAYOUT = 11, PAYOUT_PECHA = 6, REEL_IN = 2.5, MIN_LINE = 9, START_LINE = 22;
+const LOOSE_FALL = 4.2, LOOT_R = 2.8, LOOT_KITE_R = 3.8, LOOT_AFTER = .8, TAIL_MAX = 14;
+// pecha: each pull at a good rhythm adds TAP_POWER; a steady dheel adds DHEEL_MIN..MAX a second (ramping up over DHEEL_RAMP s)
+const TAP_POWER = .2, DHEEL_MIN = .1, DHEEL_MAX = .36, DHEEL_RAMP = 1.2, KHICH = .05, KHICH_AFTER = .35, PECHA_MAX = 6;
+const CUT_PTS = 100, LOOT_PTS = 50, COMBO_PTS = 50, ALT_PTS = 2, COMBO_WIN = 4, WIN_PTS = 200;
+const SEGS = 10, GRACE = 2.2, FREE_AFTER = .5, RELAUNCH = 3.2, ROUND_TIME = 120, STEP = 1/60, HUNT_DELAY = 12;
+const KINDS = ['hunter', 'cautious', 'wanderer'];
+const IDLE = {pull:false, steer:null};
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const wrapA = a => { a = (a + Math.PI) % (2*Math.PI); if (a < 0) a += 2*Math.PI; return a - Math.PI; };
+function makeRng(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0)/4294967296; }; }
+function gauss(rnd){ return Math.sqrt(-2*Math.log(1 - rnd()))*Math.cos(2*Math.PI*rnd()); }
+
+function makeWorld(w, h){
+  w = Math.max(30, w); h = Math.max(FLOOR + 20, h);
+  const ceil = h - TOP_PAD;
+  return {w, h, floor:FLOOR, ceil, high:FLOOR + (ceil - FLOOR)*.68, maxLine:Math.hypot(w*.5, ceil)*1.08};
+}
+// gusty wind: g 0..1 is the gust strength, v the wind speed (positive blows to the right)
+function windAt(S, t){
+  const p = S.windPh;
+  const g = clamp(.5 + .3*Math.sin(t*.29 + p) + .2*Math.sin(t*.83 + p*2.3) + .12*Math.sin(t*2.1 + p*.7), 0, 1);
+  return {g, v:S.windDir*(2.6 + 2.6*g)};
+}
+
+/* ---------- strings and crossings ---------- */
+// a string as SEGS+1 points [x0, y0, x1, y1, ...] from the hand to the kite; slack string sags, wind bows it.
+// In a pecha the string runs hand -> lock point -> kite.
+function stringPts(S, k, out){
+  const f = S.flyers[k.fi], ax = f.ax, ay = f.ay, P = out || new Array(2*(SEGS + 1)), p = k.pecha;
+  if (p){
+    const h = SEGS/2;
+    for (let i = 0; i <= SEGS; i++){
+      const lo = i <= h, t = lo ? i/h : (i - h)/h, x0 = lo ? ax : p.x, y0 = lo ? ay : p.y, x1 = lo ? p.x : k.x, y1 = lo ? p.y : k.y;
+      const sg = lo ? Math.hypot(x1 - x0, y1 - y0)*.16*t*(1 - t) : 0;
+      P[2*i] = x0 + (x1 - x0)*t; P[2*i + 1] = y0 + (y1 - y0)*t - sg;
+    }
+    return P;
+  }
+  const dx = k.x - ax, dy = k.y - ay, d = Math.hypot(dx, dy) || 1e-6;
+  const slack = Math.max(0, k.line - d), sag = Math.min(d*.4, Math.sqrt(slack*d)*.5 + d*.025), bow = S.wind*.012*d;
+  for (let i = 0; i <= SEGS; i++){
+    const t = i/SEGS, b = 4*t*(1 - t)*(1.3 - .6*t);
+    P[2*i] = ax + dx*t + bow*b; P[2*i + 1] = ay + dy*t - sag*b;
+  }
+  return P;
+}
+// do segments AB and CD cross? returns [u along AB, v along CD] or null
+function segHit(ax, ay, bx, by, cx, cy, dx, dy){
+  const rx = bx - ax, ry = by - ay, sx = dx - cx, sy = dy - cy, den = rx*sy - ry*sx;
+  if (Math.abs(den) < 1e-9) return null;
+  const qx = cx - ax, qy = cy - ay, u = (qx*sy - qy*sx)/den, v = (qx*ry - qy*rx)/den;
+  return u >= 0 && u <= 1 && v >= 0 && v <= 1 ? [u, v] : null;
+}
+// first crossing of two strings, searched from the kite ends; skip: segments next to the hands to ignore
+function crossStrings(P, Q, skip){
+  skip = skip == null ? 1 : skip;
+  const n = P.length/2 - 1, m = Q.length/2 - 1;
+  let p0 = Infinity, p1 = -Infinity, p2 = Infinity, p3 = -Infinity, q0 = Infinity, q1 = -Infinity, q2 = Infinity, q3 = -Infinity;
+  for (let i = skip; i <= n; i++){ const x = P[2*i], y = P[2*i + 1]; if (x < p0) p0 = x; if (x > p1) p1 = x; if (y < p2) p2 = y; if (y > p3) p3 = y; }
+  for (let j = skip; j <= m; j++){ const x = Q[2*j], y = Q[2*j + 1]; if (x < q0) q0 = x; if (x > q1) q1 = x; if (y < q2) q2 = y; if (y > q3) q3 = y; }
+  if (p1 < q0 || q1 < p0 || p3 < q2 || q3 < p2) return null;
+  for (let i = n - 1; i >= skip; i--){
+    const ax = P[2*i], ay = P[2*i + 1], bx = P[2*i + 2], by = P[2*i + 3];
+    for (let j = m - 1; j >= skip; j--){
+      const h = segHit(ax, ay, bx, by, Q[2*j], Q[2*j + 1], Q[2*j + 2], Q[2*j + 3]);
+      if (h) return {x:ax + (bx - ax)*h[0], y:ay + (by - ay)*h[0], ta:(i + h[0])/n, tb:(j + h[1])/m};
+    }
+  }
+  return null;
+}
+function distSeg(px, py, ax, ay, bx, by){
+  const dx = bx - ax, dy = by - ay, L = dx*dx + dy*dy, t = L ? clamp(((px - ax)*dx + (py - ay)*dy)/L, 0, 1) : 0;
+  return Math.hypot(px - ax - dx*t, py - ay - dy*t);
+}
+function distToPoly(px, py, P){ let m = Infinity; for (let i = 0; i + 3 < P.length; i += 2) m = Math.min(m, distSeg(px, py, P[i], P[i + 1], P[i + 2], P[i + 3])); return m; }
+
+/* ---------- kite physics ---------- */
+// inp: {pull, steer}; steer (simple controls) is -1..1 or null for the classic spin-and-pull control
+function kiteStep(S, k, inp, dt){
+  const f = S.flyers[k.fi], pull = !!inp.pull;
+  if (inp.steer != null){
+    k.ang = wrapA(k.ang);
+    k.ang += wrapA(clamp(inp.steer, -1, 1)*STEER_MAX - k.ang)*(1 - Math.exp(-STEER_RATE*dt));
+  } else if (!pull){
+    if (k.prevPull) k.spin = k.ang > 0 ? -1 : 1;         // on letting go the nose swings back towards the sky, then keeps turning
+    k.ang = wrapA(k.ang + k.spin*SPIN*dt);
+  }
+  k.prevPull = pull;
+  k.jolt = Math.max(0, k.jolt - dt*5);
+  // letting go pays string out; pulling flies on the string you gave and slowly winds it back in
+  const d0 = Math.hypot(k.x - f.ax, k.y - f.ay);
+  if (pull) k.line = Math.max(MIN_LINE, k.line - REEL_IN*dt);
+  else k.line = Math.min(k.maxLine, k.line + PAYOUT*dt);
+  const taut = d0 >= k.line - .4;
+  let tx, ty, acc;
+  if (pull){ tx = Math.sin(k.ang)*PULL_SPEED + S.wind*.25; ty = Math.cos(k.ang)*PULL_SPEED; acc = PULL_ACC; }
+  else { tx = S.wind; ty = taut ? HOVER*Math.max(1, Math.abs(S.wind)) : -SINK; acc = DRIFT_ACC; }
+  const a = 1 - Math.exp(-acc*dt);
+  k.vx += (tx - k.vx)*a; k.vy += (ty - k.vy)*a;
+  k.x += k.vx*dt; k.y += k.vy*dt;
+  constrain(k, f.ax, f.ay);
+  bounds(S, k, pull);
+}
+// the string holds the kite: never further from the hand than the line let out
+function constrain(k, ax, ay){
+  const dx = k.x - ax, dy = k.y - ay, d = Math.hypot(dx, dy);
+  if (d > k.line && d > 1e-6){
+    const ux = dx/d, uy = dy/d;
+    k.x = ax + ux*k.line; k.y = ay + uy*k.line;
+    const vr = k.vx*ux + k.vy*uy;
+    if (vr > 0){ k.vx -= vr*ux; k.vy -= vr*uy; }
+  }
+}
+// the edges of the sky; diving into the rooftops bounces the kite and turns its nose up
+function bounds(S, k, pull){
+  const W = S.W;
+  if (k.x < KITE_R){ k.x = KITE_R; if (k.vx < 0) k.vx *= -.3; }
+  else if (k.x > W.w - KITE_R){ k.x = W.w - KITE_R; if (k.vx > 0) k.vx *= -.3; }
+  if (k.y > W.ceil){ k.y = W.ceil; if (k.vy > 0) k.vy = 0; }
+  else if (k.y < W.floor){
+    k.y = W.floor;
+    if (k.vy < 0) k.vy = 0;
+    if (pull && Math.cos(k.ang) < -.2){ k.ang = wrapA(Math.PI - k.ang); k.vy = 4; S.ev.push({k:'bump', fi:k.fi}); }
+  }
+}
+// locked in a pecha: the kite hovers; letting go still pays out string (that is the dheel)
+function pechaKite(S, k, inp, dt){
+  const f = S.flyers[k.fi], pull = !!inp.pull;
+  if (pull && !k.prevPull) k.jolt = 1;
+  k.prevPull = pull;
+  k.jolt = Math.max(0, k.jolt - dt*5);
+  if (!pull) k.line = Math.min(k.maxLine, k.line + PAYOUT_PECHA*dt);
+  const d = Math.exp(-5*dt); k.vx *= d; k.vy *= d;
+  k.x += (k.vx + S.wind*.12)*dt; k.y += (k.vy - (pull ? 0 : .25))*dt;
+  constrain(k, f.ax, f.ay); bounds(S, k, false);
+}
+// a cut kite flutters down with the wind, rocking and tumbling
+function looseStep(S, k, dt){
+  const age = S.t - k.cutAt, a = 1 - Math.exp(-1.4*dt);
+  const tx = S.wind*.9 + Math.sin(age*2.1 + k.id)*2.4, ty = -LOOSE_FALL + Math.cos(age*2.9 + k.id*1.7)*1.6;
+  k.vx += (tx - k.vx)*a; k.vy += (ty - k.vy)*a;
+  k.x += k.vx*dt; k.y += k.vy*dt;
+  k.ang = wrapA(Math.sin(age*1.7 + k.id)*1.2 + k.spinR*age*.15);
+  if (k.y < -4 || k.x < -10 || k.x > S.W.w + 10){ k.state = 'gone'; S.ev.push({k:'land', fi:k.fi, x:k.x, y:k.y}); }
+}
+// the snapped bit of string trails behind a falling kite
+function tailEnd(k){ const v = Math.hypot(k.vx, k.vy) || 1; return {x:k.x - k.vx/v*k.tail, y:k.y - k.vy/v*k.tail}; }
+
+/* ---------- pecha ---------- */
+// how much a pull counts, from the time since the previous pull: three or four steady pulls a second is best;
+// faster falls away quickly (mashing does almost nothing), slower fades gently; the first pull counts a little
+function rhythm(iv){
+  if (iv > 1.5) return .35;
+  if (iv < .24) return Math.max(.06, Math.exp(-Math.pow((.24 - iv)/.05, 2)));
+  if (iv <= .4) return 1;
+  return Math.max(.06, Math.exp(-Math.pow((iv - .4)/.18, 2)));
+}
+const newSide = prev => ({prev:!!prev, hold:0, rel:0, last:-9, iv:9, taps:0, q:0, style:''});
+function newPecha(a, b, x, y, ta, tb, pa, pb){ return {a, b, x, y, ta, tb, ox:0, oy:0, t:0, m:0, done:false, win:null, sa:newSide(pa), sb:newSide(pb)}; }
+// one side's push this step: tanne (pulls), khich (holding a pull: weak) or dheel (letting go, needs string on the reel)
+function pechaSide(s, inp, str, reelLeft, t, dt){
+  const pull = !!inp.pull;
+  let f = 0;
+  if (pull && !s.prev){ const iv = t - s.last; s.last = t; s.iv = iv; s.q = rhythm(iv); f += TAP_POWER*s.q*str; s.taps++; s.rel = 0; s.style = 'tanne'; }
+  if (pull){ s.hold += dt; if (s.hold > KHICH_AFTER){ f += KHICH*str*dt; s.style = 'khich'; } }
+  else {
+    s.hold = 0; s.rel += dt;
+    if (reelLeft > .01){ f += str*(DHEEL_MIN + (DHEEL_MAX - DHEEL_MIN)*Math.min(1, s.rel/DHEEL_RAMP))*dt; if (s.rel > .45) s.style = 'dheel'; }
+    else if (s.rel > .45) s.style = 'empty';
+  }
+  s.prev = pull;
+  return f;
+}
+/* Advance a pecha. A, B: {str (string strength), reelLeft}. m > 0 favours side a; it ends at |m| = 1, or after
+   PECHA_MAX seconds in favour of whoever is ahead (equal: the stronger string, then side a). Deterministic. */
+function pechaStep(p, dt, inA, inB, A, B){
+  const fa = pechaSide(p.sa, inA, A.str, A.reelLeft, p.t, dt), fb = pechaSide(p.sb, inB, B.str, B.reelLeft, p.t, dt);
+  p.m = clamp(p.m + fa - fb, -1, 1);
+  p.t += dt;
+  if (p.m >= 1 || p.m <= -1 || p.t >= PECHA_MAX){ p.done = true; p.win = p.m > 0 ? 'a' : p.m < 0 ? 'b' : A.str >= B.str ? 'a' : 'b'; }
+  return p;
+}
+
+/* ---------- the sky ---------- */
+const scoreOf = f => f.cutPts + f.loots*LOOT_PTS + Math.floor(f.alt*ALT_PTS) + f.bonus;
+const roundScore = f => scoreOf(f) - f.round0;
+// o: {mode:'endless'|'battle', player:bool, bots, w, h, seed, names, rounds}
+function newSky(o){
+  o = o || {};
+  const S = {mode:o.mode || 'endless', W:makeWorld(o.w || 80, o.h || 60), t:0, seed:o.seed | 0, rnd:makeRng((o.seed | 0) + 7), windDir:o.windDir || 1, windPh:0, wind:0, gust:.5,
+    flyers:[], kites:[], pechas:[], ev:[], player:-1, over:false, playerOut:false, roundOver:false, winner:-1, round:1, rounds:o.rounds || 3, level:1, nextId:1};
+  S.windPh = S.rnd()*6.28;
+  const bots = o.bots == null ? 3 : o.bots, n = bots + (o.player ? 1 : 0), names = o.names || [];
+  const pi = o.player ? Math.floor(n/2) : -1, off = Math.floor(S.rnd()*3);
+  let b = 0;
+  for (let i = 0; i < n; i++){
+    const me = i === pi;
+    S.flyers.push({i, name:me ? 'You' : names[b] || 'Bot ' + (b + 1), bot:me ? false : KINDS[(b + off) % 3], look:me ? 0 : 1 + b % 6, ax:0, ay:0, str:1, kite:null, relaunchAt:0,
+      cuts:0, loots:0, alt:0, cutPts:0, bonus:0, wins:0, combo:0, comboT:-99, bestCombo:0, round0:0, brain:null});
+    if (!me) b++;
+  }
+  S.player = pi;
+  placeAnchors(S);
+  S.flyers.forEach(f => { if (f.bot) setupBot(S, f); launchKite(S, f); });
+  S.wind = windAt(S, 0).v;
+  return S;
+}
+// each flyer's hand on a rooftop, spread across the city
+function placeAnchors(S){
+  const n = S.flyers.length, w = S.W.w, rnd = makeRng(S.seed*31 + 5);
+  S.flyers.forEach((f, i) => { f.ax = w*(i + .5)/n + (rnd() - .5)*w/n*.3; f.ay = 1.2 + rnd()*2.6; });
+}
+// a bot's skill and string; in the endless sky they sharpen with the level
+function setupBot(S, f){
+  const rnd = S.rnd, lv = S.level;
+  const base = S.mode === 'battle' ? .45 + .08*(S.round - 1) : .22 + .07*(lv - 1);
+  f.str = clamp((S.mode === 'battle' ? .95 : .88 + .02*(lv - 1)) + rnd()*.07, .85, 1.12);
+  f.brain = {kind:f.bot, skill:clamp(base + rnd()*.12, .15, .95), aimX:f.ax, aimY:S.W.floor + 10, aimT:0, target:-1, side:1, best:1e9, stuckT:0, nextTap:0, pressUntil:0, style:'', pecha:null};
+}
+function launchKite(S, f){
+  const W = S.W, rnd = S.rnd;
+  const k = {id:S.nextId++, fi:f.i, x:clamp(f.ax + (rnd() - .5)*4, KITE_R, W.w - KITE_R), y:W.floor + 2 + rnd()*2, vx:0, vy:3, ang:(rnd() - .5)*.5, spin:rnd() < .5 ? 1 : -1,
+    line:Math.min(START_LINE, W.maxLine), maxLine:W.maxLine, str:f.str, state:'fly', born:S.t, pecha:null, prevPull:false, freeAt:0, jolt:0, inp:IDLE, pts:null, cutAt:0, tail:0, spinR:0, looted:-1};
+  S.kites.push(k); f.kite = k;
+  return k;
+}
+function stepSky(S, dt, inp){
+  let left = clamp(dt, 0, .1);
+  while (left > 1e-6){ const h = Math.min(STEP, left); subStep(S, h, inp || IDLE); left -= h; }
+}
+function subStep(S, dt, inp){
+  S.t += dt;
+  const w = windAt(S, S.t); S.wind = w.v; S.gust = w.g;
+  const W = S.W;
+  // 1. everyone flies
+  for (const k of S.kites){
+    if (k.state === 'loose'){ looseStep(S, k, dt); continue; }
+    if (k.state !== 'fly') continue;
+    const f = S.flyers[k.fi], i = f.bot ? botInput(S, f, k, dt) : f.i === S.player ? inp : IDLE;
+    k.inp = i;
+    if (k.pecha) pechaKite(S, k, i, dt); else kiteStep(S, k, i, dt);
+  }
+  // 2. the pechas: the lock point rides along both strings
+  for (const p of S.pechas){
+    const A = S.flyers[p.a.fi], B = S.flyers[p.b.fi];
+    p.x = (A.ax + (p.a.x - A.ax)*p.ta + B.ax + (p.b.x - B.ax)*p.tb)/2 + p.ox;
+    p.y = (A.ay + (p.a.y - A.ay)*p.ta + B.ay + (p.b.y - B.ay)*p.tb)/2 + p.oy;
+    pechaStep(p, dt, p.a.inp, p.b.inp, {str:p.a.str, reelLeft:p.a.maxLine - p.a.line}, {str:p.b.str, reelLeft:p.b.maxLine - p.b.line});
+    if (p.done){ const wk = p.win === 'a' ? p.a : p.b, lk = wk === p.a ? p.b : p.a; wk.pecha = null; cutKite(S, lk, wk, p.x, p.y); }
+  }
+  if (S.pechas.length) S.pechas = S.pechas.filter(p => !p.done);
+  // 3. strings, and new crossings
+  for (const k of S.kites) if (k.state === 'fly') k.pts = stringPts(S, k, k.pts);
+  if (!S.roundOver) findCrossings(S);
+  // 4. loot, height bonus, tidy up, and the round flow
+  tryLoot(S);
+  for (const k of S.kites) if (k.state === 'fly' && k.y >= W.high) S.flyers[k.fi].alt += dt;
+  if (S.kites.some(k => k.state === 'gone')) S.kites = S.kites.filter(k => k.state !== 'gone');
+  flow(S);
+}
+function findCrossings(S){
+  const free = S.kites.filter(k => k.state === 'fly' && !k.pecha && S.t - k.born >= GRACE && S.t >= k.freeAt);
+  for (let i = 0; i < free.length; i++) for (let j = i + 1; j < free.length; j++){
+    const a = free[i], b = free[j];
+    if (a.pecha || b.pecha) continue;
+    const c = crossStrings(a.pts, b.pts, 1);
+    if (c) startPecha(S, a, b, c);
+  }
+}
+function startPecha(S, a, b, c){
+  const A = S.flyers[a.fi], B = S.flyers[b.fi];
+  const p = newPecha(a, b, c.x, c.y, c.ta, c.tb, a.inp.pull, b.inp.pull);
+  p.ox = c.x - (A.ax + (a.x - A.ax)*c.ta + B.ax + (b.x - B.ax)*c.tb)/2;
+  p.oy = c.y - (A.ay + (a.y - A.ay)*c.ta + B.ay + (b.y - B.ay)*c.tb)/2;
+  a.pecha = b.pecha = p; S.pechas.push(p);
+  a.pts = stringPts(S, a, a.pts); b.pts = stringPts(S, b, b.pts);
+  S.ev.push({k:'pecha', a:a.fi, b:b.fi, x:c.x, y:c.y});
+}
+// the loser's string snaps at the lock point: its kite goes loose, the winner scores
+function cutKite(S, lose, win, x, y){
+  const lf = S.flyers[lose.fi];
+  lose.state = 'loose'; lose.pecha = null; lose.cutAt = S.t; lose.looted = -1;
+  lose.tail = Math.min(TAIL_MAX, Math.hypot(lose.x - x, lose.y - y));
+  lose.vx = S.wind*.5; lose.vy = 1.2; lose.spinR = (S.rnd() < .5 ? -1 : 1)*(2 + S.rnd()*2);
+  if (lf.kite === lose) lf.kite = null;
+  lf.relaunchAt = S.t + RELAUNCH;
+  let combo = 0, pts = 0;
+  if (win){
+    const wf = S.flyers[win.fi];
+    wf.combo = S.t - wf.comboT <= COMBO_WIN ? wf.combo + 1 : 1; wf.comboT = S.t; combo = wf.combo;
+    wf.bestCombo = Math.max(wf.bestCombo, combo); wf.cuts++;
+    pts = CUT_PTS + COMBO_PTS*(combo - 1); wf.cutPts += pts;
+    win.freeAt = S.t + FREE_AFTER; win.pecha = null;
+  }
+  S.ev.push({k:'cut', w:win ? win.fi : -1, l:lose.fi, x, y, combo, pts, ax:lf.ax, ay:lf.ay, kid:lose.id});
+  if (lose.fi === S.player){ S.playerOut = true; if (S.mode === 'endless') S.over = true; }
+}
+// your string (or kite) touching a falling kite loots it
+function tryLoot(S){
+  if (S.player < 0) return;
+  const pf = S.flyers[S.player], pk = pf.kite;
+  if (!pk || pk.state !== 'fly' || pk.pecha || !pk.pts) return;
+  for (const k of S.kites){
+    if (k.state !== 'loose' || k.fi === S.player || S.t - k.cutAt < LOOT_AFTER) continue;
+    if (Math.hypot(k.x - pk.x, k.y - pk.y) < LOOT_KITE_R || distToPoly(k.x, k.y, pk.pts) < LOOT_R){
+      k.state = 'gone'; k.looted = S.player; pf.loots++;
+      S.ev.push({k:'loot', fi:S.player, x:k.x, y:k.y, ang:k.ang, look:S.flyers[k.fi].look});
+    }
+  }
+}
+function flow(S){
+  if (S.mode === 'endless'){
+    S.level = 1 + (S.player >= 0 ? S.flyers[S.player].cuts*.25 : 0) + S.t/75;
+    for (const f of S.flyers){
+      if (f.kite || !f.bot || S.t < f.relaunchAt) continue;
+      const r = S.rnd(), hp = Math.min(.6, .34 + .05*(S.level - 1));
+      f.bot = r < hp ? 'hunter' : r < hp + (1 - hp)/2 ? 'wanderer' : 'cautious';
+      setupBot(S, f); launchKite(S, f);
+      S.ev.push({k:'launch', fi:f.i});
+    }
+  } else if (S.mode === 'battle' && !S.roundOver){
+    const alive = S.kites.filter(k => k.state === 'fly');
+    let end = false, win = null;
+    if (alive.length <= 1 && !S.pechas.length){ end = true; win = alive[0] || null; }
+    else if (S.t >= ROUND_TIME && !S.pechas.length){
+      end = true;
+      win = alive.slice().sort((a, b) => roundScore(S.flyers[b.fi]) - roundScore(S.flyers[a.fi]) || b.y - a.y || a.fi - b.fi)[0];
+    }
+    if (end){
+      S.roundOver = true; S.winner = win ? win.fi : -1;
+      if (win){ const f = S.flyers[win.fi]; f.wins++; f.bonus += WIN_PTS; }
+      S.ev.push({k:'roundEnd', w:S.winner, timeout:S.t >= ROUND_TIME});
+    }
+  }
+}
+function newRound(S){
+  S.round++; S.t = 0; S.kites = []; S.pechas = []; S.ev = []; S.roundOver = false; S.winner = -1; S.playerOut = false; S.windDir = -S.windDir;
+  S.flyers.forEach(f => { f.kite = null; f.combo = 0; f.comboT = -99; f.round0 = scoreOf(f); if (f.bot) setupBot(S, f); launchKite(S, f); });
+  return S;
+}
+// run the rest of a Battle round without drawing (after you are cut)
+function fastForward(S, maxT){
+  const end = S.t + (maxT || ROUND_TIME + 10);
+  while (!S.roundOver && S.t < end) subStep(S, STEP, IDLE);
+  S.kites = S.kites.filter(k => k.state === 'fly');
+  S.ev.length = 0;
+  return S;
+}
+// Battle table: most rounds won, then points
+function standings(S){
+  const r = S.flyers.map(f => ({i:f.i, name:f.name, bot:f.bot, look:f.look, wins:f.wins, score:scoreOf(f), cuts:f.cuts, loots:f.loots}));
+  r.sort((a, b) => b.wins - a.wins || b.score - a.score || a.i - b.i);
+  r.forEach((x, k) => x.place = k && x.wins === r[k - 1].wins && x.score === r[k - 1].score ? r[k - 1].place : k + 1);
+  return r;
+}
+// the screen changed size: stretch the city sideways, keep heights
+function resizeSky(S, w, h){
+  const W0 = S.W, W1 = makeWorld(w, h), sx = W1.w/W0.w;
+  if (Math.abs(sx - 1) < 1e-9 && Math.abs(W1.h - W0.h) < 1e-9) return S;
+  S.W = W1;
+  for (const f of S.flyers){ f.ax *= sx; if (f.brain){ f.brain.aimX *= sx; f.brain.best = 1e9; } }
+  for (const k of S.kites){
+    k.x *= sx; k.maxLine = W1.maxLine; k.pts = null;
+    if (k.state === 'fly'){
+      const f = S.flyers[k.fi];
+      k.x = clamp(k.x, KITE_R, W1.w - KITE_R); k.y = clamp(k.y, W1.floor, W1.ceil);
+      k.line = clamp(Math.max(k.line, Math.hypot(k.x - f.ax, k.y - f.ay)), MIN_LINE, k.maxLine);
+      k.pts = stringPts(S, k);
+    }
+  }
+  for (const p of S.pechas){ p.x *= sx; p.ox *= sx; }
+  return S;
+}
+
+/* ---------- bots ---------- */
+/* Bots use the same classic control as you: wait until the nose points the right way, then pull.
+   hunter: sweeps across a rival's string (tries to get to the far side of the rival's kite);
+   cautious: flies high over its own roof and shies away from other kites; wanderer: roams, sometimes hunts. */
+function botInput(S, f, k, dt){
+  const B = f.brain, W = S.W, rnd = S.rnd;
+  if (k.pecha) return botPecha(S, B, k, dt);
+  B.pecha = null;
+  B.aimT -= dt;
+  if (B.aimT <= 0) chooseAim(S, f, k);
+  if (B.target >= 0){
+    const tk = S.kites.find(o => o.id === B.target);
+    if (!tk || tk.state !== 'fly' || tk.pecha){ B.target = -1; chooseAim(S, f, k); }
+    else { B.aimX = clamp(tk.x + B.side*7, KITE_R + 1, W.w - KITE_R - 1); B.aimY = clamp(tk.y + 2.5, W.floor + 3, W.ceil - 1); }
+  } else if (B.kind === 'cautious'){
+    for (const o of S.kites){
+      if (o === k || o.state !== 'fly') continue;
+      const dx = k.x - o.x, dy = k.y - o.y, d = Math.hypot(dx, dy);
+      if (d < 14 && d > .01){ B.aimX = clamp(k.x + dx/d*12, KITE_R + 1, W.w - KITE_R - 1); B.aimY = clamp(k.y + Math.abs(dy/d)*6 + 3, W.floor + 3, W.ceil - 1); break; }
+    }
+  }
+  const dx = B.aimX - k.x, dy = B.aimY - k.y, dist = Math.hypot(dx, dy);
+  if (dist < B.best - .5){ B.best = dist; B.stuckT = 0; }
+  else if ((B.stuckT += dt) > 4){                       // no progress: go somewhere else for a while
+    B.target = -1; B.aimX = KITE_R + 2 + rnd()*(W.w - 2*KITE_R - 4); B.aimY = W.floor + 6 + rnd()*Math.max(1, W.ceil - W.floor - 8);
+    B.aimT = 2.5; B.best = 1e9; B.stuckT = 0;
+  }
+  if (dist < 3){ if (B.target >= 0){ B.side = -B.side; B.best = 1e9; } else B.aimT = Math.min(B.aimT, .3); }
+  const wy = k.y < W.floor + 4 ? Math.abs(dy) + 10 : dy;
+  const want = Math.atan2(dx, wy), diff = Math.abs(wrapA(want - k.ang)), up = Math.cos(k.ang);
+  const low = k.y < W.floor + (W.ceil - W.floor)*.25, taut = Math.hypot(k.x - f.ax, k.y - f.ay) >= k.line - .6;
+  let pull = diff < .3 + (1 - B.skill)*.3;
+  if (!pull && up > .6 && low) pull = true;                  // climb when low and pointing up
+  if (pull && taut && k.line < k.maxLine - 1 && (low || Math.hypot(B.aimX - f.ax, B.aimY - f.ay) > k.line + 3)) pull = false;   // give dheel to reach further
+  if (pull && up < -.3 && k.y < W.floor + 9) pull = false;   // never dive into the roofs
+  return {pull, steer:null};
+}
+function chooseAim(S, f, k){
+  const B = f.brain, W = S.W, rnd = S.rnd;
+  B.best = 1e9; B.stuckT = 0; B.target = -1;
+  const others = S.kites.filter(o => o !== k && o.state === 'fly' && !o.pecha && S.t - o.born >= GRACE);
+  let hunt = B.kind === 'hunter' ? .85 : B.kind === 'wanderer' ? .4 : .15;
+  hunt = S.mode === 'battle' ? Math.min(1, hunt + S.t/ROUND_TIME) : Math.min(.95, hunt + (S.level - 1)*.05);
+  if (others.length && rnd() < hunt){
+    const early = S.t < HUNT_DELAY, pk = S.player >= 0 && !early ? others.find(o => o.fi === S.player) : null;
+    let tgt = null;
+    if (pk && rnd() < (B.kind === 'hunter' ? .55 : .35)) tgt = pk;
+    else {
+      let bd = Infinity;
+      for (const o of others){ if (early && o.fi === S.player) continue; const d = Math.hypot(o.x - k.x, o.y - k.y); if (d < bd){ bd = d; tgt = o; } }
+    }
+    if (tgt){ B.target = tgt.id; B.side = Math.sign(S.flyers[tgt.fi].ax - f.ax) || 1; B.aimT = 5 + rnd()*5; return; }
+  }
+  const span = Math.max(1, W.ceil - W.floor);
+  if (B.kind === 'cautious'){ B.aimX = clamp(f.ax + (rnd() - .5)*W.w*.25, KITE_R + 1, W.w - KITE_R - 1); B.aimY = W.floor + span*(.6 + rnd()*.35); B.aimT = 3 + rnd()*3; }
+  else { B.aimX = KITE_R + 1 + rnd()*(W.w - 2*KITE_R - 2); B.aimY = W.floor + span*(.3 + rnd()*.65); B.aimT = 3 + rnd()*4; }
+}
+// in a pecha: hunters mostly pull in rhythm, cautious flyers mostly dheel; less skill means shakier timing
+function botPecha(S, B, k, dt){
+  const p = k.pecha, t = S.t, rnd = S.rnd;
+  if (B.pecha !== p){
+    B.pecha = p;
+    const r = rnd();
+    B.style = B.kind === 'hunter' ? (r < .85 ? 'tap' : 'dheel') : B.kind === 'cautious' ? (r < .8 ? 'dheel' : 'tap') : (r < .5 ? 'tap' : 'dheel');
+    if (k.maxLine - k.line < 12) B.style = 'tap';
+    B.nextTap = t + .12 + rnd()*.25; B.pressUntil = 0;
+  }
+  if (B.style === 'dheel'){
+    if (k.maxLine - k.line < .6){ B.style = 'tap'; B.nextTap = t; }
+    else {
+      if (t >= B.pressUntil && rnd() < (1 - B.skill)*.45*dt) B.pressUntil = t + .08;   // a nervous flinch breaks the dheel
+      return {pull:t < B.pressUntil, steer:null};
+    }
+  }
+  if (t >= B.nextTap){ B.pressUntil = t + .07; B.nextTap = t + Math.max(.05, .31 + gauss(rnd)*(.03 + (1 - B.skill)*.16)); }
+  return {pull:t < B.pressUntil, steer:null};
+}
+// ==== LOGIC END ====
+
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/arcade-games/changa-chet/';
+const BEST_KEY = 'changa-chet-best', CTRL_KEY = 'changa-chet-controls';
+const BOT_NAMES = ['Bikash', 'Sunita', 'Rajan', 'Anita', 'Prakash', 'Puja', 'Sagar', 'Kiran', 'Ramesh', 'Gita'];
+const KIND_TXT = {hunter:'Hunter', cautious:'Cautious', wanderer:'Wanderer'};
+const LOOKS = [
+  {a:'#d7263d', b:'#f5c851', pat:'half'},     // yours: crimson and gold
+  {a:'#1f6fd1', b:'#f4f1e6', pat:'band'},
+  {a:'#2f9a52', b:'#f2d22e', pat:'circle'},
+  {a:'#7a3fb0', b:'#ff9ec0', pat:'tri'},
+  {a:'#f07d1a', b:'#2a2a2a', pat:'bottom'},
+  {a:'#119c93', b:'#ffffff', pat:'circle'},
+  {a:'#e84a7f', b:'#2e2a78', pat:'half'},
+];
+const COMBO_TXT = n => n === 2 ? 'Double chet!' : n === 3 ? 'Triple chet!' : `Chet ×${n}!`;
+const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+const game = $('#game'), field = $('#field'), cvs = $('#cv'), ctx = cvs.getContext('2d');
+const dock = $('#dock'), pullBtn = $('#pullBtn'), needle = $('#needle'), reelEl = $('#reel');
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const lerp = (a, b, t) => a + (b - a)*t;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const pick = (rnd, arr) => arr[Math.floor(rnd()*arr.length) % arr.length];
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function loadBest(){
+  try { const b = JSON.parse(localStorage.getItem(BEST_KEY)); if (b && typeof b === 'object') return {score:Math.max(0, b.score | 0), cuts:Math.max(0, b.cuts | 0)}; if (typeof b === 'number') return {score:b | 0, cuts:0}; } catch(e){}
+  return {score:0, cuts:0};
+}
+function saveBest(b){ try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch(e){} }
+function loadCtrl(){ try { return localStorage.getItem(CTRL_KEY) === 'simple'; } catch(e){ return false; } }
+function saveCtrl(v){ try { localStorage.setItem(CTRL_KEY, v ? 'simple' : 'classic'); } catch(e){} }
+
+/* ---------- sound: everything synthesised with WebAudio ---------- */
+let actx = null, soundOn = true, noiseBuf = null, gestured = false;
+function audio(){
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  if (!noiseBuf){
+    noiseBuf = actx.createBuffer(1, actx.sampleRate*2, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+  }
+  return actx;
+}
+function env(g, at, vol, len, atk){ g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + (atk || .0015)); g.gain.exponentialRampToValueAtTime(.0005, at + len); }
+function tone(f, at, vol, type, len, f2){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, at);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, at + len);
+  env(g, at, vol, len, .004);
+  o.connect(g).connect(actx.destination); o.start(at); o.stop(at + len + .03);
+}
+function noise(at, vol, len, type, freq, q, atk){
+  const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q || .8;
+  env(g, at, vol, len, atk);
+  src.connect(f).connect(g).connect(actx.destination);
+  src.start(at, Math.random()*1.5); src.stop(at + len + .03);
+  return f;
+}
+// one voice from the rooftops: a bright "yaaay" (or a falling "ooh") with a little vibrato
+function voice(at, f0, len, vol, fall){
+  const o = actx.createOscillator(), bp = actx.createBiquadFilter(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+  o.type = 'sawtooth';
+  if (fall){ o.frequency.setValueAtTime(f0, at); o.frequency.linearRampToValueAtTime(f0*.62, at + len); }
+  else { o.frequency.setValueAtTime(f0*.82, at); o.frequency.linearRampToValueAtTime(f0*1.22, at + len*.3); o.frequency.linearRampToValueAtTime(f0*.95, at + len); }
+  lfo.frequency.value = 5 + Math.random()*2.5; lg.gain.value = f0*.035;
+  lfo.connect(lg).connect(o.frequency);
+  bp.type = 'bandpass'; bp.frequency.value = fall ? 800 : 1150 + Math.random()*500; bp.Q.value = 1.4;
+  env(g, at, vol, len, .06);
+  o.connect(bp).connect(g).connect(actx.destination);
+  o.start(at); o.stop(at + len + .05); lfo.start(at); lfo.stop(at + len + .05);
+}
+function sfx(kind, a){
+  if (!soundOn || !gestured) return;
+  try {
+    audio();
+    const t = actx.currentTime, v = a == null ? 1 : a;
+    switch (kind){
+      case 'zip': {                                                   // two strings catch: a rising zzzip
+        const f = noise(t, .26*v, .34, 'bandpass', 900, 3, .02);
+        f.frequency.setValueAtTime(600, t); f.frequency.exponentialRampToValueAtTime(4200, t + .3);
+        tone(900, t, .035*v, 'sawtooth', .28, 2400);
+        break;
+      }
+      case 'rasp': noise(t, .2*v, .08, 'bandpass', 2400 + Math.random()*900, 2.2, .004); break;   // manjha sawing on manjha
+      case 'snap': noise(t, .5*v, .06, 'highpass', 2600, .7, .001); tone(2300, t, .1*v, 'square', .045, 800); tone(180, t, .12*v, 'sine', .12, 70); break;
+      case 'cheer': {                                                 // "Chet!" from the rooftops; a = 0..1 how loud
+        const lv = .45 + .55*v, len = 1 + lv;
+        noise(t, .1*lv, len, 'bandpass', 1300, .5, .2);
+        const n = 3 + Math.round(6*lv);
+        for (let i = 0; i < n; i++) voice(t + Math.random()*.25, 430 + Math.random()*380, .4 + Math.random()*.5, .05*lv, false);
+        for (let i = 0; i < 7*lv; i++) noise(t + .1 + Math.random()*len*.8, .1*lv, .03, 'highpass', 1800, .7);
+        break;
+      }
+      case 'ooh': for (let i = 0; i < 5; i++) voice(t + Math.random()*.15, 360 + Math.random()*140, .8, .045, true); break;
+      case 'loot': [880, 1175, 1568, 1760].forEach((f, i) => tone(f, t + i*.06, .09, 'sine', .22)); break;
+      case 'tick': tone(2600 + Math.random()*400, t, .018, 'square', .012); break;          // the latai (reel) clicking
+      case 'bump': noise(t, .3, .12, 'lowpass', 520, .7); tone(140, t, .15, 'sine', .1, 80); break;
+      case 'click': tone(740, t, .09, 'sine', .1); break;
+      case 'good': [784, 988].forEach((f, i) => tone(f, t + i*.08, .1, 'sine', .16)); break;
+      case 'start': [523, 659, 784].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .22)); break;
+      case 'win': [660, 880, 1100, 1320].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .24)); break;
+      case 'lose': [440, 349, 262].forEach((f, i) => tone(f, t + i*.12, .12, 'triangle', .26)); break;
+    }
+  } catch(e){}
+}
+// the wind: looping filtered noise that breathes with the gusts
+let windSrc = null, windF = null, windG = null;
+function windOn(){
+  if (!soundOn || !gestured || windSrc || paused) return;
+  try {
+    audio();
+    windSrc = actx.createBufferSource(); windSrc.buffer = noiseBuf; windSrc.loop = true;
+    windF = actx.createBiquadFilter(); windF.type = 'lowpass'; windF.frequency.value = 400; windF.Q.value = .8;
+    windG = actx.createGain(); windG.gain.value = 0;
+    windSrc.connect(windF).connect(windG).connect(actx.destination); windSrc.start();
+  } catch(e){ windSrc = null; }
+}
+function windOff(){ if (windSrc){ try { windG.gain.setTargetAtTime(0, actx.currentTime, .05); windSrc.stop(actx.currentTime + .2); } catch(e){} windSrc = null; } }
+function windLevel(g){ if (!windSrc) return; const t = actx.currentTime; windG.gain.setTargetAtTime(.022 + .06*g, t, .4); windF.frequency.setTargetAtTime(240 + 560*g, t, .4); }
+
+/* ---------- state ---------- */
+let S = null, G = null, paused = false, clock = 0, lastNow = 0, raf = 0, simple = loadCtrl();
+let W = 0, H = 0, DPR = 1, SC = 8, Y0 = 0, TOP = 56, HZ = 0, LAY = null;
+const HINTS = {stage:0, pecha:false, loot:false, bump:false};
+let FLAGS = [], CLOUDS = [], birds = [], nextBirds = 6, fx = [], camP = 0, tickT = 0, raspT = 0, lastLine = 0;
+const IN = {ptr:null, x0:0, steer:0, btn:false, key:false, keyL:false, keyR:false, queued:false};
+const wx = x => x*SC, wy = y => Y0 - y*SC;
+const isPlayer = fi => !!(S && fi >= 0 && fi === S.player);
+function kick(){ if (!raf) raf = requestAnimationFrame(frame); }
+
+/* ---------- layout and the painted city ---------- */
+function sizeAll(){
+  const r = field.getBoundingClientRect();
+  W = Math.max(200, r.width); H = Math.max(160, r.height);
+  game.classList.toggle('wide', W/H > 1.25 && W >= 560);
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  cvs.width = Math.round(W*DPR); cvs.height = Math.round(H*DPR);
+  const tb = $('#topbar').getBoundingClientRect();
+  TOP = Math.max(48, tb.bottom - r.top) + 4;
+  SC = clamp(Math.min(W, H)/55, 5, 11);
+  Y0 = Math.round(H - clamp(H*.16, 46, 150));
+  HZ = Math.round(Y0 - clamp(H*.11, 26, 92));
+  if (S) resizeSky(S, W/SC, (Y0 - TOP)/SC);
+  buildLayers(); buildFg();
+  draw();
+}
+const worldDims = () => ({w:W/SC, h:(Y0 - TOP)/SC});
+function layerCanvas(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w*DPR)); c.height = Math.max(1, Math.round(h*DPR)); const g = c.getContext('2d'); g.scale(DPR, DPR); return [c, g]; }
+function ridgeFn(TW, terms){ return x => { let y = 0; for (const [k, a, p, sharp] of terms){ const v = Math.sin(2*Math.PI*k*x/TW + p); y += sharp ? a*(1 - Math.abs(v)) : a*v; } return y; }; }
+function buildLayers(){
+  LAY = {};
+  // the sky and the afternoon sun, baked once per size
+  const [c, g] = layerCanvas(W, Y0 + 2), sx = W*.8, sy = TOP + (HZ - TOP)*.2, sr = clamp(H*.035, 12, 30), R = Math.max(90, H*.3);
+  const sk = g.createLinearGradient(0, 0, 0, Y0);
+  sk.addColorStop(0, '#3a7fd1'); sk.addColorStop(.5, '#7fb8e8'); sk.addColorStop(.82, '#d9dfd6'); sk.addColorStop(1, '#f2cf9a');
+  g.fillStyle = sk; g.fillRect(0, 0, W, Y0 + 2);
+  const sg = g.createRadialGradient(sx, sy, 0, sx, sy, R);
+  sg.addColorStop(0, 'rgba(255,250,225,.95)'); sg.addColorStop(.1, 'rgba(255,240,200,.6)'); sg.addColorStop(1, 'rgba(255,235,190,0)');
+  g.fillStyle = sg; g.fillRect(sx - R, sy - R, 2*R, 2*R);
+  g.fillStyle = '#fff8e2'; g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI*2); g.fill();
+  LAY.sky = c;
+  buildMtn(); buildCity(); buildClouds();
+}
+// 1: the Himalaya, faint and far on the horizon
+function buildMtn(){
+  const PAR = 24, TW = Math.ceil(W + 2*PAR), rnd = makeRng(2081);
+  const mH = clamp(Math.min(H*.17, W*.28), 38, 170), base = HZ - clamp(H*.03, 8, 26);
+  const [c, g] = layerCanvas(TW, base + 2);
+  const jagT = [], snowT = [];
+  for (let k = 0; k < 6; k++){ jagT.push([9 + Math.floor(rnd()*30), mH*.012*(1 + rnd()), rnd()*6.28]); snowT.push([13 + Math.floor(rnd()*40), mH*.03*(1 + rnd()), rnd()*6.28]); }
+  const jag = ridgeFn(TW, jagT), sj = ridgeFn(TW, snowT);
+  const range = (n, hLo, hHi, wLo, wHi) => { const P = []; for (let i = 0; i < n; i++) P.push({cx:(i + .2 + rnd()*.6)/n*TW, h:mH*(hLo + rnd()*(hHi - hLo)), w:mH*(wLo + rnd()*(wHi - wLo))}); return P; };
+  const paint = (peaks, lift, cols) => {
+    for (let x = 0; x < TW; x++){
+      let best = null, top = 0;
+      for (const p of peaks){ const dx = x - p.cx, v = p.h*Math.pow(Math.max(0, 1 - Math.abs(dx)/p.w), 1.25); if (v > top){ top = v; best = {p, dx}; } }
+      if (!best) continue;
+      const y = base - lift - top - jag(x)*(top/mH), peakY = base - lift - best.p.h;
+      const f = Math.abs(best.dx)/best.p.w, lit = best.dx < 0 ? .78 + .22*(1 - f) : .3 + .2*f;
+      const snow = Math.max(y, peakY + (base - peakY)*.45 + sj(x));
+      const C = (a, b) => `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], lit))).join(',')})`;
+      g.fillStyle = C(cols[0], cols[1]); g.fillRect(x, y, 1, snow - y + .5);
+      g.fillStyle = C(cols[2], cols[3]); g.fillRect(x, snow, 1, base - snow + 2);
+    }
+  };
+  const n = Math.max(4, Math.round(TW/(mH*1.3)));
+  paint(range(n, .6, 1, .5, .85), mH*.05, [[180, 192, 214], [246, 240, 236], [150, 162, 186], [178, 186, 206]]);
+  const hz = g.createLinearGradient(0, base - mH, 0, base + 2);
+  hz.addColorStop(0, 'rgba(214,224,232,.25)'); hz.addColorStop(1, 'rgba(226,226,220,.85)');
+  g.fillStyle = hz; g.fillRect(0, base - mH*1.1, TW, mH*1.1 + 2);
+  LAY.mtn = {c, par:PAR, top:Math.max(0, Math.floor(base - mH*1.15 - 4))};
+}
+// a pagoda temple (Durbar Square style): brick plinth, tiered roofs, gold gajur on top. Returns the finial tip.
+function pagoda(g, cx, base, pw, tiers, haze, dark){
+  const C = (c, k) => haze ? mixCol(c, haze, k) : c, hk = dark || 0;
+  let y = base, sw = pw;
+  for (let i = 0; i < 3; i++){ const sh = Math.max(1.5, pw*.07); g.fillStyle = C(i % 2 ? '#a5503a' : '#8f412f', hk); g.fillRect(cx - sw/2, y - sh, sw, sh); y -= sh; sw *= .9; }
+  let bw = pw*.55;
+  for (let t = 0; t < tiers; t++){
+    const bh = Math.max(2, pw*(t ? .16 : .24));
+    g.fillStyle = C('#6e3a20', hk); g.fillRect(cx - bw/2, y - bh, bw, bh);
+    g.fillStyle = C('#3a1d0e', hk); for (let s = 1; s < 4; s++) g.fillRect(cx - bw/2 + bw*s/4 - .5, y - bh, 1, bh);
+    y -= bh;
+    const rw = bw*1.8, rh = Math.max(2, pw*(.2 - t*.025));
+    g.fillStyle = C('#4d2716', hk);
+    g.beginPath(); g.moveTo(cx - rw/2, y + rh*.12); g.quadraticCurveTo(cx - rw*.3, y - rh*.3, cx - bw*.3, y - rh); g.lineTo(cx + bw*.3, y - rh); g.quadraticCurveTo(cx + rw*.3, y - rh*.3, cx + rw/2, y + rh*.12); g.closePath(); g.fill();
+    g.fillStyle = C('#d9a520', hk); g.fillRect(cx - rw/2, y + rh*.05, rw, Math.max(1, rh*.12));
+    y -= rh; bw *= .7;
+  }
+  g.fillStyle = C('#f2c14e', hk * .6);
+  const fr = Math.max(1.2, pw*.05);
+  g.beginPath(); g.ellipse(cx, y - fr*.6, fr*1.3, fr*.6, 0, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.arc(cx, y - fr*1.6, fr*.8, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.moveTo(cx - fr*.4, y - fr*2.2); g.lineTo(cx, y - fr*4.2); g.lineTo(cx + fr*.4, y - fr*2.2); g.fill();
+  return {x:cx, y:y - fr*4.2};
+}
+function mixCol(c, d, k){
+  const p = s => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
+  const a = p(c), b = p(d);
+  return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], k))).join(',')})`;
+}
+// 2: the valley: hazy hills, Swayambhu on its hill, the old city with its pagodas
+function buildCity(){
+  const PAR = 24, TW = Math.ceil(W + 2*PAR), [c, g] = layerCanvas(TW, Y0 + 6), rnd = makeRng(4242), u = SC, HAZE = '#c4ccd0';
+  // the hills ringing the valley
+  const r1 = ridgeFn(TW, [[1, (Y0 - HZ)*.25, rnd()*6], [3, (Y0 - HZ)*.12, rnd()*6], [7, (Y0 - HZ)*.05, rnd()*6]]);
+  g.fillStyle = '#93a7a6'; g.beginPath(); g.moveTo(0, Y0);
+  for (let x = 0; x <= TW; x += 4) g.lineTo(x, HZ - (Y0 - HZ)*.25 - r1(x));
+  g.lineTo(TW, Y0); g.closePath(); g.fill();
+  const r2 = ridgeFn(TW, [[2, (Y0 - HZ)*.14, rnd()*6], [5, (Y0 - HZ)*.06, rnd()*6]]);
+  g.fillStyle = '#a3b2a5'; g.beginPath(); g.moveTo(0, Y0);
+  for (let x = 0; x <= TW; x += 4) g.lineTo(x, HZ + (Y0 - HZ)*.05 - r2(x));
+  g.lineTo(TW, Y0); g.closePath(); g.fill();
+  // Swayambhunath on its wooded hill
+  const hx = TW*(.16 + rnd()*.1), hw = clamp(W*.24, 90, 300), hb = HZ + (Y0 - HZ)*.75, hh = clamp((Y0 - HZ)*.95, 24, 120);
+  g.fillStyle = '#6f8a74'; g.beginPath(); g.moveTo(hx - hw/2, hb); g.bezierCurveTo(hx - hw*.25, hb - hh*.7, hx - hw*.14, hb - hh, hx, hb - hh); g.bezierCurveTo(hx + hw*.14, hb - hh, hx + hw*.25, hb - hh*.7, hx + hw/2, hb); g.closePath(); g.fill();
+  for (let i = 0; i < hw/5; i++){ const tx = hx + (rnd() - .5)*hw*.8, ty = hb - rnd()*hh*.8*(1 - Math.abs(tx - hx)/(hw*.5)); g.fillStyle = `rgba(60,90,62,${.4 + rnd()*.3})`; g.beginPath(); g.arc(tx, ty, 1.5 + rnd()*2.5, 0, Math.PI*2); g.fill(); }
+  const sr = clamp(hw*.07, 6, 20), sy = hb - hh + 1;
+  // prayer flags fanning down from the spire
+  const flagCols = ['#2f6fd0', '#f4f1e6', '#d63c32', '#2f9a52', '#f2c200'];
+  for (let s = -2; s <= 2; s++){
+    if (!s) continue;
+    const ex = hx + s*hw*.2, ey = hb - hh*.25;
+    for (let i = 1; i < 12; i++){ const t = i/12, fx2 = lerp(hx, ex, t), fy2 = lerp(sy - sr*2.8, ey, t) + Math.sin(t*Math.PI)*sr*.5; g.fillStyle = flagCols[i % 5]; g.fillRect(fx2 - .8, fy2, 1.6, 1.8); }
+  }
+  g.fillStyle = '#f4f1ea'; g.beginPath(); g.arc(hx, sy, sr, Math.PI, 0); g.fill();                    // the white dome
+  g.fillStyle = '#e1d9c8'; g.fillRect(hx - sr*1.15, sy - 1, sr*2.3, Math.max(1.5, sr*.12));
+  g.fillStyle = '#e2b13c'; g.fillRect(hx - sr*.38, sy - sr - sr*.5, sr*.76, sr*.52);                // gilded harmika with the painted eyes
+  if (sr > 7){
+    g.fillStyle = '#fff'; g.fillRect(hx - sr*.3, sy - sr*1.3, sr*.24, sr*.1); g.fillRect(hx + sr*.06, sy - sr*1.3, sr*.24, sr*.1);
+    g.fillStyle = '#1a1a1a'; g.fillRect(hx - sr*.22, sy - sr*1.3, sr*.08, sr*.1); g.fillRect(hx + sr*.14, sy - sr*1.3, sr*.08, sr*.1);
+    g.fillStyle = '#b8322a'; g.fillRect(hx - sr*.04, sy - sr*1.16, sr*.08, sr*.12);
+  }
+  g.fillStyle = '#e2b13c';                                                                           // thirteen gilded rings and the parasol
+  g.beginPath(); g.moveTo(hx - sr*.32, sy - sr*1.5); g.lineTo(hx - sr*.08, sy - sr*2.7); g.lineTo(hx + sr*.08, sy - sr*2.7); g.lineTo(hx + sr*.32, sy - sr*1.5); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(120,80,10,.5)'; g.lineWidth = .8;
+  for (let i = 1; i < 6; i++){ const yy = sy - sr*(1.5 + i*.2); g.beginPath(); g.moveTo(hx - sr*(.32 - i*.045), yy); g.lineTo(hx + sr*(.32 - i*.045), yy); g.stroke(); }
+  g.beginPath(); g.ellipse(hx, sy - sr*2.75, sr*.3, sr*.08, 0, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.moveTo(hx - sr*.05, sy - sr*2.8); g.lineTo(hx, sy - sr*3.2); g.lineTo(hx + sr*.05, sy - sr*2.8); g.fill();
+  // the city: rows of houses, hazier with distance, with the pagodas of the old Durbar Square among them
+  const BR = ['#a24a35', '#b9583c', '#9a3f2e', '#c46d4e'], PA = ['#e6c1c6', '#e9d58c', '#a9cbe0', '#b5dcc4', '#ece3cf', '#ffffff'];
+  const rows = 4, rowY = r => lerp(HZ + (Y0 - HZ)*.3, Y0 + 4, (r + 1)/rows);
+  const pg = TW*(.48 + rnd()*.2);
+  for (let r = 0; r < rows; r++){
+    const base = rowY(r), hz = .7 - r*.17, sz = (.7 + r*.45)*u*.9;
+    if (r === 1){ pagoda(g, pg, base, sz*9, 3, HAZE, .45); pagoda(g, pg + sz*9, base + 2, sz*6.5, 2, HAZE, .45); pagoda(g, pg - sz*7.5, base + 1, sz*5.5, 2, HAZE, .45); }
+    let x = -4;
+    while (x < TW){
+      const w = sz*(1.6 + rnd()*1.8), h = sz*(2.4 + rnd()*3.2), col = rnd() < .55 ? pick(rnd, BR) : pick(rnd, PA);
+      g.fillStyle = mixCol(col, HAZE, hz); g.fillRect(x, base - h, w, h + 6);
+      if (r >= 2){ g.fillStyle = `rgba(40,30,30,${.22 + .1*r})`; for (let wy2 = base - h + sz*.7; wy2 < base - sz*.4; wy2 += sz*1.1) for (let wx2 = x + sz*.4; wx2 < x + w - sz*.5; wx2 += sz*.9) g.fillRect(wx2, wy2, Math.max(1, sz*.32), Math.max(1, sz*.42)); }
+      if (rnd() < .25){ g.fillStyle = mixCol('#1f1f22', HAZE, hz); g.fillRect(x + w*.6, base - h - sz*.6, sz*.5, sz*.6); }   // water tanks even far away
+      x += w + (rnd() < .2 ? sz*.3 : -.3);
+    }
+  }
+  const hzg = g.createLinearGradient(0, HZ - 10, 0, Y0);
+  hzg.addColorStop(0, 'rgba(225,222,212,.35)'); hzg.addColorStop(1, 'rgba(225,215,200,.05)');
+  g.fillStyle = hzg; g.fillRect(0, HZ - 10, TW, Y0 - HZ + 16);
+  LAY.city = {c, par:PAR, top:Math.max(0, Math.floor(Math.min(HZ - (Y0 - HZ)*.5 - 10, hb - hh - sr*3.4 - 4)))};
+}
+function buildClouds(){
+  const rnd = makeRng(99 + Math.round(W)), n = Math.max(4, Math.round(W/170));
+  CLOUDS = [];
+  for (let i = 0; i < n; i++){
+    const w = clamp(W*.13, 70, 200)*(.6 + rnd()*.8), h = w*.45, [c, g] = layerCanvas(Math.ceil(w), Math.ceil(h));
+    for (let j = 0; j < 7; j++){
+      const px = w*(.18 + rnd()*.64), py = h*(.45 + rnd()*.2), r = h*(.2 + rnd()*.22);
+      const gr = g.createRadialGradient(px, py - r*.3, r*.1, px, py, r);
+      gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(px, py, r, 0, Math.PI*2); g.fill();
+    }
+    CLOUDS.push({c, w, h, x:rnd()*(W + w) - w, y:TOP + rnd()*Math.max(10, (HZ - TOP)*.55), k:.4 + rnd()*.6, a:.55 + rnd()*.4});
+  }
+}
+/* 3: the rooftops where everyone flies from: tall narrow brick and painted concrete houses packed side by side,
+   flat roofs with water tanks, dishes, rebar, railings and laundry, old Newari houses with carved windows and
+   tiled roofs, tangled wires. Drawn once per size (and per set of flyers) to an offscreen canvas. */
+const BRICK = ['#a8432f', '#b5553a', '#9c3b2a', '#c0644a', '#a64b33'];
+const PASTEL = ['#e9a6b5', '#ecd27a', '#9cc8e6', '#a8dcc0', '#efe4cc', '#f2b38a', '#d9c1e6'];
+function house(g, x, w, top, rnd, o){
+  const u = SC, bot = H + 2, fh = Math.max(11, u*2.3), painted = o.painted, wall = o.wall;
+  g.fillStyle = wall; g.fillRect(x, top, w, bot - top);
+  if (!painted){ g.fillStyle = 'rgba(70,20,10,.16)'; for (let y = top + 3; y < bot; y += Math.max(2.5, u*.32)) g.fillRect(x, y, w, 1); }
+  const newari = o.newari;
+  for (let fy = top + fh*.3, fl = 0; fy < bot; fy += fh, fl++){
+    if (painted){ g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(x, fy - fh*.3 - 1, w, 1.5); g.fillStyle = 'rgba(0,0,0,.08)'; g.fillRect(x, fy - fh*.3 + .5, w, 1.5); }
+    else if (newari && fl === 0){ g.fillStyle = 'rgba(40,20,10,.35)'; g.fillRect(x, fy - fh*.3, w, 1.5); }
+    const cols = Math.max(1, Math.round(w/(2.5*u))), cw = w/cols;
+    for (let ci = 0; ci < cols; ci++){
+      const ww = Math.min(u*1.2, cw*.55), wh = fh*.5, wx2 = x + (ci + .5)*cw - ww/2;
+      if (newari){
+        // carved dark wooden window with a lattice (tikijhyal) and a wide carved lintel
+        g.fillStyle = '#2b190d'; g.fillRect(wx2 - 2, fy - 2, ww + 4, wh + 4);
+        g.fillStyle = '#4a2c16'; g.fillRect(wx2 - ww*.3, fy - 3.5, ww*1.6, 2);
+        g.fillStyle = '#5c3a1e'; g.fillRect(wx2, fy, ww, wh);
+        g.save(); g.beginPath(); g.rect(wx2, fy, ww, wh); g.clip();
+        g.strokeStyle = 'rgba(25,12,5,.9)'; g.lineWidth = .8; g.beginPath();
+        const st = Math.max(2.2, ww/3.5);
+        for (let d = -wh; d < ww; d += st){ g.moveTo(wx2 + d, fy); g.lineTo(wx2 + d + wh, fy + wh); g.moveTo(wx2 + d + wh, fy); g.lineTo(wx2 + d, fy + wh); }
+        g.stroke(); g.restore();
+      } else {
+        g.fillStyle = painted ? '#f4efe4' : '#e8dcc4'; g.fillRect(wx2 - 1.5, fy - 1.5, ww + 3, wh + 3);
+        g.fillStyle = rnd() < .15 ? '#d9534f' : rnd() < .3 ? '#e0b44c' : '#3b4b5c'; g.fillRect(wx2, fy, ww, wh);
+        g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(wx2 + ww*.15, fy + 1, Math.max(1, ww*.15), wh - 2);
+        g.fillStyle = 'rgba(30,30,30,.55)'; g.fillRect(wx2 + ww/2 - .5, fy, 1, wh);
+        if (painted && rnd() < .25){ g.fillStyle = 'rgba(60,60,60,.6)'; g.fillRect(wx2 - 2, fy + wh + 1.5, ww + 4, 1.2); for (let b = wx2 - 2; b <= wx2 + ww + 2; b += 2.5) g.fillRect(b, fy + wh - 2, .8, 3.5); }  // little balcony rail
+      }
+    }
+  }
+  g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(x + w - Math.max(1.5, w*.07), top, Math.max(1.5, w*.07), bot - top);
+  g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(x, top, Math.max(1, w*.04), bot - top);
+  if (o.haze){ g.fillStyle = `rgba(196,204,208,${o.haze})`; g.fillRect(x, top, w, bot - top); }
+}
+// a sloping tiled roof on an old house
+function tiledRoof(g, x, w, top, haze){
+  const u = SC, rh = Math.max(5, u*1.2), ov = Math.max(2, u*.35);
+  g.fillStyle = haze ? mixCol('#7a3a26', '#c4ccd0', haze) : '#7a3a26';
+  g.beginPath(); g.moveTo(x - ov, top + 1); g.lineTo(x + w*.25, top - rh); g.lineTo(x + w*.75, top - rh); g.lineTo(x + w + ov, top + 1); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(40,15,8,.45)'; g.lineWidth = .8; g.beginPath();
+  for (let i = 1; i < 4; i++){ const yy = top - rh + i*rh/4; g.moveTo(x + w*.25 - (x + w*.25 - x + ov)*i/4, yy); g.lineTo(x + w*.75 + (x + w + ov - x - w*.75)*i/4, yy); }
+  g.stroke();
+  g.fillStyle = 'rgba(30,10,5,.4)'; g.fillRect(x - ov, top, w + 2*ov, 1.5);
+}
+// a flat concrete roof and its clutter; keepX: where a flyer stands (kept clear)
+function flatRoof(g, x, w, top, rnd, keepX, haze){
+  const u = SC, clear = (a, b) => keepX == null || b < keepX - u*1.1 || a > keepX + u*1.1;
+  const C = c => haze ? mixCol(c, '#c4ccd0', haze) : c;
+  g.fillStyle = C('#b9b3a8'); g.fillRect(x - 1, top - 1, w + 2, Math.max(2, u*.3));
+  const kind = rnd();
+  if (kind < .5){                                                  // iron railing
+    const rh = u*.85; g.strokeStyle = C('#4a4a4a'); g.lineWidth = Math.max(.8, u*.08); g.beginPath();
+    g.moveTo(x, top - rh); g.lineTo(x + w, top - rh);
+    for (let px = x + .5; px <= x + w; px += Math.max(3, u*.55)) { g.moveTo(px, top); g.lineTo(px, top - rh); }
+    g.stroke();
+  } else if (kind < .8){ g.fillStyle = C('#d4cfc4'); g.fillRect(x, top - u*.55, w, u*.55); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x, top - 1, w, 1); }   // parapet wall
+  else {                                                           // unfinished top floor: column stubs with rebar sticking up
+    for (const cx of [x + u*.3, x + w/2, x + w - u*.3]){
+      if (!clear(cx - u*.3, cx + u*.3)) continue;
+      g.fillStyle = C('#a9a49a'); g.fillRect(cx - u*.25, top - u*.9, u*.5, u*.9);
+      g.strokeStyle = C('#5b3a2a'); g.lineWidth = Math.max(.7, u*.07); g.beginPath();
+      for (let r = -1; r <= 1; r += 2){ g.moveTo(cx + r*u*.12, top - u*.9); g.lineTo(cx + r*u*.18 + (rnd() - .5)*u*.3, top - u*1.9 - rnd()*u*.4); }
+      g.stroke();
+    }
+  }
+  const spots = [x + u*1.1, x + w - u*1.1, x + w*.5];
+  // water tank: black or blue plastic, on a little stand
+  const tx = spots.find(s => clear(s - u*.7, s + u*.7));
+  if (tx != null && rnd() < .85){
+    const tw = u*1.25, th = u*1.5, tyy = top - u*.25;
+    g.fillStyle = C('#4b4b4b'); g.fillRect(tx - tw*.45, tyy - u*.25, tw*.9, u*.3);
+    g.fillStyle = C(rnd() < .65 ? '#1f1f22' : '#2a5fae'); g.beginPath(); g.roundRect ? g.roundRect(tx - tw/2, tyy - u*.25 - th, tw, th, tw*.18) : g.rect(tx - tw/2, tyy - u*.25 - th, tw, th); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(tx - tw*.32, tyy - u*.25 - th*.9, tw*.12, th*.75);
+    g.fillStyle = 'rgba(0,0,0,.3)'; for (let r = 1; r < 3; r++) g.fillRect(tx - tw/2, tyy - u*.25 - th*r/3, tw, 1);
+  }
+  // TV dish
+  const dx = spots.slice().reverse().find(s => s !== tx && clear(s - u*.5, s + u*.5));
+  if (dx != null && rnd() < .55){
+    g.strokeStyle = C('#666'); g.lineWidth = 1; g.beginPath(); g.moveTo(dx, top); g.lineTo(dx, top - u*.7); g.stroke();
+    g.fillStyle = C('#d8d8d8'); g.beginPath(); g.ellipse(dx, top - u*.95, u*.5, u*.3, -.5, 0, Math.PI*2); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.stroke();
+  } else if (dx != null && rnd() < .6){                            // potted plants
+    for (let i = 0; i < 2; i++){ const px = dx + (i - .5)*u*.7; g.fillStyle = C('#b5643a'); g.fillRect(px - u*.2, top - u*.4, u*.4, u*.4); g.fillStyle = C(i ? '#3f8a3a' : '#5aa144'); g.beginPath(); g.arc(px, top - u*.6, u*.32, 0, Math.PI*2); g.fill(); }
+  }
+  // clothesline with the laundry out
+  if (w > u*4.5 && rnd() < .45){
+    const a = x + u*.4, b = x + w - u*.4, ly = top - u*1.3;
+    if (clear(a, b)){
+      g.strokeStyle = C('#555'); g.lineWidth = .8; g.beginPath(); g.moveTo(a, top); g.lineTo(a, ly); g.moveTo(b, top); g.lineTo(b, ly); g.moveTo(a, ly); g.quadraticCurveTo((a + b)/2, ly + u*.25, b, ly); g.stroke();
+      const LC = ['#d63c32', '#2f6fd0', '#f2c200', '#ffffff', '#e84a7f', '#2f9a52'];
+      for (let px = a + u*.4; px < b - u*.3; px += u*(.5 + rnd()*.35)){ const t2 = (px - a)/(b - a), py = ly + u*.25*4*t2*(1 - t2)*.5; g.fillStyle = C(pick(rnd, LC)); g.fillRect(px, py, u*.38, u*(.4 + rnd()*.35)); }
+    }
+  }
+}
+function buildFg(){
+  if (!S || !W) return;
+  const [c, g] = layerCanvas(W, H), rnd = makeRng(S.seed*13 + 3), u = SC;
+  FLAGS = [];
+  // midground: a dense row of taller houses and one more pagoda behind the flyers' roofs
+  const tp = W*(.55 + rnd()*.3);
+  let x = -u*2;
+  while (x < W + u*2){
+    const w = (3.2 + rnd()*3.6)*u, top = wy(1.8 + rnd()*4.4), painted = rnd() < .4, newari = !painted && rnd() < .4;
+    house(g, x, w, top, rnd, {painted, newari, wall:painted ? pick(rnd, PASTEL) : pick(rnd, BRICK), haze:.32});
+    if (newari && rnd() < .6) tiledRoof(g, x, w, top, .32); else flatRoof(g, x, w, top, rnd, null, .32);
+    x += w - u*.1;
+  }
+  pagoda(g, tp, wy(2.5), u*9.5, 3, '#c4ccd0', .22);
+  // foreground: the flyers' flat roofs, and older or lower houses packed in between
+  const fl = S.flyers.slice().sort((a, b) => a.ax - b.ax), n = fl.length;
+  const mains = fl.map((f, i) => {
+    const lg = i ? f.ax - fl[i - 1].ax : f.ax*2, rg = i < n - 1 ? fl[i + 1].ax - f.ax : (W/u - f.ax)*2;
+    const w = clamp(Math.min(lg, rg)*u*.62, 4.5*u, 8.5*u), off = .35 + rnd()*.3;
+    return {x:wx(f.ax) - w*off, w, top:wy(f.ay - 2.6), f};
+  });
+  const fillers = [];
+  let cur = -u;
+  for (let i = 0; i <= n; i++){
+    const end = i < n ? mains[i].x : W + u;
+    while (end - cur > u*.8){
+      const w = Math.min(end - cur, (3 + rnd()*3.5)*u);
+      fillers.push({x:cur, w:end - cur - w < 2.2*u ? end - cur : w, top:wy(-2.6 + rnd()*4.2)});
+      cur += fillers[fillers.length - 1].w;
+    }
+    if (i < n) cur = Math.max(cur, mains[i].x + mains[i].w);
+  }
+  for (const h of fillers){
+    const painted = rnd() < .4, newari = !painted && rnd() < .5;
+    house(g, h.x, h.w, h.top, rnd, {painted, newari, wall:painted ? pick(rnd, PASTEL) : pick(rnd, BRICK)});
+    if (newari && rnd() < .65) tiledRoof(g, h.x, h.w, h.top); else flatRoof(g, h.x, h.w, h.top, rnd, null);
+    h.rail = h.top;
+  }
+  for (const m of mains){
+    const painted = rnd() < .45;
+    house(g, m.x, m.w, m.top, rnd, {painted, newari:!painted && rnd() < .35, wall:painted ? pick(rnd, PASTEL) : pick(rnd, BRICK)});
+    flatRoof(g, m.x, m.w, m.top, rnd, wx(m.f.ax));
+  }
+  // tangled electricity wires and a pole
+  const all = mains.concat(fillers).sort((a, b) => a.x - b.x);
+  const px = W*(.12 + rnd()*.76), poleTop = wy(-.5);
+  let clearPole = !mains.some(m => Math.abs(wx(m.f.ax) - px) < u*1.5);
+  if (clearPole){
+    g.fillStyle = '#8d8a84'; g.fillRect(px - u*.18, poleTop, u*.36, H - poleTop);
+    g.fillStyle = '#5d5a55'; g.fillRect(px - u*1.1, poleTop + u*.3, u*2.2, u*.18);
+    g.fillStyle = '#4a4f55'; g.fillRect(px - u*.55, poleTop + u*1.2, u*1.1, u*1.3);
+  }
+  g.strokeStyle = 'rgba(25,22,22,.6)'; g.lineWidth = 1;
+  for (let i = 0; i < 9; i++){
+    const a = pick(rnd, all), b = clearPole && rnd() < .55 ? null : pick(rnd, all);
+    const x1 = a.x + rnd()*a.w, y1 = Math.max(a.top + u*.4, wy(-2) + rnd()*u*3);
+    const x2 = b ? b.x + rnd()*b.w : px + (rnd() - .5)*u*1.6, y2 = b ? Math.max(b.top + u*.4, wy(-2.4) + rnd()*u*3.5) : poleTop + u*.35;
+    if (Math.abs(x2 - x1) < u*2) continue;
+    g.beginPath(); g.moveTo(x1, y1); g.quadraticCurveTo((x1 + x2)/2, Math.max(y1, y2) + u*(.6 + rnd()*1.6), x2, y2); g.stroke();
+  }
+  for (let i = 0; i < 3; i++){                                      // and a few running off the screen
+    const yA = wy(-1.5 - rnd()*2.5), yB = wy(-1 - rnd()*3);
+    g.beginPath(); g.moveTo(-5, yA); g.bezierCurveTo(W*.3, yA + u*2, W*.6, yB + u*2.5, W + 5, yB); g.stroke();
+  }
+  LAY.fg = {c, par:0, top:Math.max(0, Math.floor(Math.min(wy(6.2) - u*2.6, wy(2.5) - u*15)))};
+  // prayer flags strung between neighbouring roofs (drawn live so they flutter)
+  for (let i = 0; i < n - 1; i++){
+    if (rnd() < .3) continue;
+    const a = mains[i], b = mains[i + 1];
+    const xa = a.x + a.w - u*.3, xb = b.x + u*.3;
+    if (xb - xa < u*3) continue;
+    const ya = a.top - u*(1.6 + rnd()), yb = b.top - u*(.8 + rnd());
+    FLAGS.push({x1:xa, y1:ya, x2:xb, y2:yb, sag:u*(.6 + rnd()*.8), ph:rnd()*6, pole:[a.top, b.top]});
+  }
+}
+// prayer flags: blue, white, red, green, yellow
+function drawFlags(){
+  const C = ['#2f6fd0', '#f4f1e6', '#d63c32', '#2f9a52', '#f2c200'], gust = S ? S.gust : .5, u = SC;
+  for (const F of FLAGS){
+    ctx.strokeStyle = '#6b5a45'; ctx.lineWidth = Math.max(1, u*.1);
+    ctx.beginPath(); ctx.moveTo(F.x1, F.pole[0]); ctx.lineTo(F.x1, F.y1); ctx.moveTo(F.x2, F.pole[1]); ctx.lineTo(F.x2, F.y2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(60,40,20,.75)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let i = 0; i <= 16; i++){ const t = i/16, xx = lerp(F.x1, F.x2, t), yy = lerp(F.y1, F.y2, t) + F.sag*4*t*(1 - t); if (i) ctx.lineTo(xx, yy); else ctx.moveTo(xx, yy); }
+    ctx.stroke();
+    const n = Math.max(5, Math.round((F.x2 - F.x1)/(u*.75))), fw = Math.max(3, u*.5);
+    for (let i = 1; i < n; i++){
+      const t = i/n, xx = lerp(F.x1, F.x2, t), yy = lerp(F.y1, F.y2, t) + F.sag*4*t*(1 - t);
+      const fl = reduceMotion ? .1 : Math.sin(clock*(4 + 3*gust) + i*1.3 + F.ph)*(.15 + .35*gust);
+      ctx.save(); ctx.translate(xx, yy); ctx.rotate(fl); ctx.transform(1, 0, Math.sin(fl)*.5, 1, 0, 0);
+      ctx.fillStyle = C[i % 5]; ctx.fillRect(-fw/2, 0, fw, fw*1.15);
+      ctx.restore();
+    }
+  }
+}
+
+/* ---------- drawing the flyers and kites ---------- */
+const SKIN = '#c98d5f', HAIR = '#1d1410';
+function drawFlyer(f){
+  const k = f.kite, u = SC, px = wx(f.ax), feet = wy(f.ay - 2.6), L = LOOKS[f.look % LOOKS.length];
+  const hand = [px, wy(f.ay)], side = k ? (Math.sign(k.x - f.ax) || 1) : 1, pull = !!(k && k.inp && k.inp.pull);
+  const lean = pull ? -side*u*.18 : 0, hip = [px + lean*.4, feet - u*1.05], sh = [px + lean, feet - u*1.75], head = [px + lean*1.1, feet - u*2.08];
+  const out = !k;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#2d2a3a'; ctx.lineWidth = Math.max(1.6, u*.24);
+  ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(px - u*.22, feet); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(px + u*.22, feet); ctx.stroke();
+  ctx.strokeStyle = out ? mixCol(L.a, '#777777', .5) : L.a; ctx.lineWidth = Math.max(2.4, u*.46);
+  ctx.beginPath(); ctx.moveTo(hip[0], hip[1]); ctx.lineTo(sh[0], sh[1]); ctx.stroke();
+  ctx.strokeStyle = SKIN; ctx.lineWidth = Math.max(1.3, u*.17);
+  const reel = [sh[0] - side*u*.45, feet - u*1.2];
+  ctx.beginPath();
+  if (out){ ctx.moveTo(sh[0], sh[1]); ctx.lineTo(sh[0] - u*.25, feet - u*.95); ctx.moveTo(sh[0], sh[1]); ctx.lineTo(sh[0] + u*.25, feet - u*.95); }
+  else { ctx.moveTo(sh[0], sh[1]); ctx.lineTo(hand[0], hand[1] + (pull ? u*.2 : 0)); ctx.moveTo(sh[0], sh[1]); ctx.lineTo(reel[0], reel[1]); }
+  ctx.stroke();
+  if (!out){                                                         // the latai (reel) in the other hand
+    ctx.fillStyle = '#c99257'; ctx.fillRect(reel[0] - u*.28, reel[1] - u*.2, u*.56, u*.4);
+    ctx.fillStyle = '#7a4a26'; ctx.fillRect(reel[0] - u*.34, reel[1] - u*.26, u*.12, u*.52); ctx.fillRect(reel[0] + u*.22, reel[1] - u*.26, u*.12, u*.52);
+    ctx.fillStyle = L.a; ctx.fillRect(reel[0] - u*.2, reel[1] - u*.12, u*.4, u*.24);
+  }
+  const hr = Math.max(2.4, u*.24);
+  ctx.fillStyle = SKIN; ctx.beginPath(); ctx.arc(head[0], head[1], hr, 0, Math.PI*2); ctx.fill();
+  if (f.i % 2 === 0){                                                // dhaka topi
+    ctx.fillStyle = '#2b2b5a'; ctx.beginPath(); ctx.moveTo(head[0] - hr*1.02, head[1] - hr*.3); ctx.lineTo(head[0] - hr*.8, head[1] - hr*1.35); ctx.lineTo(head[0] + hr*.95, head[1] - hr*1.15); ctx.lineTo(head[0] + hr*1.02, head[1] - hr*.3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e8463a'; ctx.fillRect(head[0] - hr*.85, head[1] - hr*1, hr*1.75, hr*.2);
+  } else { ctx.fillStyle = HAIR; ctx.beginPath(); ctx.arc(head[0], head[1] - hr*.2, hr*.98, Math.PI*.95, Math.PI*2.05); ctx.fill(); }
+  if (isPlayer(f.i)){                                                 // "YOU" on your roof
+    const ty = feet + Math.max(9, u*1.1);
+    ctx.font = `900 ${Math.round(clamp(u*1.1, 9, 12))}px Nunito, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText('YOU').width + 10;
+    ctx.fillStyle = 'rgba(18,9,3,.78)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px - tw/2, ty - 8, tw, 16, 8) : ctx.rect(px - tw/2, ty - 8, tw, 16); ctx.fill();
+    ctx.strokeStyle = '#f5c851'; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.fillStyle = '#f5c851'; ctx.fillText('YOU', px, ty + .5);
+  }
+}
+function kitePath(R){ ctx.beginPath(); ctx.moveTo(0, -R); ctx.lineTo(R*.92, -R*.08); ctx.lineTo(0, R*.95); ctx.lineTo(-R*.92, -R*.08); ctx.closePath(); }
+// a Nepali paper kite (changa): diamond, two-colour pattern, bamboo spine and bow, a small tail
+function drawKite(X, Y, ang, R, L, alpha){
+  ctx.save(); ctx.translate(X, Y); ctx.rotate(ang);
+  if (alpha != null) ctx.globalAlpha = alpha;
+  const tw = reduceMotion ? 0 : Math.sin(clock*9 + X*.05)*R*.14;
+  ctx.fillStyle = L.b; ctx.beginPath(); ctx.moveTo(0, R*.85); ctx.lineTo(-R*.3 + tw, R*1.4); ctx.lineTo(R*.3 + tw, R*1.4); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(30,15,5,.4)'; ctx.lineWidth = 1; ctx.stroke();
+  kitePath(R); ctx.fillStyle = L.a; ctx.fill();
+  ctx.save(); kitePath(R); ctx.clip(); ctx.fillStyle = L.b; ctx.beginPath();
+  if (L.pat === 'half') ctx.rect(0, -R, R, 2*R);
+  else if (L.pat === 'band') ctx.rect(-R, -R*.36, 2*R, R*.42);
+  else if (L.pat === 'circle') ctx.arc(0, -R*.06, R*.36, 0, Math.PI*2);
+  else if (L.pat === 'tri'){ ctx.moveTo(0, -R); ctx.lineTo(R, -R*.08); ctx.lineTo(-R, -R*.08); ctx.closePath(); }
+  else { ctx.moveTo(-R, -R*.08); ctx.lineTo(R, -R*.08); ctx.lineTo(0, R); ctx.closePath(); }
+  ctx.fill(); ctx.restore();
+  ctx.strokeStyle = 'rgba(70,40,15,.75)'; ctx.lineWidth = Math.max(1, R*.07);
+  ctx.beginPath(); ctx.moveTo(0, -R); ctx.lineTo(0, R*.95); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-R*.92, -R*.08); ctx.quadraticCurveTo(0, -R*.78, R*.92, -R*.08); ctx.stroke();
+  kitePath(R); ctx.strokeStyle = 'rgba(30,15,5,.55)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.restore();
+}
+function strokePts(P){ ctx.beginPath(); for (let i = 0; i < P.length; i += 2){ const X = wx(P[i]), Y = wy(P[i + 1]); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } ctx.stroke(); }
+const kiteR = () => Math.max(11, KITE_R*SC);
+function kiteScreen(k){
+  let x = k.x, y = k.y;
+  if (k.jolt > 0){ const f = S.flyers[k.fi], d = Math.hypot(f.ax - x, f.ay - y) || 1; x += (f.ax - x)/d*k.jolt*.8; y += (f.ay - y)/d*k.jolt*.8; }
+  return [wx(x), wy(y)];
+}
+
+/* ---------- the frame ---------- */
+function frame(now){
+  raf = 0;
+  const dt = lastNow ? Math.min(.05, (now - lastNow)/1000) : 1/60;
+  lastNow = now;
+  if (!paused && S){
+    clock += dt;
+    const active = inputActive();
+    const inp = active ? playerInput() : {pull:false, steer:simple && S.player >= 0 ? 0 : null};
+    if (!active) IN.queued = false;
+    stepSky(S, dt, inp);
+    handleEvents();
+    updateScene(dt);
+  }
+  draw();
+  hud();
+  if (!paused) kick(); else lastNow = 0;
+}
+function draw(){
+  if (!W || !LAY || !LAY.city) return;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.drawImage(LAY.sky, 0, 0, W, Y0 + 2);
+  for (const c of CLOUDS){ ctx.globalAlpha = c.a; ctx.drawImage(c.c, c.x, c.y, c.w, c.h); }
+  ctx.globalAlpha = 1;
+  blit(LAY.mtn, -LAY.mtn.par*(1 + camP*.3));
+  drawBirds();
+  blit(LAY.city, -LAY.city.par*(1 + camP*.7));
+  if (LAY.fg) blit(LAY.fg, 0);
+  drawFlags();
+  if (S){
+    // the high-sky line: little gold ticks at the edges
+    const hy = wy(S.W.high);
+    ctx.strokeStyle = 'rgba(245,200,81,.55)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(0, hy); ctx.lineTo(18, hy); ctx.moveTo(W - 18, hy); ctx.lineTo(W, hy); ctx.stroke(); ctx.setLineDash([]);
+    for (const f of S.flyers) drawFlyer(f);
+    const R = kiteR();
+    // strings
+    for (const k of S.kites){
+      if (k.state !== 'fly') continue;
+      if (!k.pts) k.pts = stringPts(S, k);
+      const P = k.pts.slice(), ks = kiteScreen(k);
+      P[P.length - 2] = (ks[0])/SC; P[P.length - 1] = (Y0 - ks[1])/SC;
+      if (isPlayer(k.fi)){ ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 3; strokePts(P); ctx.strokeStyle = '#a3102a'; ctx.lineWidth = 1.4; strokePts(P); }
+      else { ctx.strokeStyle = 'rgba(40,28,36,.6)'; ctx.lineWidth = 1; strokePts(P); }
+    }
+    // loose kites with their snapped strings
+    for (const k of S.kites){
+      if (k.state !== 'loose') continue;
+      const e = tailEnd(k), X = wx(k.x), Y = wy(k.y), EX = wx(e.x), EY = wy(e.y), wv = Math.sin(clock*6 + k.id)*SC;
+      ctx.strokeStyle = 'rgba(40,28,36,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(X, Y); ctx.quadraticCurveTo((X + EX)/2 + wv, (Y + EY)/2 - wv*.5, EX, EY); ctx.stroke();
+      const fade = clamp((k.y + 4)/6, 0, 1);
+      drawKite(X, Y, k.ang, R, LOOKS[S.flyers[k.fi].look % LOOKS.length], .5 + .5*fade);
+    }
+    // pecha glow under the kites
+    for (const p of S.pechas){
+      const X = wx(p.x), Y = wy(p.y), r = 16 + (reduceMotion ? 0 : Math.sin(clock*22)*5);
+      const gr = ctx.createRadialGradient(X, Y, 0, X, Y, r*1.6);
+      gr.addColorStop(0, 'rgba(255,255,220,.95)'); gr.addColorStop(.25, 'rgba(255,215,90,.7)'); gr.addColorStop(1, 'rgba(255,160,40,0)');
+      ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(X, Y, r*1.6, 0, Math.PI*2); ctx.fill();
+    }
+    // the kites
+    for (const k of S.kites){
+      if (k.state !== 'fly') continue;
+      const [X, Y] = kiteScreen(k), L = LOOKS[S.flyers[k.fi].look % LOOKS.length];
+      if (isPlayer(k.fi)){ ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.beginPath(); ctx.arc(X, Y, R*1.45, 0, Math.PI*2); ctx.fill(); }
+      const born = S.t - k.born, a = born < GRACE ? .65 + .35*Math.abs(Math.sin(born*7)) : 1;
+      drawKite(X, Y, k.ang, R, L, a);
+      // your nose: three dots ahead, so you know when to pull
+      if (isPlayer(k.fi) && !k.pecha && G && G.running){
+        const pull = k.inp && k.inp.pull, sx2 = Math.sin(k.ang), sy2 = -Math.cos(k.ang);
+        for (let i = 1; i <= 3; i++){
+          const d = R*1.25 + i*R*.55, dx = X + sx2*d, dy = Y + sy2*d;
+          ctx.fillStyle = pull ? 'rgba(255,255,255,.45)' : 'rgba(255,255,255,.95)';
+          ctx.strokeStyle = 'rgba(80,20,20,.6)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(dx, dy, Math.max(1.8, 3.2 - i*.5), 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        }
+      }
+    }
+    // pecha meters over the crossings
+    for (const p of S.pechas) drawPechaMeter(p);
+    // "You" over your kite for the first few seconds
+    if (G && G.running && clock - G.t0 < 4.5){
+      const pk = S.player >= 0 && S.flyers[S.player].kite;
+      if (pk){
+        const [X, Y] = kiteScreen(pk), by = Y - R*2.1 - Math.abs(Math.sin(clock*4))*5;
+        ctx.font = "16px 'Lilita One', Impact, sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(40,20,0,.8)'; ctx.strokeText('You ▼', X, by); ctx.fillStyle = '#ffe08a'; ctx.fillText('You ▼', X, by);
+      }
+    }
+  }
+  drawFx();
+}
+// draw only a layer's painted band (the rows above `top` are empty)
+function blit(L, x){ const c = L.c, sy = Math.round(L.top*DPR); if (sy >= c.height) return; ctx.drawImage(c, 0, sy, c.width, c.height - sy, x, sy/DPR, c.width/DPR, (c.height - sy)/DPR); }
+function drawPechaMeter(p){
+  const X = wx(p.x), Y0p = wy(p.y), w = 56, h = 7;
+  let y = Y0p - 26;
+  if (y < TOP + 6) y = Y0p + 20;
+  const aLeft = p.a.x <= p.b.x, La = LOOKS[S.flyers[p.a.fi].look % LOOKS.length], Lb = LOOKS[S.flyers[p.b.fi].look % LOOKS.length];
+  const left = aLeft ? La : Lb, right = aLeft ? Lb : La, v = aLeft ? p.m : -p.m;   // v > 0: the left kite is winning
+  const x0 = clamp(X - w/2, 4, W - w - 4);
+  ctx.fillStyle = 'rgba(18,9,3,.75)'; ctx.fillRect(x0 - 2, y - 2, w + 4, h + 4);
+  ctx.fillStyle = left.a; ctx.fillRect(x0, y, w/2, h);
+  ctx.fillStyle = right.a; ctx.fillRect(x0 + w/2, y, w/2, h);
+  const nx = x0 + w/2 - v*w/2;
+  ctx.fillStyle = '#fff'; ctx.fillRect(nx - 1.5, y - 3, 3, h + 6);
+  const tl = PECHA_MAX - p.t;
+  if (tl < 2){ ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(x0, y + h + 1, w*tl/2, 1.5); }
+}
+function drawBirds(){
+  ctx.strokeStyle = 'rgba(45,40,50,.75)'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+  for (const b of birds){
+    const wv = Math.sin(b.ph)*b.s*.7;
+    ctx.beginPath(); ctx.moveTo(b.x - b.s, b.y - wv); ctx.quadraticCurveTo(b.x - b.s*.4, b.y - b.s*.25, b.x, b.y); ctx.quadraticCurveTo(b.x + b.s*.4, b.y - b.s*.25, b.x + b.s, b.y - wv); ctx.stroke();
+  }
+}
+function drawFx(){
+  const t = clock;
+  for (const f of fx){
+    const k = (t - f.t0)/f.d;
+    if (f.type === 'spark'){
+      const X = f.x + f.vx*k*f.d, Y = f.y + f.vy*k*f.d + 40*k*k;
+      ctx.strokeStyle = `rgba(255,${200 + Math.round(55*(1 - k))},120,${1 - k})`; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X - f.vx*.03, Y - f.vy*.03); ctx.stroke();
+    } else if (f.type === 'snap'){
+      ctx.strokeStyle = `rgba(40,28,36,${.6*(1 - k)})`; ctx.lineWidth = 1;
+      ctx.beginPath();
+      f.pts.forEach((p, i) => { const drop = k*k*60*(i/(f.pts.length - 1)), X = p[0] + Math.sin(i + k*5)*k*6, Y = p[1] + drop; if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); });
+      ctx.stroke();
+    } else if (f.type === 'loot'){
+      const e = easeOut(Math.min(1, k)), X = lerp(wx(f.x0), wx(f.x1), e), Y = lerp(wy(f.y0), wy(f.y1), e) - Math.sin(e*Math.PI)*40;
+      drawKite(X, Y, f.ang*(1 - e), kiteR()*(1 - .55*e), LOOKS[f.look % LOOKS.length], 1 - Math.max(0, k - .8)*5);
+    } else if (f.type === 'text'){
+      const X = clamp(wx(f.x), 50, W - 50), Y = Math.max(TOP + 24, wy(f.y) - 26 - 34*easeOut(Math.min(1, k*1.5)));
+      const size = f.big ? clamp(W*.06, 24, 40) : 18;
+      ctx.globalAlpha = k > .75 ? (1 - k)/.25 : 1;
+      ctx.font = `${size}px 'Lilita One', Impact, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(40,20,0,.75)'; ctx.strokeText(f.text, X, Y);
+      ctx.fillStyle = f.col || '#f5c851'; ctx.fillText(f.text, X, Y);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+function sparkBurst(x, y, n){
+  if (reduceMotion) n = Math.min(n, 2);
+  const X = wx(x), Y = wy(y);
+  for (let i = 0; i < n; i++){ const a = Math.random()*Math.PI*2, s = 40 + Math.random()*90; fx.push({type:'spark', x:X, y:Y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 20, t0:clock, d:.35 + Math.random()*.3}); }
+}
+const fxText = (x, y, text, col, big, d) => fx.push({type:'text', x, y, text, col, big, t0:clock, d:d || 1.4});
+
+/* ---------- events from the sky ---------- */
+function handleEvents(){
+  const live = !!(G && G.running);
+  for (const e of S.ev){
+    switch (e.k){
+      case 'pecha': {
+        const mine = isPlayer(e.a) || isPlayer(e.b);
+        if (live) sfx('zip', mine ? 1 : .3);
+        sparkBurst(e.x, e.y, mine ? 14 : 6);
+        if (mine && live){
+          const rival = S.flyers[isPlayer(e.a) ? e.b : e.a];
+          qlabel('Pecha!', 'g'); announce(`Pecha with ${rival.name}! Tap to pull or let go to give dheel.`);
+          if (!HINTS.pecha){ HINTS.pecha = true; toast('Pecha! Tap-tap-tap to pull (tanne), or let go to give dheel', 4200); }
+        }
+        break;
+      }
+      case 'cut': {
+        const meW = isPlayer(e.w), meL = isPlayer(e.l);
+        if (live) sfx('snap', meW || meL ? 1 : .35);
+        const pts = [];
+        for (let i = 0; i <= 8; i++){ const t = i/8; pts.push([wx(lerp(e.ax, e.x, t)), wy(lerp(e.ay, e.y, t) - Math.hypot(e.x - e.ax, e.y - e.ay)*.06*4*t*(1 - t))]); }
+        fx.push({type:'snap', pts, t0:clock, d:1.3});
+        sparkBurst(e.x, e.y, meW || meL ? 18 : 8);
+        if (meW && live){
+          sfx('cheer', clamp(.5 + .2*e.combo, 0, 1));
+          banner('Changa chet!');
+          if (e.combo >= 2) qlabel(COMBO_TXT(e.combo), 'p');
+          fxText(e.x, e.y, '+' + e.pts, '#ffe08a', true, 1.6);
+          announce(`Changa chet! You cut ${S.flyers[e.l].name}'s kite. +${e.pts}`);
+          if (!HINTS.loot){ HINTS.loot = true; setTimeout(() => { if (G && G.running && !paused) toast('Touch the falling kite with your string to loot it: +50', 3200); }, 1300); }
+        } else if (meL && live){
+          sfx('ooh');
+          banner('Your kite is cut!', true);
+          announce(e.w >= 0 ? `${S.flyers[e.w].name} cut your kite` : 'Your kite is cut');
+          if (G.mode === 'battle' && !S.roundOver) setTimeout(() => { if (G && G.running && G.phase === 'play') toast('Watch the rest of the round, or press Skip', 2800); }, 1500);
+        } else {
+          fxText(e.x, e.y, 'Chet!', '#ffffff', false, 1.1);
+          if (live) sfx('cheer', .08);
+        }
+        break;
+      }
+      case 'loot':
+        if (live) sfx('loot');
+        if (live){
+          const pf = S.flyers[S.player];
+          fx.push({type:'loot', x0:e.x, y0:e.y, x1:pf.ax, y1:pf.ay, ang:e.ang, look:e.look, t0:clock, d:1});
+          fxText(e.x, e.y, '+50 Loot!', '#a6f3b4', false, 1.3);
+          announce('Looted a kite: +50');
+        }
+        break;
+      case 'bump':
+        if (isPlayer(e.fi) && live){ sfx('bump'); if (!HINTS.bump){ HINTS.bump = true; toast('Careful, those are the rooftops!', 1800); } }
+        break;
+      case 'roundEnd':
+        if (live){
+          const me = isPlayer(e.w), nm = e.w >= 0 ? S.flyers[e.w].name : '';
+          banner(e.w < 0 ? 'No kites left!' : me ? 'Last kite flying!' : `${nm} wins the round`, !me);
+          sfx(me ? 'win' : 'lose'); if (me) sfx('cheer', 1);
+        }
+        break;
+    }
+  }
+  S.ev.length = 0;
+}
+function updateScene(dt){
+  // clouds ride the wind, birds pass now and then
+  const drift = S.wind*SC*.12;
+  for (const c of CLOUDS){ c.x += (drift + 2*Math.sign(S.wind))*c.k*dt; if (c.x > W + 10) c.x = -c.w - 10; else if (c.x < -c.w - 10) c.x = W + 10; }
+  if (!reduceMotion && clock > nextBirds){
+    nextBirds = clock + 14 + Math.random()*18;
+    const dir = Math.random() < .5 ? 1 : -1, n = 3 + (Math.random()*4 | 0), y = TOP + 20 + Math.random()*Math.max(10, (HZ - TOP)*.45), sp = (32 + Math.random()*30)*dir;
+    for (let i = 0; i < n; i++) birds.push({x:dir > 0 ? -20 - i*16 : W + 20 + i*16, y:y + (i % 2 ? 1 : -1)*Math.ceil(i/2)*7, vx:sp, ph:Math.random()*6, s:3 + Math.random()*2});
+  }
+  for (const b of birds){ b.x += b.vx*dt; b.ph += dt*9; }
+  birds = birds.filter(b => b.x > -80 && b.x < W + 80);
+  fx = fx.filter(f => clock - f.t0 < f.d);
+  // sparks at every crossing; louder and brighter on each pull
+  for (const p of S.pechas){
+    if (!reduceMotion && Math.random() < .5) sparkBurst(p.x, p.y, 1);
+    const ta = p.sa.taps + p.sb.taps;
+    if (p._taps != null && ta > p._taps){
+      sparkBurst(p.x, p.y, 5);
+      const mine = isPlayer(p.a.fi) || isPlayer(p.b.fi);
+      if (G && G.running) sfx('rasp', mine ? 1 : .25);
+    }
+    p._taps = ta;
+  }
+  camP += ((S.player >= 0 && S.flyers[S.player].kite ? S.flyers[S.player].kite.x/S.W.w - .5 : Math.sin(clock*.05)*.5)*2 - camP)*Math.min(1, dt*1.2);
+  windLevel(S.gust);
+  if (!G || !G.running) return;
+  const pf = S.player >= 0 ? S.flyers[S.player] : null, pk = pf && pf.kite;
+  if (pk){
+    // the latai clicks while string runs out; the manjha rasps while you dheel in a pecha
+    if (pk.line > lastLine + .02 && pk.line < pk.maxLine){
+      tickT -= dt;
+      if (tickT <= 0){ sfx('tick'); tickT = pk.pecha ? .07 : .11; }
+      if (pk.pecha){ raspT -= dt; if (raspT <= 0){ sfx('rasp', .35); raspT = .16; } }
+    }
+    lastLine = pk.line;
+  }
+  // hints
+  const gt = clock - G.t0;
+  if (G.hint === 0 && gt > 1.2){ G.hint = 1; toast(simple ? 'Hold to climb. Drag left or right while you hold to steer' : 'Hold to pull: your kite flies where its nose points', 3600); }
+  if (G.hint === 1 && gt > 6.5){ G.hint = 2; if (!simple) toast('Let go to give string: the kite drifts and its nose turns', 3600); }
+  if (G.hint === 2 && gt > 12){ G.hint = 3; HINTS.stage = 3; toast('Cross a rival\'s string to start a pecha', 3000); }
+  // the end of the game or of a round
+  if (G.phase === 'play'){
+    if (G.mode === 'sky' && S.over){ G.phase = 'ending'; G.endAt = clock + 2.6; releaseAll(); }
+    else if (G.mode === 'battle' && S.roundOver){ G.phase = 'ending'; G.endAt = clock + 2.4; releaseAll(); }
+  } else if (G.phase === 'ending' && clock >= G.endAt){
+    G.phase = 'panel';
+    if (G.mode === 'sky' || S.round >= S.rounds) showResult(); else showRoundPanel();
+  }
+}
+
+/* ---------- controls ---------- */
+const OVERLAYS = ['#splash', '#menu', '#rules', '#share', '#result', '#roundP'];
+const overlayOpen = () => OVERLAYS.some(s => !$(s).hidden);
+const playerKite = () => S && S.player >= 0 ? S.flyers[S.player].kite : null;
+const inputActive = () => !!(G && G.running && G.phase === 'play' && !paused && !overlayOpen() && playerKite());
+const canSkip = () => !!(G && G.running && G.mode === 'battle' && G.phase === 'play' && S.playerOut && !S.roundOver && !paused && !overlayOpen());
+function playerInput(){
+  const pull = !!(IN.ptr != null || IN.btn || IN.key || IN.queued);
+  IN.queued = false;
+  let steer = null;
+  if (simple) steer = IN.keyL || IN.keyR ? (IN.keyR ? 1 : 0) - (IN.keyL ? 1 : 0) : IN.ptr != null ? IN.steer : 0;
+  return {pull, steer};
+}
+function releaseAll(){ IN.ptr = null; IN.btn = false; IN.key = false; IN.keyL = IN.keyR = false; IN.queued = false; pullBtn.classList.remove('on'); }
+function unlock(){ gestured = true; if (soundOn){ try { audio(); } catch(e){} windOn(); } }
+cvs.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  e.preventDefault();
+  try { cvs.focus({preventScroll:true}); } catch(_){}
+  unlock();
+  if (!inputActive()) return;
+  IN.ptr = e.pointerId; IN.x0 = e.clientX; IN.steer = 0; IN.queued = true;
+  try { cvs.setPointerCapture(e.pointerId); } catch(_){}
+});
+cvs.addEventListener('pointermove', e => { if (IN.ptr === e.pointerId && simple) IN.steer = clamp((e.clientX - IN.x0)/70, -1, 1); });
+const endPtr = e => { if (IN.ptr === e.pointerId) IN.ptr = null; };
+cvs.addEventListener('pointerup', endPtr);
+cvs.addEventListener('pointercancel', endPtr);
+cvs.addEventListener('contextmenu', e => e.preventDefault());
+pullBtn.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  unlock();
+  if (canSkip()) return;
+  e.preventDefault();
+  if (!inputActive()) return;
+  IN.btn = true; IN.queued = true; pullBtn.classList.add('on');
+  try { pullBtn.setPointerCapture(e.pointerId); } catch(_){}
+});
+const endBtn = () => { IN.btn = false; pullBtn.classList.remove('on'); };
+pullBtn.addEventListener('pointerup', endBtn);
+pullBtn.addEventListener('pointercancel', endBtn);
+pullBtn.addEventListener('lostpointercapture', endBtn);
+pullBtn.addEventListener('contextmenu', e => e.preventDefault());
+pullBtn.addEventListener('click', () => { if (canSkip()) skipRound(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    if (!$('#rules').hidden) $('#rulesClose').click();
+    else if (!$('#share').hidden) $('#shareClose').click();
+    else if (!$('#menu').hidden) $('#resumeBtn').click();
+    else if (G && G.running && !overlayOpen()) openMenu();
+    return;
+  }
+  if (overlayOpen() || (e.target.closest && e.target.closest('input,select,textarea'))) return;
+  if (e.target !== pullBtn && e.target.closest && e.target.closest('button')) return;
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'Enter'){
+    e.preventDefault();
+    unlock();
+    if (e.repeat) return;
+    if (canSkip()){ skipRound(); return; }
+    if (!inputActive()) return;
+    IN.key = true; IN.queued = true; pullBtn.classList.add('on');
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+    e.preventDefault();
+    if (e.key === 'ArrowLeft') IN.keyL = true; else IN.keyR = true;
+  }
+});
+document.addEventListener('keyup', e => {
+  if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'Enter'){ IN.key = false; if (!IN.btn) pullBtn.classList.remove('on'); }
+  else if (e.key === 'ArrowLeft') IN.keyL = false;
+  else if (e.key === 'ArrowRight') IN.keyR = false;
+});
+window.addEventListener('blur', releaseAll);
+function skipRound(){
+  if (!canSkip()) return;
+  fastForward(S);
+  fx = [];
+  handleEvents();
+  G.phase = 'ending'; G.endAt = clock + .3;
+  const w = S.winner;
+  banner(w < 0 ? 'No kites left!' : `${S.flyers[w].name} wins the round`, true);
+}
+
+/* ---------- HUD ---------- */
+const hudCache = {};
+function setHtml(sel, html){ if (hudCache[sel] !== html){ hudCache[sel] = html; $(sel).innerHTML = html; } }
+function setText(sel, txt){ if (hudCache[sel] !== txt){ hudCache[sel] = txt; $(sel).textContent = txt; } }
+let plateEls = [];
+function buildPlates(){
+  const box = $('#plates');
+  box.innerHTML = ''; plateEls = [];
+  for (const k in hudCache) if (k.startsWith('pl')) delete hudCache[k];
+  if (!G || G.mode !== 'battle') return;
+  plateEls = S.flyers.map(f => {
+    const L = LOOKS[f.look % LOOKS.length], el = document.createElement('div');
+    el.className = 'plate';
+    el.innerHTML = `<span class="kd" style="--c1:${L.a};--c2:${L.b}"><i></i></span><div class="pinfo"><span class="pnm">${esc(f.name)}</span><span class="ppts"></span></div>`;
+    box.appendChild(el);
+    return el;
+  });
+}
+function hud(){
+  if (!S) return;
+  const running = !!(G && G.running);
+  if (G && S.player >= 0){
+    const pf = S.flyers[S.player];
+    if (G.mode === 'sky'){
+      setHtml('#limA', `Score<b>${scoreOf(pf)}</b>`);
+      setHtml('#limB', `Chet<b>${pf.cuts}</b>`);
+      setHtml('#limC', `Best<b>${Math.max(G.best.score, scoreOf(pf))}</b>`);
+    } else {
+      const alive = S.kites.filter(k => k.state === 'fly').length, tl = Math.max(0, Math.ceil(ROUND_TIME - S.t));
+      setHtml('#limA', `Round<b>${S.round}/${S.rounds}</b>`);
+      setHtml('#limB', `Kites<b>${alive}</b>`);
+      setHtml('#limC', `Time<b>${Math.floor(tl/60)}:${String(tl % 60).padStart(2, '0')}</b>`);
+      S.flyers.forEach((f, i) => {
+        const el = plateEls[i];
+        if (!el) return;
+        const cls = 'plate' + (isPlayer(i) ? ' me' : '') + (!f.kite && !S.roundOver ? ' out' : '') + (S.roundOver && S.winner === i ? ' win' : '');
+        if (hudCache['plc' + i] !== cls){ hudCache['plc' + i] = cls; el.className = cls; }
+        const t = `${scoreOf(f)}${f.wins ? `<small>${'★'.repeat(f.wins)}</small>` : ''}`;
+        if (hudCache['plt' + i] !== t){ hudCache['plt' + i] = t; el.querySelector('.ppts').innerHTML = t; }
+      });
+    }
+  } else {
+    setHtml('#limA', 'Dashain Sky'); setHtml('#limB', `Kites<b>${S.kites.filter(k => k.state === 'fly').length}</b>`);
+    const b = loadBestCached(); setHtml('#limC', `Best<b>${b.score}</b>`);
+  }
+  // dock
+  const pk = running ? playerKite() : null, active = inputActive(), skip = canSkip();
+  const r = pk ? clamp(1 - pk.line/pk.maxLine, 0, 1) : 0;
+  const rs = r.toFixed(2);
+  if (hudCache.reel !== rs){ hudCache.reel = rs; reelEl.style.setProperty('--r', rs); $('#reelTxt').textContent = Math.round(r*100) + '%'; reelEl.setAttribute('aria-valuenow', Math.round(r*100)); reelEl.classList.toggle('low', !!pk && r < .1); }
+  let label = '', hot = false;
+  if (!running) label = G ? '' : 'Pick a mode to start';
+  else if (skip) label = `Your kite is cut · ${S.kites.filter(k => k.state === 'fly').length} still flying`;
+  else if (!pk) label = G.mode === 'battle' && S.roundOver ? 'Round over' : 'Your kite is cut';
+  else if (pk.pecha){ label = pechaLabel(pk); hot = true; }
+  else {
+    const pull = pk.inp && pk.inp.pull;
+    label = pk.y >= S.W.high ? 'High sky ★ +2 a second' : simple ? (pull ? 'Climbing' : 'Drag to steer, hold to climb') :
+      pull ? 'Pulling: the nose leads' : pk.line >= pk.maxLine - .01 ? 'Reel empty: hanging on the wind' : 'Dheel: the nose is turning';
+  }
+  setText('#mlbl', label);
+  $('#mlbl').classList.toggle('hot', hot);
+  if (pk && pk.pecha){
+    setMeter('pecha');
+    const p = pk.pecha, m = p.a === pk ? p.m : -p.m;
+    setNeedle(.5 - m*.5);
+  } else if (pk){
+    setMeter('height');
+    setNeedle(clamp(pk.y/S.W.ceil, 0, 1));
+  } else { setMeter(''); setNeedle(.5); }
+  // the pull button
+  const bs = skip ? 'skip' : (active ? 'on' : 'off') + (pk && pk.pecha ? 'h' : '');
+  if (hudCache.btn !== bs){
+    hudCache.btn = bs;
+    pullBtn.classList.toggle('skip', skip);
+    pullBtn.classList.toggle('hot', !!(pk && pk.pecha));
+    pullBtn.innerHTML = skip ? 'Skip' : 'Pull<small>तान</small>';
+    pullBtn.setAttribute('aria-label', skip ? 'Skip to the end of the round' : 'Pull the string (hold)');
+    pullBtn.disabled = !(skip || active);
+    dock.classList.toggle('off', !(skip || active));
+  }
+}
+let bestCache = null;
+const loadBestCached = () => bestCache || (bestCache = loadBest());
+function pechaLabel(k){
+  const p = k.pecha, s = p.a === k ? p.sa : p.sb, rival = S.flyers[(p.a === k ? p.b : p.a).fi];
+  if (p.t < .7 && !s.taps && s.style !== 'dheel') return `Pecha with ${rival.name}! Tap or let go`;
+  if (s.style === 'khich') return "Don't hold! Tap or let go";
+  if (s.style === 'tanne' || (s.taps && p.t - s.last < .5)){
+    if (s.iv < .17) return 'Too fast! Steady taps';
+    if (s.iv > .45 && s.taps > 1) return 'Faster taps!';
+    return s.taps > 1 ? 'Tanne! Good rhythm' : 'Tanne! Keep pulling';
+  }
+  if (s.style === 'empty') return 'Reel empty! Tap instead';
+  if (s.style === 'dheel') return 'Dheel… keep letting go';
+  return `Pecha with ${rival.name}!`;
+}
+let meterKind = '';
+function setMeter(kind){
+  const W1 = S ? S.W : null;
+  const key = kind + (kind === 'height' && W1 ? Math.round(W1.floor/W1.ceil*1000) + ':' + Math.round(W1.high/W1.ceil*1000) : '');
+  if (key === meterKind) return;
+  meterKind = key;
+  const z = $('#zones');
+  if (kind === 'height'){
+    const f = (W1.floor/W1.ceil*100).toFixed(1), h = (W1.high/W1.ceil*100).toFixed(1);
+    z.style.background = `linear-gradient(90deg,#4a1d0d 0 ${f}%,#2c5f9e ${f}%,#6fa8ff ${h}%,#f5c851 ${h}%,#ffe08a)`;
+  } else if (kind === 'pecha'){
+    z.style.background = 'linear-gradient(90deg,#3bb862 0 12%,#d7263d 12%,#f5c851 50%,#8a7a70 50%,#5a4a44 88%,#9c2a36 88%)';
+  } else z.style.background = 'linear-gradient(90deg,#2a1608,#3a2210)';
+}
+function setNeedle(v){ const s = clamp(v, 0, 1).toFixed(3); if (hudCache.needle !== s){ hudCache.needle = s; needle.style.setProperty('--m', s); } }
+function banner(text, bad){
+  const b = $('#banner');
+  b.textContent = text; b.classList.toggle('bad', !!bad);
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+function qlabel(text, cls){
+  const q = $('#qlabel');
+  q.textContent = text; q.className = cls || 'g';
+  void q.offsetWidth; q.classList.add('show');
+}
+let toastTimer;
+function toast(text, ms){
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2600);
+}
+const announce = text => { $('#sr').textContent = text; };
+
+/* ---------- game flow ---------- */
+function setPaused(v){
+  paused = v; game.classList.toggle('paused', v);
+  if (v){ releaseAll(); windOff(); }
+  else { lastNow = 0; windOn(); kick(); }
+}
+function demoSky(){
+  const d = worldDims();
+  return newSky({mode:'endless', player:false, bots:clamp(Math.round(d.w*d.h/1500), 3, 6), w:d.w, h:d.h, seed:(Math.random()*1e9) | 0});
+}
+function startGame(mode){
+  OVERLAYS.forEach(s => $(s).hidden = true);
+  releaseAll();
+  const d = worldDims();
+  const bots = mode === 'battle' ? 3 : clamp(Math.round(d.w*d.h/1600), 3, 5);
+  S = newSky({mode:mode === 'battle' ? 'battle' : 'endless', player:true, bots, w:d.w, h:d.h, seed:(Math.random()*1e9) | 0, names:shuffle(BOT_NAMES), rounds:3});
+  bestCache = null;
+  G = {mode, running:true, phase:'play', endAt:0, t0:clock, best:loadBest(), hint:HINTS.stage >= 3 ? 3 : 0};
+  fx = []; lastLine = 0;
+  buildPlates();
+  setPaused(false);
+  sizeAll();
+  banner(mode === 'battle' ? 'Round 1' : 'Dashain Sky');
+  sfx('start');
+  announce(mode === 'battle' ? 'Battle, round 1. Last kite flying wins.' : 'Dashain Sky. Cut as many kites as you can.');
+}
+function nextRound(){
+  $('#roundP').hidden = true;
+  newRound(S);
+  fx = []; lastLine = 0;
+  G.phase = 'play'; G.t0 = clock;
+  sizeAll();
+  banner(`Round ${S.round}`);
+  sfx('start');
+  announce(`Round ${S.round}`);
+}
+function rankRows(){
+  const st = standings(S), top = st[0];
+  return st.map(r => {
+    const L = LOOKS[r.look % LOOKS.length], me = isPlayer(r.i);
+    const sub = [me ? 'Your kite' : KIND_TXT[r.bot] || 'Rival', r.wins ? '★'.repeat(r.wins) + (r.wins === 1 ? ' round' : ' rounds') : '', `${r.cuts} chet`].filter(Boolean).join(' · ');
+    return `<li class="${me ? 'me' : ''}"><span class="pl">${r.place}</span><span class="kd" style="--c1:${L.a};--c2:${L.b}"><i></i></span><span class="nm2">${esc(r.name)}<small>${esc(sub)}</small></span><span class="n">${r.score}</span></li>`;
+  }).join('');
+}
+function showRoundPanel(){
+  const w = S.winner, me = isPlayer(w);
+  $('#rpTitle').textContent = w < 0 ? `Round ${S.round}: no winner` : me ? `Round ${S.round}: you win!` : `Round ${S.round}: ${S.flyers[w].name} wins`;
+  $('#rpSub').textContent = w < 0 ? 'The last two kites cut each other.' : me ? 'Last kite flying: +200' : `${S.flyers[w].name}'s kite was the last one flying.`;
+  $('#rpList').innerHTML = rankRows();
+  $('#rpNext').textContent = `Next: round ${S.round + 1} of ${S.rounds}. The wind changes sides.`;
+  ['#menu', '#rules', '#share'].forEach(s => $(s).hidden = true);
+  $('#roundP').hidden = false;
+  $('#rpGo').focus();
+}
+function showResult(){
+  G.running = false;
+  releaseAll();
+  const pf = S.flyers[S.player];
+  if (G.mode === 'sky'){
+    const sc = scoreOf(pf), best = loadBest(), nb = sc > best.score;
+    const keep = {score:Math.max(best.score, sc), cuts:Math.max(best.cuts, pf.cuts)};
+    saveBest(keep); bestCache = keep;
+    $('#resTitle').textContent = nb && sc > 0 ? 'New best!' : 'Your kite is cut';
+    $('#resSub').textContent = nb && best.score ? `Your old best was ${best.score}.` : `Best ${keep.score} · Most kites cut ${keep.cuts}`;
+    $('#resScore').innerHTML = `${sc}<small>points</small>`;
+    const chips = [`<span class="chip top">${pf.cuts} chet</span>`, `<span class="chip">${pf.loots} loot</span>`, `<span class="chip">High sky +${Math.floor(pf.alt*ALT_PTS)}</span>`];
+    if (pf.bestCombo >= 2) chips.push(`<span class="chip">Best combo ×${pf.bestCombo}</span>`);
+    $('#resChips').innerHTML = chips.join('');
+    $('#resList').innerHTML = '';
+    sfx(nb && sc > 0 ? 'win' : 'good');
+    if (nb && sc > 0) sfx('cheer', 1);
+  } else {
+    const st = standings(S), top = st.filter(r => r.place === 1), meTop = top.some(r => isPlayer(r.i));
+    $('#resTitle').textContent = top.length > 1 ? "It's a tie!" : meTop ? 'You win the battle!' : `${top[0].name} wins!`;
+    $('#resSub').textContent = top.length > 1 ? `${top.map(r => r.name).join(' and ')} share the top.` : `${top[0].wins} of ${S.rounds} rounds, ${top[0].score} points.`;
+    $('#resScore').innerHTML = '';
+    $('#resChips').innerHTML = `<span class="chip top">You: ${pf.cuts} chet</span><span class="chip">${pf.loots} loot</span><span class="chip">${pf.wins} ${pf.wins === 1 ? 'round' : 'rounds'} won</span>`;
+    $('#resList').innerHTML = rankRows();
+    sfx(meTop ? 'win' : 'lose'); if (meTop) sfx('cheer', 1);
+  }
+  ['#menu', '#rules', '#share', '#roundP'].forEach(s => $(s).hidden = true);
+  $('#result').hidden = false;
+  $('#againBtn').focus();
+}
+
+/* ---------- splash and overlays ---------- */
+function ctrlText(){ const t = 'Controls: ' + (simple ? 'Simple' : 'Classic'); $('#ctrlBtn').textContent = t; $('#splashCtrl').textContent = t; }
+function toggleCtrl(){ simple = !simple; saveCtrl(simple); ctrlText(); sfx('click'); toast(simple ? 'Simple controls: hold to climb, drag to steer' : 'Classic controls: pull when the nose points your way', 2400); }
+function showSplash(){
+  ['#menu', '#rules', '#share', '#result', '#roundP'].forEach(s => $(s).hidden = true);
+  const inGame = !!(G && G.running && G.phase === 'play');
+  if (inGame) setPaused(true);
+  else { G = null; S = demoSky(); buildPlates(); fx = []; setPaused(false); sizeAll(); }
+  $('#splashBack').hidden = !inGame;
+  const b = loadBest();
+  $('#splashBest').innerHTML = b.score ? `Your best<b>${b.score}</b>` : '';
+  $('#splash').hidden = false;
+  $('#skyBtn').focus();
+}
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+function drawQR(el, url){
+  try { const qr = qrcode(0, 'M'); qr.addData(url); qr.make(); el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true}); }
+  catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
+}
+let shareFrom = null, rulesFrom = null;
+const pauseIfPlaying = () => { if (G && G.running) setPaused(true); };
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true; else pauseIfPlaying();
+  const url = siteUrl();
+  $('#shareLink').value = url; drawQR($('#qrBox'), url);
+  $('#share').hidden = false; $('#copyBtn').focus();
+}
+function openRules(from){ rulesFrom = from; if (from) $(from).hidden = true; else pauseIfPlaying(); $('#rules').hidden = false; $('#rulesClose').focus(); }
+const coveringOverlay = () => ['#splash', '#result', '#roundP', '#menu'].find(s => !$(s).hidden) || null;
+function openMenu(){ if (coveringOverlay()) return; $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus(); }
+function resume(){ if (!coveringOverlay()) setPaused(false); }
+$('#skyBtn').addEventListener('click', () => { unlock(); sfx('click'); startGame('sky'); });
+$('#battleBtn').addEventListener('click', () => { unlock(); sfx('click'); startGame('battle'); });
+$('#splashBack').addEventListener('click', () => { $('#splash').hidden = true; setPaused(false); });
+$('#splashCtrl').addEventListener('click', toggleCtrl);
+$('#ctrlBtn').addEventListener('click', toggleCtrl);
+$('#rpGo').addEventListener('click', nextRound);
+$('#rpHome').addEventListener('click', () => showSplash());
+$('#againBtn').addEventListener('click', () => startGame(G ? G.mode : 'sky'));
+$('#homeBtn').addEventListener('click', () => showSplash());
+$('#menuBtn').addEventListener('click', openMenu);
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; resume(); });
+$('#newBtn').addEventListener('click', () => showSplash());
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); if (!soundOn) windOff(); });
+$('#shareBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openShare(coveringOverlay()); });
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else resume(); });
+$('#copyBtn').addEventListener('click', () => {
+  const inp = $('#shareLink'), btn = $('#copyBtn');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+});
+$('#rulesBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openRules(coveringOverlay()); });
+$('#splashRules').addEventListener('click', () => openRules('#splash'));
+$('#menuRules').addEventListener('click', () => openRules('#menu'));
+$('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; else resume(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden){ releaseAll(); if (G && G.running && !overlayOpen()) openMenu(); else windOff(); } else if (!paused) windOn(); });
+
+/* ---------- init ---------- */
+ctrlText();
+sizeAll();
+showSplash();
+kick();
+let rzT = 0;
+window.addEventListener('resize', () => { sizeAll(); clearTimeout(rzT); rzT = setTimeout(sizeAll, 120); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { sizeAll(); });
+})();
+</script>
