@@ -33,6 +33,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 
 | Game | Folder | Description |
 | --- | --- | --- |
+| Chungi | [`games/arcade-games/chungi`](games/arcade-games/chungi) | Keep the rubber-band chungi in the air with timed kicks and tricks |
 | Dandi Biyo | [`games/arcade-games/dandi-biyo`](games/arcade-games/dandi-biyo) | Traditional Nepali stick game: flick, strike for distance, avoid catches |
 | Changa Chet | [`games/arcade-games/changa-chet`](games/arcade-games/changa-chet) | Dashain kite fighting over a Kathmandu skyline: cross strings and win the pecha |
 | Ping Pong | [`games/arcade-games/ping-pong`](games/arcade-games/ping-pong) | Top-down table tennis vs the computer or 2 players on one device |
