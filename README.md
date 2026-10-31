@@ -15,6 +15,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Kauda | [`games/card-games/kauda`](games/card-games/kauda) | Tihar cowrie-shell game: bet on how many of 16 shells land open; play chips only |
 | Kitty | [`games/card-games/kitty`](games/card-games/kitty) | Nine cards arranged into three hands; win 2 of 3 shows or the pot carries over |
 | Marriage | [`games/card-games/marriage`](games/card-games/marriage) | Nepali rummy with three decks, Maal jokers and maal-point scoring |
+| Twenty-Nine | [`games/card-games/twenty-nine`](games/card-games/twenty-nine) | Partnership trick-taking with bidding (16-28), hidden trump and pair bonus |
 | Teen Patti | [`games/card-games/teen-patti`](games/card-games/teen-patti) | Three-card game with blind/seen betting, show and sideshow; play chips only |
 
 ## Board games
