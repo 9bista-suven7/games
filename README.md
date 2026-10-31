@@ -10,6 +10,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | --- | --- | --- |
 | Callbreak | [`games/card-games/callbreak`](games/card-games/callbreak) | Nepali trick-taking game, spades are trump, 5 rounds; online play with friends |
 | Dhumbal | [`games/card-games/dhumbal`](games/card-games/dhumbal) | Lowest hand total wins; throw sets or runs and call Dhumbal at 5 or less |
+| Kauda | [`games/card-games/kauda`](games/card-games/kauda) | Tihar cowrie-shell game: bet on how many of 16 shells land open; play chips only |
 | Kitty | [`games/card-games/kitty`](games/card-games/kitty) | Nine cards arranged into three hands; win 2 of 3 shows or the pot carries over |
 | Marriage | [`games/card-games/marriage`](games/card-games/marriage) | Nepali rummy with three decks, Maal jokers and maal-point scoring |
 | Teen Patti | [`games/card-games/teen-patti`](games/card-games/teen-patti) | Three-card game with blind/seen betting, show and sideshow; play chips only |
@@ -18,7 +19,6 @@ Play online: **https://9bista-suven7.github.io/games/**
 
 | Game | Folder | Description |
 | --- | --- | --- |
-| Kauda | [`games/board-games/kauda`](games/board-games/kauda) | Tihar cowrie-shell game: bet on how many of 16 shells land open; play chips only |
 | Ludo | [`games/board-games/ludo`](games/board-games/ludo) | Classic Ludo vs bots or pass & play on one device |
 | Baagchaal | [`games/board-games/baagchaal`](games/board-games/baagchaal) | Nepali tigers-and-goats hunt game vs the computer or 2 players |
 | Carrom | [`games/board-games/carrom`](games/board-games/carrom) | Carrom with real physics vs the computer or 2-4 players pass & play |
