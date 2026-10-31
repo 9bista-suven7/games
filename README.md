@@ -29,6 +29,12 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Snakes & Ladders | [`games/board-games/snakes-and-ladders`](games/board-games/snakes-and-ladders) | Classic or random board, exact roll to 100, bots or pass & play |
 | Tic-tac-toe | [`games/board-games/tic-tac-toe`](games/board-games/tic-tac-toe) | 3x3 classic and five in a row vs the computer or 2 players |
 
+## Arcade games
+
+| Game | Folder | Description |
+| --- | --- | --- |
+| Dandi Biyo | [`games/arcade-games/dandi-biyo`](games/arcade-games/dandi-biyo) | Traditional Nepali stick game: flick, strike for distance, avoid catches |
+
 ## Adding a game
 
 Put it in `games/<category>/<game-name>/index.html`, then add a row to the table above.

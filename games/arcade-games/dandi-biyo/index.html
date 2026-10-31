@@ -1,0 +1,1877 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dandi Biyo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wood-hi:#8d5629; --wood:#5c3417; --wood-lo:#2b1608;
+  --gold:#f5c851; --gold-lo:#b98a25;
+  --panel:#2a170a; --panel-hi:#4b2c14;
+  --text:#fbf3e6; --muted:#dcc6a6;
+  --ground:#120904;
+  --dock:76px; --av:34px;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground)}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 40%,#3a2412 0%,#1e1008 60%,#0d0603 100%);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+button,select{font:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* the field: canvas with the top bar and score plates floating over the sky */
+#field{position:relative;flex:1;min-height:0;overflow:hidden;border-radius:0 0 16px 16px;box-shadow:0 0 0 2px rgba(245,200,81,.35),0 10px 30px rgba(0,0,0,.6)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:pointer;outline:none}
+#topbar{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;padding:8px 12px 0;pointer-events:none}
+#topbar>*{pointer-events:auto}
+.tbr{display:flex;gap:10px}
+.ibtn{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#6b4220,#2e1a0a);color:var(--gold);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #170c04,inset 0 1px 0 rgba(255,255,255,.15);padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 #170c04}
+.ibtn svg{width:20px;height:20px}
+.ibtn:focus-visible,.btn:focus-visible,.segb:focus-visible,#tapBtn:focus-visible,#loft:focus-visible,.nrow select:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.limits{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;justify-content:center;padding:5px 14px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(245,200,81,.35);
+  font-weight:900;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none}
+.limits b{color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;margin-left:3px}
+#plates{order:3;flex:1 0 100%;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;pointer-events:none;min-width:0}
+#game.wide #plates{order:0;flex:1 1 0;flex-wrap:nowrap}
+#game.wide .limits{display:none}
+
+/* score plates */
+.plate{display:flex;align-items:center;gap:7px;min-width:0;max-width:190px;flex:0 1 auto;background:rgba(18,9,3,.66);border:1px solid rgba(245,200,81,.3);border-radius:999px;padding:3px 12px 3px 3px;transition:box-shadow .2s,border-color .2s}
+.plate.turn{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(245,200,81,.45)}
+.plate.win{border-color:#7be495;box-shadow:0 0 16px 3px rgba(123,228,149,.5)}
+.avwrap{position:relative;width:var(--av);height:var(--av);flex:none}
+.avatar{width:100%;height:100%;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:calc(var(--av)*.48);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.4);
+  background:radial-gradient(circle at 34% 30%,var(--c1),var(--c2) 85%);border:2px solid var(--gold);box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.lives{position:absolute;left:-5px;top:-5px;width:calc(100% + 10px);height:calc(100% + 10px);transform:rotate(-90deg);pointer-events:none;opacity:0;transition:opacity .2s}
+.plate.turn .lives{opacity:1}
+.lives circle{fill:none;stroke-width:6;stroke-linecap:round;stroke:#7be495;transition:stroke .3s}
+.lives circle.lost{stroke:rgba(255,255,255,.18)}
+.pinfo{display:flex;flex-direction:column;min-width:0;line-height:1.12}
+.pnm{font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.pnm small{font-weight:800;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-left:4px}
+.ppts{font-family:'Lilita One',Impact,sans-serif;font-size:17px;color:var(--gold);white-space:nowrap}
+.ppts small{font-family:'Nunito',sans-serif;font-weight:900;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-left:3px}
+.ppts.bump{animation:bump .5s ease}
+@keyframes bump{30%{transform:scale(1.25);color:#fff}}
+.plate.many{padding-right:9px}
+.plate.many .pnm{font-size:12px;max-width:70px}
+
+#banner{position:absolute;left:50%;top:40%;z-index:26;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(28px,7vmin,54px);color:var(--gold);text-align:center;
+  text-shadow:0 3px 0 #6b4609,0 0 3px #000,0 8px 20px rgba(0,0,0,.7);transform:translate(-50%,-50%);opacity:0;pointer-events:none;width:max-content;max-width:86%;line-height:1.08;text-wrap:balance}
+#banner.show{animation:banner 1.9s ease forwards}
+#banner.bad{color:#ff9aa2;text-shadow:0 3px 0 #6b0f1a,0 0 3px #000,0 8px 20px rgba(0,0,0,.7)}
+@keyframes banner{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+#qlabel{position:absolute;left:50%;top:27%;z-index:25;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(22px,5vmin,38px);transform:translateX(-50%);opacity:0;pointer-events:none;white-space:nowrap;
+  text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 3px #000,0 6px 14px rgba(0,0,0,.6)}
+#qlabel.show{animation:ql 1.1s ease forwards}
+#qlabel.p{color:#a6f3b4}#qlabel.g{color:var(--gold)}#qlabel.w{color:#ffc7a1}
+@keyframes ql{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.7)}15%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.1)}25%{transform:translateX(-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-12px)}}
+#toast{position:absolute;top:calc(100px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.82);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:999px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#game.wide #toast{top:calc(58px + env(safe-area-inset-top,0px))}
+#toast.show{opacity:1}
+
+/* dock: loft lever, timing meter and the tap button */
+#dock{flex:none;height:var(--dock);box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 16px;position:relative;z-index:20}
+.loftw{display:flex;align-items:center;gap:6px;flex:none;transition:opacity .2s}
+#loft{position:relative;width:24px;height:calc(var(--dock) - 16px);box-sizing:border-box;border-radius:12px;background:rgba(0,0,0,.55);border:2px solid var(--gold-lo);overflow:hidden;box-shadow:inset 0 2px 5px rgba(0,0,0,.7);touch-action:none;cursor:ns-resize}
+#loft .lfill{position:absolute;left:0;right:0;bottom:0;height:calc(var(--l,.5)*100%);background:linear-gradient(0deg,#2c5f9e,#6fa8ff)}
+#loft .lknob{position:absolute;left:0;right:0;height:5px;bottom:calc(var(--l,.5)*(100% - 5px));background:#fff;box-shadow:0 0 6px #fff}
+.llbl{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);min-width:3.6em;text-align:center}
+.llbl b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;letter-spacing:.02em;color:var(--text)}
+.loftw.off{opacity:.45}
+.meterw{flex:1 1 auto;max-width:440px;min-width:0;display:flex;flex-direction:column;gap:6px;transition:opacity .2s}
+#mlbl{font-weight:900;font-size:13px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1.3em;line-height:1.3}
+#meter{position:relative;height:20px;box-sizing:border-box;border-radius:10px;border:2px solid var(--gold-lo);background:#1a0d05;box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+#meter .zones{position:absolute;inset:0;border-radius:8px;opacity:.95}
+#needle{position:absolute;top:-5px;bottom:-5px;left:calc(var(--m,.5)*100%);width:5px;margin-left:-2.5px;border-radius:3px;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.7),0 0 8px rgba(255,255,255,.9)}
+#dock.off .meterw{opacity:.5}
+#tapBtn{width:62px;height:62px;flex:none;border-radius:50%;padding:0;font-family:'Lilita One',Impact,sans-serif;font-size:17px;letter-spacing:.03em;color:#3a2300;border:2px solid #fff3c4;cursor:pointer;touch-action:manipulation;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+#tapBtn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+#tapBtn:disabled{opacity:.45;cursor:default}
+#tapBtn.skip{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4);font-size:15px}
+#tapBtn.hot{animation:hot .6s ease-in-out infinite alternate}
+@keyframes hot{to{box-shadow:0 4px 0 #6b4609,0 0 0 6px rgba(245,200,81,.35),0 8px 16px rgba(0,0,0,.4)}}
+#game.paused #tapBtn.hot{animation-play-state:paused}
+
+/* panels */
+.panel{box-sizing:border-box;background:linear-gradient(180deg,var(--panel-hi),var(--panel));border:2px solid var(--gold-lo);border-radius:18px;padding:16px 18px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ptitle{font-family:'Lilita One',Impact,sans-serif;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.45);margin:0;text-wrap:balance}
+.psub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:4px 0 0;text-wrap:balance}
+.psub:empty{display:none}
+.overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:auto;background:rgba(14,7,2,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.overlay>.panel{width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto}
+.btnrow{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{font-family:'Lilita One',Impact,sans-serif;font-size:20px;letter-spacing:.03em;color:#3a2300;padding:9px 28px;border-radius:999px;border:2px solid #fff3c4;cursor:pointer;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+.btn.green{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--text);border-color:rgba(245,200,81,.5);box-shadow:none;font-size:17px}
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;align-items:stretch}
+.qrbox{background:#fff;border-radius:14px;padding:12px;margin:14px auto 0;width:min(240px,70vw);aspect-ratio:1;max-width:100%;box-sizing:border-box;display:grid;place-items:center;box-shadow:0 0 0 4px var(--gold-lo)}
+.qrbox svg{width:100%;height:100%;display:block}
+.qrbox p{color:#333;font-weight:800;text-align:center;margin:0;font-size:13px}
+.linkrow{display:flex;gap:8px;margin-top:14px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.linkrow .btn{font-size:16px;padding:6px 18px}
+
+/* setup */
+.slabel{margin:14px 0 0;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;gap:8px;margin-top:6px}
+.segb{flex:1 1 0;min-width:0;font-family:'Lilita One',Impact,sans-serif;font-size:17px;letter-spacing:.02em;padding:8px 4px;border-radius:12px;border:2px solid rgba(245,200,81,.45);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+.segb[aria-checked="true"]{background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);color:#3a2300;border-color:#fff3c4;box-shadow:0 3px 0 #6b4609}
+.names{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.nrow{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.25);border-radius:12px;padding:6px 8px;font-weight:900}
+.nrow .dot{width:26px;height:26px;flex:none;border-radius:50%;box-sizing:border-box;border:2px solid var(--gold);background:radial-gradient(circle at 34% 30%,var(--c1),var(--c2) 85%)}
+.nrow input,.nrow select{min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:8px;color:var(--text);padding:7px 8px;font:800 15px 'Nunito',sans-serif}
+.nrow input{flex:1;-webkit-user-select:text;user-select:text}
+.nrow select{flex:none;width:8.4em;cursor:pointer}
+.nrow select option{background:#2a170a;color:var(--text)}
+
+/* score tables */
+.score{font-family:'Lilita One',Impact,sans-serif;font-size:44px;line-height:1;text-align:center;color:#fff;margin:12px 0 0;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+.score small{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:12px auto 0;max-width:420px}
+.chips:empty{display:none}
+.chip{font-weight:900;font-size:12px;padding:2px 9px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(245,200,81,.35);color:var(--text);font-variant-numeric:tabular-nums}
+.chip.x{color:#ff9aa2;border-color:rgba(214,56,72,.6)}
+.chip.top{background:rgba(245,200,81,.2);color:var(--gold);border-color:var(--gold)}
+.ranks{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.ranks li{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 12px;font-weight:900}
+.ranks li.me{background:rgba(245,200,81,.14);box-shadow:inset 0 0 0 1px rgba(245,200,81,.5)}
+.ranks li.next{box-shadow:inset 0 0 0 1px rgba(123,228,149,.55)}
+.ranks .pl{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--muted);font-size:15px;min-width:1.6em}
+.ranks .av{width:28px;height:28px;border-radius:50%;box-sizing:border-box;border:2px solid var(--gold);display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:14px;color:#fff;background:radial-gradient(circle at 34% 30%,var(--c1),var(--c2) 85%)}
+.ranks .nm2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ranks .n{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:20px;text-align:right;white-space:nowrap}
+.ranks small{display:block;color:var(--muted);font-weight:800;font-size:12px;overflow:hidden;text-overflow:ellipsis}
+
+.rules{font-size:14px;line-height:1.55;font-weight:600;max-width:62ch;margin:10px auto 0}
+.rules h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:17px;margin:14px 0 4px;letter-spacing:.02em}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules b{color:#fff}
+
+/* splash */
+.splash{background:radial-gradient(ellipse at 50% 45%,rgba(60,32,10,.6),rgba(10,5,2,.92))}
+.splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.logo{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(52px,12vmin,104px);line-height:1;color:var(--gold);letter-spacing:.01em;
+  text-shadow:0 3px 0 #8a5a12,0 6px 0 #4a2d06,0 12px 24px rgba(0,0,0,.6)}
+.logo small{display:block;font-family:'Nunito',system-ui,sans-serif;font-weight:900;font-size:.24em;color:var(--muted);text-shadow:none;margin-top:.3em}
+.demo{position:relative;width:clamp(160px,36vmin,250px);height:clamp(70px,15vmin,108px);margin:10px 0 4px}
+.demo .gu{position:absolute;left:52%;bottom:6%;width:22%;height:10%;border-radius:50%;background:radial-gradient(#000 40%,#3b2412 75%,transparent 76%)}
+.demo .dandi{position:absolute;left:2%;bottom:20%;width:62%;height:10%;border-radius:999px;background:linear-gradient(#e8b97a,#a8713a 60%,#6f431e);transform-origin:6% 50%;transform:rotate(16deg);animation:dswing 2s ease-in-out infinite;box-shadow:0 3px 6px rgba(0,0,0,.45)}
+.demo .biyo{position:absolute;left:52%;bottom:12%;width:24%;height:13%;background:linear-gradient(#f3c886,#b47a3e 60%,#77491f);clip-path:polygon(0 50%,24% 10%,76% 10%,100% 50%,76% 90%,24% 90%);animation:bpop 2s ease-in-out infinite}
+@keyframes dswing{0%,12%{transform:rotate(16deg)}20%{transform:rotate(22deg)}32%,42%{transform:rotate(-38deg)}52%{transform:rotate(-4deg)}62%,100%{transform:rotate(16deg)}}
+@keyframes bpop{0%,18%{transform:translate(0,0) rotate(0)}34%{transform:translate(4%,-150%) rotate(170deg)}48%{transform:translate(8%,-180%) rotate(260deg)}62%{transform:translate(230%,-420%) rotate(560deg);opacity:1}63%{opacity:0}80%{transform:translate(0,0);opacity:0}100%{transform:translate(0,0);opacity:1}}
+.tag{margin:0 0 10px;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.04em}
+.tag b{color:var(--text)}
+.best{margin:-4px 0 10px;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.best b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:18px;color:var(--gold);letter-spacing:.02em;margin-left:4px}
+.best:empty{display:none}
+@media (max-height:520px){:root{--dock:64px}.demo{display:none}.logo{font-size:clamp(40px,11vmin,76px)}.slabel{margin-top:8px}.segb{padding:6px 4px}.names{margin-top:8px}#tapBtn{width:54px;height:54px;font-size:15px}#mlbl{font-size:12px}.meterw{gap:4px}}
+@media (max-width:400px){.nrow select{width:7.2em;font-size:14px}.segb{font-size:15px}#dock{gap:9px;padding:6px 12px}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="game">
+  <div id="field">
+    <canvas id="cv" role="img" aria-label="Village field with the batter, the biyo and the fielders" tabindex="0"></canvas>
+    <div id="topbar">
+      <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="limits" id="limits"><span id="limA">Solo</span><span id="limB">Hit<b>1</b></span><span id="limC">Best<b>0</b></span></div>
+      <div id="plates"></div>
+      <div class="tbr">
+        <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+        </button>
+        <button class="ibtn" id="rulesBtn" aria-label="How to play" title="How to play">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a3 3 0 1 1 4.3 2.7c-.9.5-1.5 1.2-1.5 2.3M12 18h.01"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="qlabel"></div>
+    <div id="banner"></div>
+  </div>
+  <div id="dock" class="off">
+    <div class="loftw" id="loftw">
+      <div id="loft" role="slider" aria-label="Loft: low drive to high hit" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0"><div class="lfill"></div><div class="lknob"></div></div>
+      <span class="llbl">Loft<b id="loftTxt">Mid</b></span>
+    </div>
+    <div class="meterw">
+      <div id="mlbl">Pick a mode to start</div>
+      <div id="meter" aria-hidden="true"><div class="zones" id="zones"></div><div id="needle"></div></div>
+    </div>
+    <button id="tapBtn" disabled>Flick</button>
+  </div>
+  <div id="toast" role="status"></div>
+  <div id="sr" class="sr" aria-live="polite"></div>
+
+  <div id="splash" class="overlay splash">
+    <div class="splash-in">
+      <div class="logo">Dandi Biyo<small>डण्डी बियो</small></div>
+      <div class="demo" aria-hidden="true"><span class="gu"></span><span class="biyo"></span><span class="dandi"></span></div>
+      <p class="tag"><b>1 to 4 players</b> · Flick it up, hit it far</p>
+      <p class="best" id="splashBest"></p>
+      <div class="btnrow" style="margin-top:0">
+        <button class="btn green" id="soloBtn">Solo challenge</button>
+        <button class="btn" id="multiBtn">Friends &amp; bots</button>
+      </div>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn ghost" id="splashBack" hidden>Back to game</button>
+        <button class="btn ghost" id="splashRules">How to play</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="setup" class="overlay" hidden>
+    <div class="panel" style="width:min(440px,100%)">
+      <h2 class="ptitle">Friends &amp; bots</h2>
+      <p class="psub">Take turns batting on one device. The longest total wins.</p>
+      <div class="slabel" id="lblN">Players</div>
+      <div class="seg" data-k="n" role="radiogroup" aria-labelledby="lblN">
+        <button class="segb" data-v="2" role="radio">2</button>
+        <button class="segb" data-v="3" role="radio">3</button>
+        <button class="segb" data-v="4" role="radio">4</button>
+      </div>
+      <div class="names" id="nameList"></div>
+      <div class="slabel" id="lblR">Innings each</div>
+      <div class="seg" data-k="rounds" role="radiogroup" aria-labelledby="lblR">
+        <button class="segb" data-v="1" role="radio">1 innings</button>
+        <button class="segb" data-v="2" role="radio">2 innings</button>
+        <button class="segb" data-v="3" role="radio">3 innings</button>
+      </div>
+      <div class="btnrow"><button class="btn green" id="startBtn">Start</button><button class="btn ghost" id="setupBack">Back</button></div>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay" hidden>
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle">Paused</h2>
+      <div class="menu-list">
+        <button class="btn green" id="resumeBtn">Resume</button>
+        <button class="btn" id="newBtn">New game</button>
+        <button class="btn ghost" id="menuRules">How to play</button>
+        <button class="btn ghost" id="soundBtn">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="innP" class="overlay" hidden>
+    <div class="panel" style="width:min(420px,100%)">
+      <h2 class="ptitle" id="ipTitle">Innings over</h2>
+      <p class="psub" id="ipSub"></p>
+      <div class="score" id="ipScore"></div>
+      <div class="chips" id="ipHits"></div>
+      <ul class="ranks" id="ipList"></ul>
+      <p class="psub" id="ipNext"></p>
+      <div class="btnrow"><button class="btn green" id="ipGo">Next innings</button><button class="btn ghost" id="ipHome">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="result" class="overlay" hidden>
+    <div class="panel" style="width:min(420px,100%)">
+      <h2 class="ptitle" id="resTitle">Game over</h2>
+      <p class="psub" id="resSub"></p>
+      <div class="score" id="resScore"></div>
+      <div class="chips" id="resHits"></div>
+      <ul class="ranks" id="resList"></ul>
+      <div class="btnrow"><button class="btn green" id="againBtn">Play again</button><button class="btn ghost" id="homeBtn">Main menu</button></div>
+    </div>
+  </div>
+
+  <div id="share" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle">Share Dandi Biyo</h2>
+      <p class="psub">Friends scan this code to open Dandi Biyo on their phone.</p>
+      <div class="qrbox" id="qrBox"></div>
+      <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
+      <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle">How to play</h2>
+      <div class="rules">
+        <h3>The game</h3>
+        <ul>
+          <li>Dandi Biyo is played in village fields all over Nepal. The <b>biyo</b> is a short wooden peg, tapered at both ends. It lies across the <b>gucchi</b>, a small pit, and the batter hits it with the <b>dandi</b>, a long stick.</li>
+          <li>Hit the biyo as far as you can. Distance is counted in <b>dandi lengths</b> from the gucchi to where the biyo stops; the markers on the ground show every 5.</li>
+        </ul>
+        <h3>Each hit: two taps</h3>
+        <ul>
+          <li><b>Flick</b>: the needle swings along the meter. Tap (anywhere on the field, the button, or <b>Space</b>) when it is in the <b>green</b>: the dandi taps the biyo's tapered end and it pops up. The nearer the middle, the higher it pops. Tap in the dark red ends and the flick fails.</li>
+          <li><b>Hit</b>: while the biyo is in the air (in slow motion), tap again as the <b>ring closes</b> on it. The label tells you how you timed it: <b>Perfect!</b>, <b>Good</b> or <b>Weak</b>. Early hits go higher and to the far side, late hits go lower and to the near side.</li>
+          <li>A higher pop and better timing send it further.</li>
+        </ul>
+        <h3>Loft</h3>
+        <ul>
+          <li>Drag the <b>Loft</b> lever (or drag up and down on the field, or use <b>↑/↓</b>) to choose a <b>low drive</b> or a <b>high hit</b>. You can change it until you hit.</li>
+          <li>High hits carry further but hang in the air, so the fielders have time to get under them. Low drives are safer but shorter.</li>
+        </ul>
+        <h3>Lives and the innings</h3>
+        <ul>
+          <li>You have <b>3 lives</b> (the ring round your picture). A failed flick, a missed swing, or a <b>catch</b> by a fielder costs a life. Your distances add up until all three are gone.</li>
+          <li>The fielders move before every hit, and move deeper when you hit it long. From the 7th hit a fourth child joins them.</li>
+          <li>The meter speeds up and the slow motion wears off as the innings goes on.</li>
+        </ul>
+        <h3>Modes</h3>
+        <ul>
+          <li><b>Solo challenge</b>: one innings. Beat your best total, which is saved on this device.</li>
+          <li><b>Friends &amp; bots</b>: 2 to 4 players take turns to bat, 1 to 3 innings each, passing the device. Any player can be a bot (Easy, Medium or Hard). Press <b>Skip</b> to jump to the end of a bot's innings. The highest total wins.</li>
+        </ul>
+      </div>
+      <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+// ==== LOGIC START ====
+/* Physics, scoring and turn flow, with no DOM access. Units: metres and seconds. The gucchi (pit) is at the
+   origin; x runs down the field, z across it (positive = far side), h is height above the ground.
+   Distances are scored in dandi lengths (DANDI metres), measured from the gucchi to where the biyo stops. */
+const GRAV = 9.81, DANDI = 0.6, LIVES = 3;
+const H0 = 0.06;                                      // the biyo lies across the gucchi, a little off the ground
+const POP_MIN = 1.7, POP_MAX = 4.6, FLICK_FAIL = 0.2; // flick: vertical pop speed range, quality below which it fails
+const IDEAL = 0.58, WIN_LO = 0.12, WIN_HI = 0.96;      // strike: ideal moment and contact window, as a fraction of the pop
+const PERFECT = 0.06, GOOD = 0.17;                    // timing error limits for the labels
+const V_MIN = 8, V_MAX = 34;                          // launch speed range (m/s)
+const DRAG = 0.019, FDT = 1/120;                      // quadratic drag (1/m), flight step
+const BOUNCE = 0.25, SKID = 0.45, ROLL_DEC = 9;       // ground: restitution, speed kept on a bounce, rolling deceleration
+const CATCH_LO = 0.25, CATCH_HI = 2.4;                // a child can catch between knee and above the head
+const REACT = 0.45, RUN = 2.7, REACH = 0.9;           // fielders: reaction time, running speed, arm reach
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+// flick meter: a needle sweeping 0 -> 1 -> 0, faster as the innings goes on
+const meterPeriod = hit => Math.max(0.8, 1.5*Math.pow(0.94, hit));
+function meterPos(t, period){ const u = ((t/period) % 1 + 1) % 1; return u < .5 ? 2*u : 2 - 2*u; }
+// the pop is shown in slow motion; the slow motion wears off as the innings goes on
+const slowMo = hit => Math.min(0.85, 0.55 + 0.03*hit);
+
+function popTime(vy){ return (vy + Math.sqrt(vy*vy + 2*GRAV*H0))/GRAV; }
+function flick(pos){
+  const q = clamp01(1 - Math.abs(pos - .5)*2), fail = q < FLICK_FAIL;
+  const pq = fail ? 0 : Math.pow((q - FLICK_FAIL)/(1 - FLICK_FAIL), .85);
+  const vy = fail ? 0.9 : POP_MIN + (POP_MAX - POP_MIN)*pq;
+  return {pos, q, pq, fail, vy, T:popTime(vy), apex:H0 + vy*vy/(2*GRAV)};
+}
+function popHeight(fl, phase){ const t = phase*fl.T; return Math.max(0, H0 + fl.vy*t - .5*GRAV*t*t); }
+const strikeLabel = err => Math.abs(err) <= PERFECT ? 'Perfect!' : Math.abs(err) <= GOOD ? 'Good' : 'Weak';
+/* The swing. phase: fraction of the pop when the dandi meets the biyo; loft 0 (low drive) .. 1 (high).
+   Early contact gets under the biyo (higher, pulled to the far side); late contact tops it (lower, near side). */
+function strike(fl, phase, loft){
+  if (fl.fail) return {contact:false, why:'flick'};
+  if (phase == null || phase > WIN_HI) return {contact:false, why:'late'};
+  if (phase < WIN_LO) return {contact:false, why:'early'};
+  const err = phase - IDEAL, qt = clamp01(1 - Math.abs(err)/.46);
+  const P = Math.pow(qt, 1.5)*(.35 + .65*fl.pq);
+  const v = V_MIN + (V_MAX - V_MIN)*P;
+  const ang = Math.min(60, Math.max(2, 9 + 31*clamp01(loft) - err*30));
+  const yaw = Math.max(-20, Math.min(20, -err*45));
+  return {contact:true, err, qt, P, v, ang, yaw, label:strikeLabel(err), h:Math.max(.08, popHeight(fl, phase))};
+}
+// flight with drag, then bounces and a roll; samples every FDT seconds: {t, x, z, h, r (tumble angle)}
+function fly(st){
+  const a = st.ang*Math.PI/180, y = st.yaw*Math.PI/180;
+  let x = .2, z = 0, h = st.h, vx = st.v*Math.cos(a)*Math.cos(y), vz = st.v*Math.cos(a)*Math.sin(y), vh = st.v*Math.sin(a);
+  let t = 0, r = 0, w = 14 + st.v*1.2, apex = h, land = null, rolling = false, bounces = 0;
+  const path = [{t, x, z, h, r}];
+  while (t < 14){
+    t += FDT;
+    if (!rolling){
+      const sp = Math.sqrt(vx*vx + vz*vz + vh*vh), k = DRAG*sp*FDT;
+      vx -= k*vx; vz -= k*vz; vh -= k*vh + GRAV*FDT;
+      x += vx*FDT; z += vz*FDT; h += vh*FDT;
+      if (h > apex) apex = h;
+      if (h <= 0){
+        h = 0;
+        if (!land) land = {x, z, t, i:path.length};
+        if (vh < -1.8 && bounces < 4){ vh = -vh*BOUNCE; vx *= SKID; vz *= SKID; w *= .5; bounces++; }
+        else { vh = 0; rolling = true; }
+      }
+    } else {
+      const sp = Math.hypot(vx, vz), d = ROLL_DEC*FDT;
+      if (sp <= d){ vx = vz = 0; w = 0; path.push({t, x, z, h:0, r}); break; }
+      vx *= (sp - d)/sp; vz *= (sp - d)/sp;
+      x += vx*FDT; z += vz*FDT; w *= .97;
+    }
+    r += w*FDT;
+    path.push({t, x, z, h, r});
+  }
+  const dist = Math.max(0, Math.floor(Math.hypot(x, z)/DANDI));
+  return {path, land, rest:{x, z, t}, apex, dist, carry:land ? Math.hypot(land.x, land.z)/DANDI : 0};
+}
+/* Can a fielder get under it? Only before the first bounce, with the biyo between CATCH_LO and CATCH_HI.
+   A fielder at distance d from a point reaches it by time t if d <= REACH + RUN*(t - REACT).
+   Returns the best chance (or null): {fi, i, x, z, h, t, d, chance, caught}. */
+function findCatch(fl, fielders, rnd){
+  const P = fl.path, end = fl.land ? fl.land.i : P.length - 1;
+  let best = null;
+  fielders.forEach((f, fi) => {
+    let pick = null;
+    for (let i = 1; i < end; i++){
+      const p = P[i];
+      if (p.h < CATCH_LO || p.h > CATCH_HI) continue;
+      const d = Math.hypot(p.x - f.x, p.z - f.z), can = REACH + RUN*Math.max(0, p.t - REACT);
+      if (d > can) continue;
+      const m = can - d;
+      if (!pick || m > pick.m) pick = {i, m, d, can};
+    }
+    if (!pick) return;
+    const p = P[pick.i], q = P[pick.i - 1];
+    const sp = Math.hypot(p.x - q.x, p.z - q.z, p.h - q.h)/FDT;
+    const hang = .45 + .55*Math.max(0, Math.min(1, (p.t - .3)/2));
+    const fast = Math.max(.6, Math.min(1, 1.6 - sp/24));
+    const chance = .9*hang*fast*(1 - .45*pick.d/pick.can);
+    if (!best || chance > best.chance) best = {fi, i:pick.i, x:p.x, z:p.z, h:p.h, t:p.t, d:pick.d, chance};
+  });
+  if (best) best.caught = (rnd || Math.random)() < best.chance;
+  return best;
+}
+// everything about one hit, from the two taps; used for people and bots alike
+function resolveHit(pos, phase, loft, fielders, rnd){
+  const fl = flick(pos);
+  if (fl.fail) return {kind:'fail', fl, dist:0};
+  const st = strike(fl, phase, loft);
+  if (!st.contact) return {kind:'miss', fl, st, dist:0};
+  const f = fly(st), c = findCatch(f, fielders, rnd);
+  if (c && c.caught) return {kind:'caught', fl, st, f, c, dist:0};
+  return {kind:'hit', fl, st, f, c, dist:f.dist};
+}
+
+/* Fielders take new places before every hit: one close in, the others spread round the batter's recent distances
+   (in dandi lengths). From the 7th hit a fourth child joins in. */
+function placeFielders(hit, recent, rnd){
+  rnd = rnd || Math.random;
+  const r = recent.filter(d => d > 0).slice(-3);
+  const avg = r.length ? r.reduce((s, d) => s + d, 0)/r.length*DANDI : 28;
+  const lim = (v, a, b) => Math.max(a, Math.min(b, v)), side = s => (rnd()*2 - 1)*s;
+  const F = [
+    {x:9 + 8*rnd(), z:side(4.5)},
+    {x:lim(avg*.72 + (rnd() - .5)*8, 18, 40), z:side(7)},
+    {x:lim(avg*1.08 + (rnd() - .5)*16, 30, 64), z:side(8)},
+  ];
+  if (hit >= 6) F.push({x:lim(avg*.95 + (rnd() - .5)*14, 20, 58), z:side(8)});
+  return F;
+}
+
+/* ---------- innings and match ---------- */
+const newInnings = () => ({lives:LIVES, total:0, hits:[], best:0, over:false});
+// kind: 'hit' | 'fail' (flick failed) | 'miss' (swing missed) | 'caught'
+function applyHit(inn, kind, dist){
+  if (inn.over) return inn;
+  const d = kind === 'hit' ? Math.max(0, dist | 0) : 0;
+  inn.hits.push({kind, dist:d});
+  if (kind === 'hit'){ inn.total += d; if (d > inn.best) inn.best = d; }
+  else inn.lives--;
+  if (inn.lives <= 0) inn.over = true;
+  return inn;
+}
+const recentDists = inn => inn.hits.filter(h => h.kind === 'hit').map(h => h.dist);
+// players: [{name, bot:false|'easy'|'medium'|'hard'}]; rounds: innings per player
+function newMatch(players, rounds){
+  return {players:players.map(p => ({name:p.name, bot:p.bot || false, innings:[], total:0})), rounds:rounds || 1, round:0, turn:0, over:false};
+}
+function endInnings(m, total){
+  if (m.over) return m;
+  const p = m.players[m.turn];
+  p.innings.push(total); p.total += total;
+  if (++m.turn >= m.players.length){ m.turn = 0; if (++m.round >= m.rounds) m.over = true; }
+  return m;
+}
+// ranked copy: highest total first; equal totals share a place
+function standings(m){
+  const s = m.players.map((p, i) => ({i, name:p.name, bot:p.bot, total:p.total, innings:p.innings.slice()})).sort((a, b) => b.total - a.total || a.i - b.i);
+  s.forEach((r, k) => r.place = k && r.total === s[k - 1].total ? s[k - 1].place : k + 1);
+  return s;
+}
+
+/* ---------- bots ---------- */
+const BOT = {
+  easy:  {fsd:.2,   psd:.16,  loft:[.2, .9]},
+  medium:{fsd:.11,  psd:.095, loft:[.3, .7]},
+  hard:  {fsd:.055, psd:.05,  loft:[.2, .5]},
+};
+function gauss(rnd){ return Math.sqrt(-2*Math.log(1 - rnd()))*Math.cos(2*Math.PI*rnd()); }
+// a bot's two taps and loft; it gets a little shakier as the meter speeds up
+function botInputs(level, hit, rnd){
+  rnd = rnd || Math.random;
+  const L = BOT[level] || BOT.medium, k = 1 + Math.min(hit, 15)*.05;
+  return {pos:Math.max(0, Math.min(1, .5 + gauss(rnd)*L.fsd*k)), phase:IDEAL + gauss(rnd)*L.psd*k, loft:L.loft[0] + rnd()*(L.loft[1] - L.loft[0])};
+}
+// a whole bot innings without animation (used to skip ahead)
+function botInnings(level, rnd, inn){
+  rnd = rnd || Math.random; inn = inn || newInnings();
+  while (!inn.over && inn.hits.length < 60){
+    const n = inn.hits.length, F = placeFielders(n, recentDists(inn), rnd), b = botInputs(level, n, rnd);
+    const r = resolveHit(b.pos, b.phase, b.loft, F, rnd);
+    applyHit(inn, r.kind, r.dist);
+  }
+  if (!inn.over){ inn.over = true; }
+  return inn;
+}
+// ==== LOGIC END ====
+
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/arcade-games/dandi-biyo/';
+const BEST_KEY = 'dandi-biyo-best', SETUP_KEY = 'dandi-biyo-setup';
+const ZK = .3;                 // how much of the depth (z) shows on screen in the 3/4 view
+const FLY_SPEED = 1.2;         // flights play a little faster than real time
+const BAT_X = -.48;            // where the batter stands, just behind the gucchi
+const GUCCHI_X = .08;
+const LV = {easy:'Easy', medium:'Medium', hard:'Hard'};
+const PCOL = [
+  {c1:'#ff8a80', c2:'#b71c1c', shirt:'#d84339'},
+  {c1:'#8cb8ff', c2:'#1a4fa0', shirt:'#2f6fd0'},
+  {c1:'#9be7a6', c2:'#16703a', shirt:'#2f9a52'},
+  {c1:'#ffe08a', c2:'#b07d00', shirt:'#e0a81c'},
+];
+const KIDS = [
+  {name:'Ramu', shirt:'#e8742a', pants:'#3b3552'},
+  {name:'Sita', shirt:'#9b4dca', pants:'#6b2f3a', girl:true},
+  {name:'Hari', shirt:'#1f9e8f', pants:'#2f3b55'},
+  {name:'Gita', shirt:'#e84a7f', pants:'#3a2d5a', girl:true},
+];
+const BOT_NAMES = ['Bikash', 'Sunita', 'Rajan', 'Anita', 'Prakash', 'Puja', 'Sagar', 'Kiran'];
+const reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+const game = $('#game'), field = $('#field'), cvs = $('#cv'), ctx = cvs.getContext('2d');
+const dock = $('#dock'), tapBtn = $('#tapBtn'), loftEl = $('#loft'), needle = $('#needle');
+class Cancel extends Error {}
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a)*t;
+const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+function hash(n){ const s = Math.sin(n*127.1 + 311.7)*43758.5453; return s - Math.floor(s); }
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0)/4294967296; }; }
+function loadBest(){
+  try { const b = JSON.parse(localStorage.getItem(BEST_KEY)); if (b && typeof b === 'object') return {total:Math.max(0, b.total | 0), hit:Math.max(0, b.hit | 0)}; if (typeof b === 'number') return {total:b | 0, hit:0}; } catch(e){}
+  return {total:0, hit:0};
+}
+function saveBest(b){ try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch(e){} }
+function loadSetup(){
+  const d = {n:2, rounds:1, players:[{name:'', type:'human'}, {name:'', type:'medium'}, {name:'', type:'easy'}, {name:'', type:'hard'}]};
+  try {
+    const s = JSON.parse(localStorage.getItem(SETUP_KEY));
+    if (s && typeof s === 'object'){
+      if ([2, 3, 4].includes(s.n)) d.n = s.n;
+      if ([1, 2, 3].includes(s.rounds)) d.rounds = s.rounds;
+      if (Array.isArray(s.players)) s.players.slice(0, 4).forEach((p, i) => {
+        if (!p || typeof p !== 'object') return;
+        d.players[i] = {name:String(p.name || '').slice(0, 12), type:['human', 'easy', 'medium', 'hard'].includes(p.type) ? p.type : d.players[i].type};
+      });
+    }
+  } catch(e){}
+  return d;
+}
+function saveSetup(s){ try { localStorage.setItem(SETUP_KEY, JSON.stringify(s)); } catch(e){} }
+
+/* ---------- sound: everything synthesised with WebAudio ---------- */
+let actx = null, soundOn = true, noiseBuf = null;
+function audio(){
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  if (!noiseBuf){
+    noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1;
+  }
+  return actx;
+}
+function env(g, at, vol, len, atk){ g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + (atk || .0015)); g.gain.exponentialRampToValueAtTime(.0005, at + len); }
+function tone(f, at, vol, type, len, f2){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, at);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, at + len);
+  env(g, at, vol, len, .004);
+  o.connect(g).connect(actx.destination); o.start(at); o.stop(at + len + .03);
+}
+function noise(at, vol, len, type, freq, q, atk){
+  const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+  src.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q || .8;
+  env(g, at, vol, len, atk);
+  src.connect(f).connect(g).connect(actx.destination);
+  src.start(at, Math.random()*.6); src.stop(at + len + .03);
+  return f;
+}
+// one child's voice: a bright "yaaay" (or a falling "ooh") with a little vibrato
+function voice(at, f0, len, vol, fall){
+  const o = actx.createOscillator(), bp = actx.createBiquadFilter(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+  o.type = 'sawtooth';
+  if (fall){ o.frequency.setValueAtTime(f0, at); o.frequency.linearRampToValueAtTime(f0*.62, at + len); }
+  else { o.frequency.setValueAtTime(f0*.82, at); o.frequency.linearRampToValueAtTime(f0*1.22, at + len*.3); o.frequency.linearRampToValueAtTime(f0*.95, at + len); }
+  lfo.frequency.value = 5 + Math.random()*2.5; lg.gain.value = f0*.035;
+  lfo.connect(lg).connect(o.frequency);
+  bp.type = 'bandpass'; bp.frequency.value = fall ? 800 : 1150 + Math.random()*500; bp.Q.value = 1.4;
+  env(g, at, vol, len, .06);
+  o.connect(bp).connect(g).connect(actx.destination);
+  o.start(at); o.stop(at + len + .05); lfo.start(at); lfo.stop(at + len + .05);
+}
+// dandi on biyo: a dry, hollow wooden knock
+function knock(at, vol, pitch){
+  noise(at, vol*.8, .018, 'bandpass', 2300*pitch, 1.3);
+  tone(980*pitch, at, vol*.5, 'sine', .075, 760*pitch);
+  tone(1720*pitch, at, vol*.22, 'triangle', .05, 1480*pitch);
+  tone(430*pitch, at, vol*.28, 'sine', .1, 320*pitch);
+}
+let skipping = false;
+function sfx(kind, a){
+  if (!soundOn || skipping) return;
+  try {
+    audio();
+    const t = actx.currentTime;
+    switch (kind){
+      case 'tick': knock(t, .35, 1.45); break;                         // the flick on the tapered end
+      case 'tock': knock(t, .55 + .45*(a || .5), .92 + .1*(a || .5)); break;
+      case 'whoosh': {
+        const f = noise(t, .28, .24, 'bandpass', 500, 1.1, .05);
+        f.frequency.setValueAtTime(450, t); f.frequency.exponentialRampToValueAtTime(2600, t + .1); f.frequency.exponentialRampToValueAtTime(700, t + .24);
+        break;
+      }
+      case 'thud': noise(t, .35, .12, 'lowpass', 380, .7); tone(120, t, .25, 'sine', .12, 60); break;
+      case 'bounce': noise(t, .14, .06, 'lowpass', 600, .7); break;
+      case 'cheer': {                                                  // kids and neighbours cheering; a = 0..1 how loud
+        const v = .5 + .5*(a || .5), len = 1 + v;
+        noise(t, .1*v, len, 'bandpass', 1300, .5, .25);
+        const n = 4 + Math.round(5*v);
+        for (let i = 0; i < n; i++) voice(t + Math.random()*.3, 430 + Math.random()*380, .45 + Math.random()*.5, .05*v, false);
+        for (let i = 0; i < 8*v; i++) noise(t + .1 + Math.random()*len*.8, .12*v, .03, 'highpass', 1800, .7);
+        break;
+      }
+      case 'catch': {                                                  // the fielders whoop, the batter's side groans
+        knock(t, .3, .7);
+        for (let i = 0; i < 5; i++) voice(t + .05 + Math.random()*.2, 520 + Math.random()*300, .5 + Math.random()*.3, .055, false);
+        for (let i = 0; i < 3; i++) voice(t + .25 + Math.random()*.15, 330 + Math.random()*80, .6, .04, true);
+        break;
+      }
+      case 'ooh': for (let i = 0; i < 4; i++) voice(t + Math.random()*.15, 360 + Math.random()*120, .7, .045, true); break;
+      case 'click': tone(740, t, .09, 'sine', .1); break;
+      case 'good': [784, 988].forEach((f, i) => tone(f, t + i*.08, .1, 'sine', .16)); break;
+      case 'bad': [440, 349, 262].forEach((f, i) => tone(f, t + i*.09, .12, 'triangle', .2)); break;
+      case 'start': [523, 659, 784].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .22)); break;
+      case 'win': [660, 880, 1100, 1320].forEach((f, i) => tone(f, t + i*.1, .12, 'sine', .24)); break;
+      case 'lose': [440, 349, 262].forEach((f, i) => tone(f, t + i*.12, .12, 'triangle', .26)); break;
+    }
+  } catch(e){}
+}
+
+/* ---------- clock, waits and tweens: everything runs on a game clock that stops while paused ---------- */
+let G = null, INN = null, gen = 0, paused = false, clock = 0, lastNow = 0, raf = 0, animUntil = 0;
+const waits = [], tweens = [];
+let pending = null;                  // {kind:'flick'|'strike', res, deadline}
+let panelWait = null;
+function kick(){ if (!raf && !paused) raf = requestAnimationFrame(frame); }
+function guard(p){ const g = gen; return p.then(v => { if (g !== gen) throw new Cancel(); return v; }); }
+function wait(sec){ return guard(new Promise(res => { if (skipping || sec <= 0){ res(); return; } waits.push({at:clock + sec, res}); kick(); })); }
+const waitUntil = at => wait(at - clock);
+function tw(sec, fn){ return guard(new Promise(res => { if (skipping || sec <= 0){ fn(1); res(); return; } tweens.push({t0:clock, d:sec, fn, res}); kick(); })); }
+function flushTimers(){
+  while (waits.length) waits.shift().res();
+  while (tweens.length){ const t = tweens.shift(); t.fn(1); t.res(); }
+}
+function waitTap(kind, deadline){
+  return guard(new Promise(res => { pending = {kind, res, deadline}; refreshControls(); kick(); }));
+}
+// a tap from the person: resolves the waiting step with the (sub-frame accurate) clock time
+function tap(){
+  if (!pending || paused || overlayOpen() || isBotTurn()) return false;
+  const p = pending; pending = null;
+  const extra = lastNow ? clamp((performance.now() - lastNow)/1000, 0, .05) : 0;
+  p.res(clock + extra);
+  refreshControls();
+  return true;
+}
+function setPaused(v){ paused = v; game.classList.toggle('paused', v); if (!v){ lastNow = 0; kick(); } refreshControls(); }
+
+/* ---------- scene state ---------- */
+const cam = {x:0, s:30, follow:false};
+const biyo = {x:GUCCHI_X, z:0, h:.05, r:0, held:-1, vis:true};
+const bat = {pose:'stance', t0:-9, hb:.6};
+let PH = {k:'idle'};
+let FL = [];                         // fielders on the field
+let fx = [];                         // dust puffs and floating numbers
+let trail = [];
+let marks = {last:null, best:null};
+let LOFT = .5, showLoft = .5, drag = null;
+
+/* ---------- layout and the painted backdrop ---------- */
+let W = 0, H = 0, DPR = 1, Y0 = 0, HZ = 0, AX = 0, S0 = 30, TOP = 60, LAY = null, groundGrad = null, skyGrad = null;
+const sx = x => AX + (x - cam.x)*cam.s;
+const sy = (z, h) => Y0 - (z*ZK + h)*cam.s;
+const fsz = () => Math.max(cam.s, 15);           // figures never shrink below a readable size
+function sizeAll(){
+  const r = field.getBoundingClientRect();
+  W = Math.max(200, r.width); H = Math.max(160, r.height);
+  game.classList.toggle('wide', W/H > 1.25 && W >= 560);
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  cvs.width = Math.round(W*DPR); cvs.height = Math.round(H*DPR);
+  const tall = H > W*1.05;
+  Y0 = Math.round(H*(tall ? .72 : .76));
+  HZ = Math.round(Y0 - clamp(H*.17, 44, 150));
+  AX = Math.round(W*(tall ? .2 : .14));
+  const tb = $('#topbar').getBoundingClientRect();
+  TOP = Math.max(48, tb.bottom - r.top) + 6;
+  const vis = clamp(W/30, 12.5, 30);
+  S0 = clamp(Math.min(W/vis, (Y0 - TOP)/3.4), 12, 110);
+  if (!cam.follow && !tweens.length){ cam.s = S0; if (PH.k !== 'rest') cam.x = 0; }
+  buildLayers();
+  dirty = true;
+  draw();
+}
+function layerCanvas(TW, h){ const c = document.createElement('canvas'); c.width = Math.round(TW*DPR); c.height = Math.round(h*DPR); const g = c.getContext('2d'); g.scale(DPR, DPR); return [c, g]; }
+// a ridge that repeats every TW pixels: a sum of sines with whole-number frequencies
+function ridgeFn(TW, terms){ return x => { let y = 0; for (const [k, a, p, sharp] of terms){ const v = Math.sin(2*Math.PI*k*x/TW + p); y += sharp ? a*(1 - Math.abs(v)) : a*v; } return y; }; }
+function buildLayers(){
+  const TW = Math.ceil(Math.max(W, 520)*1.6), rnd = mulberry(2081);
+  const mH = clamp(Math.min(H*.3, W*.42), 70, 270);
+  skyGrad = ctx.createLinearGradient(0, 0, 0, HZ);
+  skyGrad.addColorStop(0, '#5f9fe0'); skyGrad.addColorStop(.6, '#a9d2f2'); skyGrad.addColorStop(1, '#e7f1f2');
+  groundGrad = ctx.createLinearGradient(0, HZ, 0, H);
+  groundGrad.addColorStop(0, '#8fbb5c'); groundGrad.addColorStop(.25, '#76a947'); groundGrad.addColorStop(1, '#4a8030');
+  // 1: the snowy Himalaya: a row of peaks, sunlit on the left faces, snow above a ragged snowline
+  {
+    const base = HZ - mH*.08, [c, g] = layerCanvas(TW, base + 2);
+    // a few soft clouds behind the peaks
+    for (let i = 0; i < 5; i++){
+      const cx = rnd()*TW, cy = base - mH*(.75 + rnd()*.4), w = 50 + rnd()*90;
+      g.fillStyle = 'rgba(255,255,255,.6)';
+      for (let j = 0; j < 4; j++){ g.beginPath(); g.ellipse(cx + (j - 1.5)*w*.32, cy + (j % 2)*4, w*.28, w*.13, 0, 0, Math.PI*2); g.fill(); }
+    }
+    const jagT = [], snowT = [];
+    for (let k = 0; k < 6; k++){ jagT.push([9 + Math.floor(rnd()*30), mH*.012*(1 + rnd()), rnd()*6.28]); snowT.push([13 + Math.floor(rnd()*40), mH*.03*(1 + rnd()), rnd()*6.28]); }
+    const jag = ridgeFn(TW, jagT), sj = ridgeFn(TW, snowT);
+    const range = (n, hLo, hHi, wLo, wHi) => { const P = []; for (let i = 0; i < n; i++) P.push({cx:(i + .2 + rnd()*.6)/n*TW, h:mH*(hLo + rnd()*(hHi - hLo)), w:mH*(wLo + rnd()*(wHi - wLo))}); return P; };
+    const paint = (peaks, lift, cols) => {
+      for (let x = 0; x < TW; x++){
+        let best = null, top = 0;
+        for (const p of peaks){
+          const dx = ((x - p.cx + TW*1.5) % TW) - TW/2, v = p.h*Math.pow(Math.max(0, 1 - Math.abs(dx)/p.w), 1.25);
+          if (v > top){ top = v; best = {p, dx}; }
+        }
+        if (!best) continue;
+        const y = base - lift - top - jag(x)*(top/mH), peakY = base - lift - best.p.h;
+        const left = best.dx < 0, f = Math.abs(best.dx)/best.p.w;
+        const lit = left ? .78 + .22*(1 - f) : .28 + .2*f;
+        const snow = Math.max(y, peakY + (base - peakY)*.48 + sj(x));
+        const C = (a, b) => `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], lit))).join(',')})`;
+        g.fillStyle = C(cols[0], cols[1]); g.fillRect(x, y, 1, snow - y + .5);
+        g.fillStyle = C(cols[2], cols[3]); g.fillRect(x, snow, 1, base - snow + 2);
+      }
+    };
+    paint(range(5, .55, .95, .45, .8), mH*.06, [[170, 186, 214], [236, 242, 252], [128, 144, 176], [160, 176, 204]]);
+    paint(range(7, .3, .62, .3, .55), 0, [[150, 168, 200], [250, 252, 255], [84, 100, 132], [124, 140, 170]]);
+    const hz = g.createLinearGradient(0, base - mH*.5, 0, base + 2);
+    hz.addColorStop(0, 'rgba(220,235,245,0)'); hz.addColorStop(1, 'rgba(220,235,245,.75)');
+    g.fillStyle = hz; g.fillRect(0, base - mH*.5, TW, mH*.5 + 2);
+    LAY = {TW, mtn:{c, k:.5}};
+  }
+  // 2: blue-green foothills
+  {
+    const base = HZ + 2, [c, g] = layerCanvas(TW, base + 2);
+    const rf = ridgeFn(TW, [[2, mH*.12, rnd()*6], [3, mH*.08, rnd()*6], [5, mH*.05, rnd()*6], [9, mH*.02, rnd()*6]]);
+    g.beginPath(); g.moveTo(0, base);
+    for (let x = 0; x <= TW; x += 4) g.lineTo(x, base - mH*.32 - rf(x));
+    g.lineTo(TW, base); g.closePath();
+    const hg = g.createLinearGradient(0, base - mH*.6, 0, base);
+    hg.addColorStop(0, '#6f9c95'); hg.addColorStop(1, '#8fb3a4');
+    g.fillStyle = hg; g.fill();
+    // tiny far trees along the ridge line
+    for (let i = 0; i < TW/9; i++){
+      const x = rnd()*TW, y = base - mH*.32 - rf(x) + 2 + rnd()*mH*.15;
+      g.fillStyle = `rgba(55,95,80,${.35 + rnd()*.3})`; g.beginPath(); g.ellipse(x, y, 2 + rnd()*2.5, 2 + rnd()*2, 0, 0, Math.PI*2); g.fill();
+    }
+    LAY.hills = {c, k:1.6};
+  }
+  // 3: terraced fields stepping down the slopes
+  {
+    const base = HZ + 3, [c, g] = layerCanvas(TW, base + 2);
+    const rf = ridgeFn(TW, [[2, mH*.07, rnd()*6], [3, mH*.06, rnd()*6], [4, mH*.04, rnd()*6], [7, mH*.015, rnd()*6]]);
+    const top = x => base - mH*.2 - rf(x)*.8;
+    const N = 8, cols = ['#7fb24a', '#a3c052', '#6aa13e', '#b8c85a', '#79ac45', '#93bb4d', '#6c9f3c', '#a9c456'];
+    for (let k = 0; k < N; k++){
+      const f0 = k/N, f1 = (k + 1)/N;
+      g.beginPath();
+      for (let x = 0; x <= TW; x += 4){ const y = lerp(top(x), base, f0); if (x) g.lineTo(x, y); else g.moveTo(x, y); }
+      for (let x = TW; x >= 0; x -= 4) g.lineTo(x, lerp(top(x), base, f1) + 1);
+      g.closePath(); g.fillStyle = cols[k % cols.length]; g.fill();
+      g.beginPath();
+      for (let x = 0; x <= TW; x += 4){ const y = lerp(top(x), base, f1); if (x) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.strokeStyle = 'rgba(60,80,30,.45)'; g.lineWidth = 1; g.stroke();
+    }
+    for (let i = 0; i < TW/22; i++){                                 // trees dotted on the terraces
+      const x = rnd()*TW, y = lerp(top(x), base, rnd()*.8) + 1, r = 3 + rnd()*4;
+      g.fillStyle = '#3f7a32'; g.beginPath(); g.arc(x, y - r, r, 0, Math.PI*2); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.arc(x - r*.3, y - r*1.3, r*.5, 0, Math.PI*2); g.fill();
+    }
+    LAY.terr = {c, k:3.5};
+  }
+  // 4: the village at the edge of the field: houses, haystacks, trees and prayer flags
+  {
+    const u = clamp(H*.075, 22, 64), base = HZ + 3, [c, g] = layerCanvas(TW, base + 4);
+    const tree = (x, s) => {
+      g.fillStyle = '#5b3b22'; g.fillRect(x - s*.06, base - s*.55, s*.12, s*.55);
+      g.fillStyle = '#356f2c'; g.beginPath(); g.arc(x, base - s*.8, s*.38, 0, Math.PI*2); g.arc(x - s*.25, base - s*.62, s*.26, 0, Math.PI*2); g.arc(x + s*.25, base - s*.64, s*.28, 0, Math.PI*2); g.fill();
+      g.fillStyle = 'rgba(255,255,230,.14)'; g.beginPath(); g.arc(x - s*.1, base - s*.95, s*.18, 0, Math.PI*2); g.fill();
+    };
+    const pine = (x, s) => {
+      g.fillStyle = '#2f5d34';
+      for (let i = 0; i < 3; i++){ g.beginPath(); g.moveTo(x, base - s*(1.1 - i*.25)); g.lineTo(x - s*(.18 + i*.06), base - s*(.55 - i*.2)); g.lineTo(x + s*(.18 + i*.06), base - s*(.55 - i*.2)); g.closePath(); g.fill(); }
+      g.fillStyle = '#5b3b22'; g.fillRect(x - s*.03, base - s*.12, s*.06, s*.12);
+    };
+    const house = (x, s, two) => {
+      const w = s*1.5, h1 = s*.5, h2 = two ? s*.42 : 0;
+      g.fillStyle = '#b4553c'; g.fillRect(x, base - h1, w, h1);                        // red-mud lower walls
+      if (two){ g.fillStyle = '#efe5cf'; g.fillRect(x, base - h1 - h2, w, h2); }       // whitewashed upper floor
+      g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x, base - h1 - h2, w, s*.05);
+      g.fillStyle = '#3b2414';                                                          // carved wooden windows and the door
+      const win = (wx, wy, ww, wh) => { g.fillRect(wx, wy, ww, wh); g.strokeStyle = '#7a4a26'; g.lineWidth = Math.max(1, s*.03); g.strokeRect(wx, wy, ww, wh); g.beginPath(); g.moveTo(wx + ww/2, wy); g.lineTo(wx + ww/2, wy + wh); g.moveTo(wx, wy + wh/2); g.lineTo(wx + ww, wy + wh/2); g.stroke(); };
+      g.fillRect(x + w*.42, base - h1*.8, w*.16, h1*.8);
+      win(x + w*.12, base - h1*.7, w*.16, h1*.36); win(x + w*.72, base - h1*.7, w*.16, h1*.36);
+      if (two){ win(x + w*.15, base - h1 - h2*.8, w*.18, h2*.5); win(x + w*.67, base - h1 - h2*.8, w*.18, h2*.5); }
+      const ry = base - h1 - h2;                                                        // slate roof with deep eaves
+      g.fillStyle = '#6e6862'; g.beginPath(); g.moveTo(x - w*.12, ry + s*.04); g.lineTo(x + w*.22, ry - s*.42); g.lineTo(x + w*.78, ry - s*.42); g.lineTo(x + w*1.12, ry + s*.04); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1;
+      for (let i = 1; i < 4; i++){ const yy = ry - s*.42 + i*s*.115; g.beginPath(); g.moveTo(x + w*(.22 - .085*i), yy); g.lineTo(x + w*(.78 + .085*i), yy); g.stroke(); }
+      return {x, w, ry};
+    };
+    const haystack = (x, s) => {                                                        // paral ko kuniyo: straw stacked round a pole
+      g.strokeStyle = '#5b3b22'; g.lineWidth = Math.max(1.2, s*.04); g.beginPath(); g.moveTo(x, base - s*1.2); g.lineTo(x, base); g.stroke();
+      g.fillStyle = '#d6ae55'; g.beginPath(); g.moveTo(x, base - s*1.02); g.quadraticCurveTo(x + s*.42, base - s*.55, x + s*.3, base - s*.12); g.lineTo(x - s*.3, base - s*.12); g.quadraticCurveTo(x - s*.42, base - s*.55, x, base - s*1.02); g.fill();
+      g.fillStyle = 'rgba(120,80,20,.25)'; g.beginPath(); g.moveTo(x, base - s*1.02); g.quadraticCurveTo(x + s*.42, base - s*.55, x + s*.3, base - s*.12); g.lineTo(x + s*.05, base - s*.12); g.closePath(); g.fill();
+      g.fillStyle = '#8a6a3a'; g.fillRect(x - s*.22, base - s*.14, s*.44, s*.14);
+    };
+    const flags = (x1, y1, x2, y2, sag) => {                                            // prayer flags: blue, white, red, green, yellow
+      const n = Math.max(6, Math.round(Math.hypot(x2 - x1, y2 - y1)/(u*.2))), C = ['#2f6fd0', '#f4f1e6', '#d63c32', '#2f9a52', '#f2c200'];
+      g.strokeStyle = 'rgba(60,40,20,.7)'; g.lineWidth = 1; g.beginPath();
+      for (let i = 0; i <= 20; i++){ const t = i/20, xx = lerp(x1, x2, t), yy = lerp(y1, y2, t) + sag*4*t*(1 - t); if (i) g.lineTo(xx, yy); else g.moveTo(xx, yy); }
+      g.stroke();
+      for (let i = 1; i < n; i++){
+        const t = i/n, xx = lerp(x1, x2, t), yy = lerp(y1, y2, t) + sag*4*t*(1 - t), fw = u*.13;
+        g.save(); g.translate(xx, yy); g.rotate(Math.sin(i*1.7)*.12);
+        g.fillStyle = C[i % 5]; g.fillRect(-fw/2, 0, fw, fw*1.15);
+        g.restore();
+      }
+    };
+    const pole = (x, s) => { g.strokeStyle = '#7a5a34'; g.lineWidth = Math.max(1.5, s*.05); g.beginPath(); g.moveTo(x, base); g.lineTo(x, base - s*1.9); g.stroke(); return base - s*1.9; };
+    // stone wall along the field edge
+    g.fillStyle = '#9a8f80'; g.fillRect(0, base - u*.12, TW, u*.12);
+    g.fillStyle = 'rgba(0,0,0,.18)';
+    for (let x = 0; x < TW; x += u*.22) g.fillRect(x, base - u*.12, 1, u*.12);
+    const A = TW*.18;
+    tree(A - u*1.2, u*1.3);
+    const h1 = house(A, u, true);
+    haystack(A + u*2.2, u*.95); haystack(A + u*2.9, u*.8);
+    const p1 = pole(A + u*4.1, u);
+    flags(h1.x + h1.w*.78, h1.ry - u*.42, A + u*4.1, p1, u*.35);
+    pine(A + u*5.2, u*1.4); tree(A + u*6.3, u*1.1);
+    const B = TW*.62;
+    const h2 = house(B, u*.85, false);
+    tree(B + u*2, u*1.2);
+    const p2 = pole(B - u*1.4, u*.9), p3 = pole(B + u*3.4, u*1.05);
+    flags(B - u*1.4, p2, h2.x + h2.w*.22, h2.ry - u*.36, u*.25);
+    flags(h2.x + h2.w*.78, h2.ry - u*.36, B + u*3.4, p3, u*.3);
+    haystack(B + u*4.3, u*.9); pine(B + u*5.4, u*1.2); tree(TW*.92, u*1.25); pine(TW*.04, u*1.1);
+    LAY.vil = {c, k:9};
+  }
+}
+function drawLayer(L){
+  const TW = LAY.TW, o = ((cam.x*L.k) % TW + TW) % TW;
+  for (let x = -o; x < W; x += TW) ctx.drawImage(L.c, x, 0, TW, L.c.height/DPR);
+}
+
+/* ---------- people, drawn from a few joints ---------- */
+const SKIN = '#c98d5f', SKIN_D = '#a8704a', HAIR = '#1d1410';
+// sp: joint positions in metres relative to the feet, x forward in the facing direction
+function drawPerson(X, Yg, u, face, sp, look){
+  const P = ([x, h]) => [X + face*x*u, Yg - h*u];
+  const line = (a, b, w, col) => { const A = P(a), B = P(b); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.5, w*u); ctx.stroke(); };
+  const two = (a, b, c, w, col) => { const A = P(a), B = P(b), C = P(c); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.lineTo(C[0], C[1]); ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.5, w*u); ctx.stroke(); };
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // back leg and arm first, slightly darker
+  two(sp.hip, sp.kneeB, sp.footB, .085, SKIN_D);
+  two(sp.sh, sp.elbB, sp.handB, .06, SKIN_D);
+  two(sp.hip, sp.kneeF, sp.footF, .09, SKIN);
+  // shorts or trousers over the top of the legs
+  line(sp.hip, [lerp(sp.hip[0], sp.kneeF[0], .45), lerp(sp.hip[1], sp.kneeF[1], .45)], .13, look.pants);
+  line(sp.hip, [lerp(sp.hip[0], sp.kneeB[0], .45), lerp(sp.hip[1], sp.kneeB[1], .45)], .12, look.pants);
+  line(sp.hip, sp.sh, .2, look.shirt);
+  two(sp.sh, sp.elbF, sp.handF, .065, SKIN);
+  line(sp.sh, [lerp(sp.sh[0], sp.elbF[0], .5), lerp(sp.sh[1], sp.elbF[1], .5)], .08, look.shirt);
+  const Hd = P(sp.head), hr = Math.max(3, .105*u);
+  ctx.fillStyle = SKIN; ctx.beginPath(); ctx.arc(Hd[0], Hd[1], hr, 0, Math.PI*2); ctx.fill();
+  if (look.topi){                                       // dhaka topi, the patterned Nepali cap
+    ctx.save(); ctx.translate(Hd[0], Hd[1]); ctx.scale(face, 1);
+    ctx.beginPath(); ctx.moveTo(-hr*1.02, -hr*.35); ctx.lineTo(-hr*.8, -hr*1.35); ctx.lineTo(hr*.95, -hr*1.15); ctx.lineTo(hr*1.02, -hr*.35); ctx.closePath();
+    ctx.fillStyle = '#2b2b5a'; ctx.fill();
+    ctx.fillStyle = '#e8463a'; ctx.fillRect(-hr*.85, -hr*1.0, hr*1.75, hr*.18);
+    ctx.fillStyle = '#f5c851'; ctx.fillRect(-hr*.9, -hr*.7, hr*1.85, hr*.14);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = HAIR; ctx.beginPath(); ctx.arc(Hd[0] - face*hr*.12, Hd[1] - hr*.2, hr*.95, Math.PI*.95, Math.PI*2.05); ctx.fill();
+    if (look.girl){ ctx.beginPath(); ctx.ellipse(Hd[0] - face*hr*1.05, Hd[1] + hr*.2, hr*.32, hr*.65, face*.4, 0, Math.PI*2); ctx.fill(); }
+  }
+  ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(Hd[0] + face*hr*.5, Hd[1] - hr*.1, Math.max(.8, hr*.12), 0, Math.PI*2); ctx.fill();
+}
+function shadow(X, Yg, rx){ ctx.fillStyle = 'rgba(20,40,10,.28)'; ctx.beginPath(); ctx.ellipse(X, Yg, rx, rx*.3, 0, 0, Math.PI*2); ctx.fill(); }
+// fielder poses (a child about 1.2 m tall)
+function kidPose(k, t){
+  const st = k.state;
+  if (st === 'run' || st === 'walk'){
+    const amp = st === 'run' ? 1 : .55, p = k.step, s = Math.sin(p), c = Math.cos(p);
+    return {hip:[0, .6], sh:[.08*amp, .97], head:[.11*amp, 1.1],
+      footF:[.24*s*amp, .05 + Math.max(0, c)*.1*amp], kneeF:[.08 + .16*s*amp, .32], footB:[-.24*s*amp, .05 + Math.max(0, -c)*.1*amp], kneeB:[.08 - .16*s*amp, .32],
+      elbF:[-.1*s*amp, .76], handF:[-.05*s*amp + .06, .62], elbB:[.1*s*amp, .76], handB:[.05*s*amp + .06, .62]};
+  }
+  if (st === 'catch') return {hip:[0, .62], sh:[.02, .99], head:[.03, 1.12], footF:[.12, 0], kneeF:[.08, .32], footB:[-.1, 0], kneeB:[-.05, .32],
+    elbF:[.12, 1.14], handF:[.16, 1.3], elbB:[.06, 1.15], handB:[.08, 1.31]};
+  if (st === 'cheer'){
+    const j = Math.abs(Math.sin((t - k.t0)*8))*.18;
+    return {hip:[0, .62 + j], sh:[0, .99 + j], head:[0, 1.12 + j], footF:[.12, j], kneeF:[.1, .32 + j], footB:[-.12, j], kneeB:[-.1, .32 + j],
+      elbF:[.2, 1.12 + j], handF:[.26, 1.32 + j], elbB:[-.2, 1.12 + j], handB:[-.26, 1.32 + j]};
+  }
+  if (st === 'sad') return {hip:[0, .6], sh:[.04, .95], head:[.08, 1.06], footF:[.1, 0], kneeF:[.08, .3], footB:[-.1, 0], kneeB:[-.06, .3],
+    elbF:[.06, .74], handF:[.06, .56], elbB:[-.02, .74], handB:[-.02, .56]};
+  // ready: crouched, hands on knees
+  return {hip:[0, .55], sh:[.13, .88], head:[.17, 1.0], footF:[.16, 0], kneeF:[.21, .3], footB:[-.12, 0], kneeB:[-.04, .31],
+    elbF:[.22, .62], handF:[.21, .38], elbB:[.12, .62], handB:[.06, .4]};
+}
+function drawKid(k, t){
+  const u = fsz()*1.03, X = sx(k.x), Yg = sy(k.z, 0);
+  if (X < -40 || X > W + 40) return;
+  shadow(X, Yg, .32*u);
+  drawPerson(X, Yg, u, k.face, kidPose(k, t), KIDS[k.i % KIDS.length]);
+}
+/* The batter (about 1.5 m) and the dandi. The swing is drawn as a horizontal sweep seen from the side:
+   phi is the dandi's direction round the batter (180 = behind, 90 = towards us, 0 = forward). */
+function batPose(t){
+  const dt = t - bat.t0;
+  const stance = {hip:[0, .74], sh:[.15, 1.16], head:[.2, 1.31], footF:[.22, 0], kneeF:[.27, .38], footB:[-.18, 0], kneeB:[-.08, .38], hand:[.3, .6, 0], dir:null};
+  const windup = {hip:[0, .8], sh:[.04, 1.24], head:[.07, 1.4], footF:[.24, 0], kneeF:[.24, .4], footB:[-.18, 0], kneeB:[-.12, .4], hand:[-.1, 1.06, 0], phi:165, tilt:28};
+  const mix = (a, b, k) => {
+    const o = {};
+    for (const key of ['hip', 'sh', 'head', 'footF', 'kneeF', 'footB', 'kneeB', 'hand']) o[key] = a[key].map((v, i) => lerp(v, b[key][i], k));
+    return o;
+  };
+  if (bat.pose === 'stance') return stance;
+  if (bat.pose === 'flick'){
+    if (dt < .07){ const d = Math.sin(dt/.07*Math.PI); const s = mix(stance, stance, 0); s.hand = [.3, .6 - .05*d, 0]; s.tipDip = .05*d; return s; }
+    const k = easeOut(clamp((dt - .07)/.16, 0, 1)), s = mix(stance, windup, k);
+    s.phi = lerp(0, 165, k); s.tilt = lerp(-62, 28, k); s.flickBlend = 1 - k;
+    return s;
+  }
+  if (bat.pose === 'windup') return windup;
+  // swing: fast through the contact, then a follow-through
+  const k = clamp(dt/.2, 0, 1), e = easeOut(k);
+  const s = mix(windup, {hip:[.02, .78], sh:[.12, 1.2], head:[.17, 1.34], footF:[.26, 0], kneeF:[.3, .4], footB:[-.16, .02], kneeB:[-.02, .38], hand:[.2, 1.0, 0]}, e);
+  s.phi = lerp(165, -75, e);
+  const hit = Math.asin(clamp((bat.hb - 1.0)/.5, -.95, .6))*180/Math.PI;
+  s.tilt = e < .55 ? lerp(28, hit, e/.55) : lerp(hit, 40, (e - .55)/.45);
+  return s;
+}
+function drawBatter(t){
+  const u = fsz(), X = sx(BAT_X), Yg = sy(0, 0), look = G ? batterLook() : {shirt:PCOL[0].shirt, pants:'#2d2a3a', topi:true};
+  if (X < -60 || X > W + 60) return;
+  const s = batPose(t);
+  const hx = s.hand[0], hh = s.hand[1];
+  // dandi vector in metres: (forward, depth, up)
+  let dx, dz, dh;
+  if (s.phi == null){ const tx = GUCCHI_X - .06 - BAT_X, th = .07 - (s.tipDip || 0); dx = tx - hx; dz = 0; dh = th - hh; const L = Math.hypot(dx, dh); dx *= .62/L; dh *= .62/L; }
+  else { const ph = s.phi*Math.PI/180, tl = s.tilt*Math.PI/180; dx = .62*Math.cos(ph)*Math.cos(tl); dz = -.62*Math.sin(ph)*Math.cos(tl); dh = .62*Math.sin(tl); }
+  const elbow = (sh, hand, out) => [lerp(sh[0], hand[0], .5) + out*.04, lerp(sh[1], hand[1], .5) - .08];
+  const sp = Object.assign({}, s, {elbF:elbow(s.sh, s.hand, 1), handF:[hx + .02, hh], elbB:elbow(s.sh, s.hand, -1), handB:[hx - .03, hh + .03]});
+  shadow(X, Yg, .38*u);
+  const H1 = [X + hx*u, Yg - hh*u], H2 = [H1[0] + dx*u, H1[1] - (dz*ZK + dh)*u];
+  const behind = s.phi != null && Math.sin(s.phi*Math.PI/180) < -.2;    // dandi swinging round the far side
+  const drawDandi = () => {
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(H1[0] - (H2[0] - H1[0])*.12, H1[1] - (H2[1] - H1[1])*.12); ctx.lineTo(H2[0], H2[1]);
+    ctx.strokeStyle = '#4a2c12'; ctx.lineWidth = Math.max(3.2, .045*u); ctx.stroke();
+    ctx.strokeStyle = '#c99257'; ctx.lineWidth = Math.max(2, .03*u); ctx.stroke();
+  };
+  if (behind) drawDandi();
+  drawPerson(X, Yg, u, 1, sp, look);
+  if (!behind) drawDandi();
+}
+function batterLook(){ const i = G.M.turn, c = PCOL[i % 4]; return {shirt:c.shirt, pants:'#2d2a3a', topi:true}; }
+
+/* ---------- the biyo ---------- */
+function drawBiyo(X, Y, rot, u, alpha){
+  const L = Math.max(.16*u*2.2, 15), T = Math.max(L*.21, 3.4);
+  ctx.save(); ctx.translate(X, Y); ctx.rotate(rot);
+  if (alpha != null) ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.moveTo(-L/2, 0); ctx.lineTo(-L*.26, -T/2); ctx.lineTo(L*.26, -T/2); ctx.lineTo(L/2, 0); ctx.lineTo(L*.26, T/2); ctx.lineTo(-L*.26, T/2); ctx.closePath();
+  const g = ctx.createLinearGradient(0, -T/2, 0, T/2);
+  g.addColorStop(0, '#f3c886'); g.addColorStop(.55, '#b47a3e'); g.addColorStop(1, '#6f431e');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(50,25,8,.85)'; ctx.stroke();
+  ctx.restore();
+}
+
+/* ---------- the frame ---------- */
+function frame(now){
+  raf = 0;
+  const dt = lastNow ? Math.min(.05, (now - lastNow)/1000) : 1/60;
+  lastNow = now;
+  if (!paused){ clock += dt; update(dt); }
+  // the canvas is only repainted when something on it moves; during the flick only the DOM needle moves
+  if (dirty || PH !== drawnPH || needPaint()){ draw(); dirty = false; drawnPH = PH; }
+  if (!paused && needAnim()) kick(); else lastNow = 0;
+}
+let dirty = true, drawnPH = null;
+const needPaint = () => tweens.length || cam.follow || fx.length || animUntil > clock || PH.k === 'pop' || PH.k === 'drop' || PH.k === 'flight' ||
+  FL.some(k => k.state === 'run' || k.state === 'walk' || k.state === 'cheer');
+const needAnim = () => waits.length || tweens.length || pending || cam.follow || fx.length || animUntil > clock ||
+  PH.k === 'pop' || PH.k === 'drop' || PH.k === 'flight' || FL.some(k => k.state === 'run' || k.state === 'walk' || k.state === 'cheer');
+function update(dt){
+  for (let i = waits.length - 1; i >= 0; i--) if (clock >= waits[i].at){ const w = waits.splice(i, 1)[0]; w.res(); }
+  for (let i = tweens.length - 1; i >= 0; i--){
+    const t = tweens[i], k = Math.min(1, (clock - t.t0)/t.d);
+    t.fn(ease(k));
+    if (k >= 1){ tweens.splice(i, 1); t.res(); }
+  }
+  if (pending && pending.deadline != null && clock >= pending.deadline){ const p = pending; pending = null; p.res(null); refreshControls(); }
+  // meter needle
+  if (PH.k === 'flick') setNeedle(meterPos(clock - PH.t0, PH.period));
+  else if (PH.k === 'pop') setNeedle(Math.min(1, (clock - PH.t0)/PH.T));
+  // biyo popping up off the gucchi
+  if (PH.k === 'pop' || PH.k === 'drop'){
+    const ph = Math.min(1, (clock - PH.t0)/PH.T);
+    biyo.x = GUCCHI_X + .12*Math.min(1, ph/.5); biyo.z = 0;
+    biyo.h = popHeight(PH.fl, ph) + .03*(1 - ph); biyo.r = ph*Math.PI*1.4*(PH.fl.fail ? .4 : 1);
+    if (PH.k === 'drop' && ph >= 1){ biyo.h = .02; biyo.r = .25; }
+  }
+  if (PH.k === 'flight') updateFlight(dt);
+  for (const k of FL) if (k.state === 'run' || k.state === 'walk') k.step += dt*(k.state === 'run' ? 15 : 9);
+  // camera
+  if (cam.follow && PH.k === 'flight'){
+    const a = 1 - Math.exp(-dt*3.2), b = 1 - Math.exp(-dt*9);
+    cam.s += (PH.sT - cam.s)*a;
+    let tx = biyo.x - (W*.42 - AX)/cam.s;
+    if (PH.c && PH.c.caught && PH.done) tx = biyo.x - (W*.5 - AX)/cam.s;
+    cam.x += (Math.max(0, tx) - cam.x)*b;
+  }
+  const now = clock;
+  fx = fx.filter(f => now - f.t0 < f.d);
+}
+function updateFlight(){
+  const F = PH.f, t = Math.min(PH.endT, (clock - PH.t0)*FLY_SPEED);
+  const P = F.path, fi = t/FDT, i = Math.min(P.length - 2, Math.floor(fi)), k = clamp(fi - i, 0, 1), a = P[i], b = P[i + 1] || a;
+  const caught = PH.c && PH.c.caught && t >= PH.c.t;
+  if (caught){
+    const kid = FL[PH.c.fi];
+    biyo.x = kid.x + kid.face*.12; biyo.z = kid.z; biyo.h = 1.3; biyo.r = .3; biyo.held = PH.c.fi;
+  } else {
+    biyo.x = lerp(a.x, b.x, k); biyo.z = lerp(a.z, b.z, k); biyo.h = lerp(a.h, b.h, k); biyo.r = lerp(a.r, b.r, k);
+  }
+  if (!caught && biyo.h > .05){ trail.push({x:biyo.x, z:biyo.z, h:biyo.h}); if (trail.length > 9) trail.shift(); }
+  else if (trail.length) trail.shift();
+  // landing and bounces
+  if (!caught && F.land && t >= F.land.t && !PH.landed){
+    PH.landed = true; sfx('thud');
+    fx.push({type:'dust', x:F.land.x, z:F.land.z, t0:clock, d:.6});
+  }
+  // fielders run to their spots
+  PH.plans.forEach((pl, j) => {
+    const kid = FL[j];
+    if (!kid) return;
+    const d = Math.hypot(pl.tx - pl.x0, pl.tz - pl.z0), m = clamp((t - pl.react)*pl.speed, 0, d);
+    kid.x = d ? pl.x0 + (pl.tx - pl.x0)*m/d : pl.x0; kid.z = d ? pl.z0 + (pl.tz - pl.z0)*m/d : pl.z0;
+    if (Math.abs(pl.tx - pl.x0) > .05) kid.face = pl.tx > pl.x0 ? 1 : -1;
+    const moving = t > pl.react && m < d - 1e-6;
+    if (pl.catcher && PH.c){
+      if (caught || (m >= d - 1e-6 && t > PH.c.t - .4 && t < PH.c.t + .25)){ kid.state = 'catch'; kid.face = biyo.x > kid.x ? 1 : -1; }
+      else if (t >= PH.c.t + .25) kid.state = 'sad';
+      else kid.state = moving ? 'run' : 'ready';
+    } else kid.state = moving ? 'run' : 'ready';
+  });
+  if (PH.c && !PH.c.caught && t >= PH.c.t && !PH.dropped){
+    PH.dropped = true;
+    fx.push({type:'text', text:'Dropped!', x:PH.c.x, z:PH.c.z, h:2.2, t0:clock, d:1.2, col:'#fff'});
+    sfx('ooh');
+  }
+  if (t >= PH.endT) PH.done = true;
+}
+function draw(){
+  if (!LAY || !W) return;
+  const t = clock;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, HZ + 4);
+  // sun
+  const sg = ctx.createRadialGradient(W*.82, HZ*.28, 0, W*.82, HZ*.28, Math.max(60, H*.16));
+  sg.addColorStop(0, 'rgba(255,250,220,.95)'); sg.addColorStop(.12, 'rgba(255,244,200,.8)'); sg.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = sg; ctx.fillRect(0, 0, W, HZ);
+  drawLayer(LAY.mtn); drawLayer(LAY.hills); drawLayer(LAY.terr);
+  ctx.fillStyle = groundGrad; ctx.fillRect(0, HZ, W, H - HZ);
+  drawLayer(LAY.vil);
+  drawGround(t);
+  // things on the field, far ones first
+  const objs = FL.map(k => ({z:k.z, f:() => drawKid(k, t)}));
+  objs.push({z:0, f:() => drawBatter(t)});
+  objs.sort((a, b) => b.z - a.z);
+  const bz = biyo.z;
+  // the biyo's shadow sits on the ground; the biyo itself is drawn after anything further back
+  let bX = sx(biyo.x), bY = sy(biyo.z, biyo.h);
+  const u = cam.s;
+  if (biyo.held >= 0 && FL[biyo.held]){ const k = FL[biyo.held], fu = fsz()*1.03; bX = sx(k.x) + k.face*.17*fu; bY = sy(k.z, 0) - 1.32*fu; }
+  if (biyo.vis && biyo.held < 0){ const sh = clamp(1 - biyo.h/12, .25, 1); ctx.fillStyle = `rgba(20,40,10,${.3*sh})`; ctx.beginPath(); ctx.ellipse(bX, sy(biyo.z, 0), Math.max(5, .12*u)*sh + 2, Math.max(1.6, .04*u)*sh + 1, 0, 0, Math.PI*2); ctx.fill(); }
+  let drawn = false;
+  const drawB = () => {
+    if (!biyo.vis || drawn) return; drawn = true;
+    for (let i = 0; i < trail.length; i++){ const p = trail[i]; drawBiyo(sx(p.x), sy(p.z, p.h), biyo.r - (trail.length - i)*.25, u, (i + 1)/trail.length*.25); }
+    drawBiyo(bX, bY, biyo.r, u);
+  };
+  for (const o of objs){
+    if (!drawn && bz > o.z - .01 && biyo.held < 0) drawB();
+    o.f();
+  }
+  drawB();
+  drawCues(t);
+  drawFx(t);
+  drawEdgeTags();
+}
+function drawGround(t){
+  const u = cam.s;
+  // worn path from the gucchi down the field and the mud batting patch
+  const yA = sy(.75, 0), yB = sy(-.75, 0), x0 = Math.max(0, sx(-1.4));
+  if (x0 < W){
+    const pg = ctx.createLinearGradient(0, yA, 0, yB);
+    pg.addColorStop(0, 'rgba(160,125,70,0)'); pg.addColorStop(.5, 'rgba(160,125,70,.35)'); pg.addColorStop(1, 'rgba(160,125,70,0)');
+    ctx.fillStyle = pg; ctx.fillRect(x0, yA, W - x0, yB - yA);
+  }
+  const mx = sx(-.2), my = sy(0, 0);
+  if (mx > -200 && mx < W + 200){
+    ctx.fillStyle = '#a07a4c'; ctx.beginPath(); ctx.ellipse(mx, my, 1.9*u, Math.max(8, 1.3*u*ZK*1.6), 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(80,55,25,.22)'; ctx.beginPath(); ctx.ellipse(mx, my + 2, 1.5*u, Math.max(6, u*ZK*1.4), 0, 0, Math.PI*2); ctx.fill();
+    // the gucchi: a small slot dug in the ground
+    const gx = sx(GUCCHI_X), rx = Math.max(.12*u, 8), ry = Math.max(rx*.32, 3);
+    ctx.fillStyle = '#6b4a28'; ctx.beginPath(); ctx.ellipse(gx, my + 1, rx*1.25, ry*1.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1f1208'; ctx.beginPath(); ctx.ellipse(gx, my + 1, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+  }
+  // grass tufts scattered at fixed places on the field
+  const xa = cam.x - AX/u - 1, xb = cam.x + (W - AX)/u + 1, step = u > 20 ? .7 : u > 10 ? 1.4 : 2.8;
+  ctx.strokeStyle = 'rgba(40,90,25,.55)'; ctx.lineWidth = Math.max(1, u*.02); ctx.lineCap = 'round';
+  ctx.beginPath();
+  const zNear = -(H - Y0)/(ZK*u), zFar = (Y0 - HZ)/(ZK*u);
+  for (let i = Math.floor(xa/step); i <= xb/step; i++){
+    for (let j = 0; j < 2; j++){
+      const x = i*step + hash(i*3.1 + j)*step, z = lerp(zNear, zFar, hash(i*7.7 + j*1.3));
+      if (Math.abs(z) < 1 && x > -2.5 && x < 1.6) continue;
+      const X = sx(x), Y = sy(z, 0), h = Math.max(3, .1*u);
+      if (Y < HZ + 2) continue;
+      ctx.moveTo(X - h*.4, Y - h); ctx.lineTo(X, Y); ctx.lineTo(X + h*.1, Y - h*1.2); ctx.moveTo(X, Y); ctx.lineTo(X + h*.5, Y - h*.9);
+    }
+  }
+  ctx.stroke();
+  // distance markers: a chalk peg every 5 dandi lengths, labelled as space allows
+  const px5 = 5*DANDI*u, every = [1, 2, 5, 10, 20].find(m => m*px5 >= 36) || 40;
+  const yM = sy(-.95, 0);
+  ctx.font = `900 ${clamp(Math.round(u*.4), 10, 13)}px Nunito, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let n = 1; ; n++){
+    const x = n*5*DANDI, X = sx(x);
+    if (X > W + 20) break;
+    if (X < -20) continue;
+    const big = n % every === 0;
+    if (!big && px5 < 9) continue;
+    ctx.fillStyle = big ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.6)';
+    const ph = big ? Math.max(7, .3*u) : Math.max(4, .16*u);
+    ctx.fillRect(X - 1.5, yM - ph, 3, ph);
+    if (big){
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(30,50,15,.7)'; ctx.strokeText(String(n*5), X, yM + 2);
+      ctx.fillText(String(n*5), X, yM + 2);
+    }
+  }
+  // flags where the last hit and the best hit of this innings stopped
+  for (const [m, col, lbl] of [[marks.best, '#f5c851', 'Best '], [marks.last, '#e8463a', '']]){
+    if (!m) continue;
+    if (m === marks.last && marks.best && m.d === marks.best.d && m.x === marks.best.x) continue;
+    const X = sx(m.x), Y = sy(m.z, 0);
+    if (X < -30 || X > W + 30) continue;
+    const ph = Math.max(18, .9*u);
+    ctx.strokeStyle = '#f4ead8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X, Y - ph); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(X, Y - ph); ctx.lineTo(X + ph*.5, Y - ph*.82); ctx.lineTo(X, Y - ph*.64); ctx.closePath(); ctx.fill();
+    ctx.font = '900 11px Nunito, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeText(lbl + m.d, X + 4, Y - ph - 7); ctx.fillStyle = '#fff'; ctx.fillText(lbl + m.d, X + 4, Y - ph - 7);
+  }
+}
+// timing cues next to the action: the loft preview and the ring closing on the biyo
+function drawCues(t){
+  const human = G && G.running && !isBotTurn();
+  if ((PH.k === 'flick' || PH.k === 'flicked' || PH.k === 'pop') && !PH.struck){
+    const a = (9 + 31*showLoft)*Math.PI/180, v = 15, X0 = .25, H0p = .75;
+    ctx.fillStyle = human ? 'rgba(255,255,255,.75)' : 'rgba(255,255,255,.4)';
+    for (let i = 1; i <= 7; i++){
+      const tt = i*.055, x = X0 + v*Math.cos(a)*tt, h = H0p + v*Math.sin(a)*tt - 4.9*tt*tt;
+      ctx.beginPath(); ctx.arc(sx(x), sy(0, h), Math.max(1.6, 2.6 - i*.15), 0, Math.PI*2); ctx.fill();
+    }
+  }
+  if (PH.k === 'pop' && !PH.struck){
+    const ph = (clock - PH.t0)/PH.T, dd = IDEAL - ph, X = sx(biyo.x), Y = sy(0, biyo.h);
+    const r = 11 + Math.max(0, dd)*120, ad = Math.abs(dd);
+    const col = ad <= PERFECT ? '#7be495' : ad <= GOOD ? '#f5c851' : dd > 0 ? '#ffffff' : '#ef4d5a';
+    ctx.globalAlpha = dd < -GOOD ? clamp(1 - (-dd - GOOD)*4, 0, 1) : 1;
+    ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X, Y, 11, 0, Math.PI*2); ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+function drawFx(t){
+  for (const f of fx){
+    const k = (t - f.t0)/f.d;
+    if (f.type === 'dust'){
+      const X = sx(f.x), Y = sy(f.z, 0), r = (6 + 26*k)*Math.max(.6, cam.s/30);
+      ctx.fillStyle = `rgba(170,140,95,${.45*(1 - k)})`;
+      ctx.beginPath(); ctx.ellipse(X - r*.4, Y - r*.2, r*.6, r*.3, 0, 0, Math.PI*2); ctx.ellipse(X + r*.4, Y - r*.25, r*.55, r*.28, 0, 0, Math.PI*2); ctx.fill();
+    } else if (f.type === 'text'){
+      const X = clamp(sx(f.x), 40, W - 40), Y = Math.max(TOP + 20, sy(f.z, f.h) - 40*easeOut(Math.min(1, k*1.5)));
+      const size = f.big ? clamp(W*.07, 30, 52) : 22;
+      ctx.globalAlpha = k > .75 ? (1 - k)/.25 : 1;
+      ctx.font = `${size}px 'Lilita One', Impact, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(40,20,0,.75)'; ctx.strokeText(f.text, X, Y);
+      ctx.fillStyle = f.col || '#f5c851'; ctx.fillText(f.text, X, Y);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+// fielders off the right of the screen: a small tag with their distance
+function drawEdgeTags(){
+  if (!G || !G.running) return;
+  ctx.font = '900 11px Nunito, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  const used = [];
+  for (const k of FL){
+    const X = sx(k.x);
+    if (X <= W - 4) continue;
+    let Y = clamp(sy(k.z, .6*fsz()/cam.s), TOP + 14, H - 14);
+    while (used.some(y => Math.abs(y - Y) < 18)) Y += 18;
+    used.push(Y);
+    const txt = Math.round(k.x/DANDI) + ' ▸', w = ctx.measureText(txt).width + 14;
+    ctx.fillStyle = 'rgba(18,9,3,.72)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(W - w - 4, Y - 9, w, 18, 9) : ctx.rect(W - w - 4, Y - 9, w, 18); ctx.fill();
+    ctx.fillStyle = KIDS[k.i % KIDS.length].shirt; ctx.beginPath(); ctx.arc(W - w + 3, Y, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fbf3e6'; ctx.fillText(txt, W - 10, Y);
+  }
+}
+
+/* ---------- controls ---------- */
+const OVERLAYS = ['#splash', '#setup', '#menu', '#rules', '#share', '#result', '#innP'];
+const overlayOpen = () => OVERLAYS.some(s => !$(s).hidden);
+const curPlayer = () => G && G.M.players[G.M.turn];
+const isBotTurn = () => !!(G && G.running && INN && !INN.over && !G.M.over && curPlayer().bot);
+let meterKind = '';
+function setMeter(kind){
+  if (kind === meterKind) return;
+  meterKind = kind;
+  const z = $('#zones');
+  if (kind === 'flick'){
+    // quality q = 1 - 2|pos - 0.5|; below FLICK_FAIL the flick fails
+    const f = FLICK_FAIL/2*100, r = 25, y = 40;
+    z.style.background = `linear-gradient(90deg,#4a0d0d 0 ${f}%,#d63848 ${f}% ${r}%,#f5c851 ${r}% ${y}%,#3bb862 ${y}% ${100 - y}%,#f5c851 ${100 - y}% ${100 - r}%,#d63848 ${100 - r}% ${100 - f}%,#4a0d0d ${100 - f}%)`;
+  } else if (kind === 'strike'){
+    const p = v => (v*100).toFixed(1) + '%';
+    z.style.background = `linear-gradient(90deg,#4a0d0d 0 ${p(WIN_LO)},#9c2a36 ${p(WIN_LO)} ${p(IDEAL - GOOD)},#f5c851 ${p(IDEAL - GOOD)} ${p(IDEAL - PERFECT)},#3bb862 ${p(IDEAL - PERFECT)} ${p(IDEAL + PERFECT)},#f5c851 ${p(IDEAL + PERFECT)} ${p(IDEAL + GOOD)},#9c2a36 ${p(IDEAL + GOOD)} ${p(WIN_HI)},#4a0d0d ${p(WIN_HI)})`;
+  } else z.style.background = 'linear-gradient(90deg,#2a1608,#3a2210)';
+}
+function setNeedle(v){ needle.style.setProperty('--m', clamp(v, 0, 1).toFixed(4)); }
+function setLoft(v, show){
+  LOFT = clamp(v, 0, 1);
+  if (show !== false) showLoftValue(LOFT);
+}
+function showLoftValue(v){
+  showLoft = v;
+  loftEl.style.setProperty('--l', v.toFixed(3));
+  loftEl.setAttribute('aria-valuenow', Math.round(v*100));
+  $('#loftTxt').textContent = v < .3 ? 'Low' : v > .7 ? 'High' : 'Mid';
+  dirty = true;
+  if (!raf) draw();
+}
+const canLoft = () => !!(G && G.running && INN && !isBotTurn() && !paused && !overlayOpen() && !(PH.struck) && PH.k !== 'flight');
+function refreshControls(){
+  const bot = isBotTurn(), running = !!(G && G.running);
+  const kind = pending && pending.kind;
+  tapBtn.classList.toggle('skip', bot);
+  tapBtn.textContent = bot ? 'Skip' : kind === 'strike' ? 'Hit!' : 'Flick';
+  tapBtn.disabled = bot ? (skipping || paused) : !(kind && !paused);
+  tapBtn.classList.toggle('hot', !bot && !!kind && !paused);
+  tapBtn.setAttribute('aria-label', bot ? 'Skip to the end of this innings' : kind === 'strike' ? 'Hit the biyo' : 'Flick the biyo up');
+  dock.classList.toggle('off', !kind && !bot);
+  $('#loftw').classList.toggle('off', !canLoft());
+  const p = curPlayer();
+  $('#mlbl').textContent = !running ? 'Pick a mode to start' :
+    bot ? `${p.name} is batting · ${LV[p.bot]}` :
+    kind === 'flick' ? 'Tap in the green to flick' :
+    kind === 'strike' ? 'Tap as the ring closes!' :
+    PH.k === 'flight' ? 'There it goes…' : '';
+}
+cvs.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  e.preventDefault();
+  try { cvs.focus({preventScroll:true}); } catch(_){}
+  if (soundOn) try { audio(); } catch(_){}
+  if (!G || !G.running || isBotTurn()) return;
+  drag = {id:e.pointerId, y0:e.clientY, l0:LOFT, moved:false};
+  try { cvs.setPointerCapture(e.pointerId); } catch(_){}
+  tap();
+});
+cvs.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dy = drag.y0 - e.clientY;
+  if (!drag.moved && Math.abs(dy) < 8) return;
+  drag.moved = true;
+  if (canLoft()) setLoft(drag.l0 + dy/150);
+});
+const endDrag = e => { if (drag && e.pointerId === drag.id) drag = null; };
+cvs.addEventListener('pointerup', endDrag);
+cvs.addEventListener('pointercancel', endDrag);
+// the button acts on press, so its timing matches a tap on the field; keyboard activation comes through click
+tapBtn.addEventListener('pointerdown', e => {
+  if (e.button > 0) return;
+  if (soundOn) try { audio(); } catch(_){}
+  if (isBotTurn()) return;
+  e.preventDefault(); tap();
+});
+tapBtn.addEventListener('click', () => { if (isBotTurn()) skipBot(); });
+let ldrag = null;
+function loftFromY(y){ const r = loftEl.getBoundingClientRect(); setLoft(1 - (y - r.top)/r.height); }
+loftEl.addEventListener('pointerdown', e => {
+  if (!canLoft()) return;
+  e.preventDefault(); ldrag = e.pointerId;
+  try { loftEl.setPointerCapture(e.pointerId); } catch(_){}
+  loftFromY(e.clientY);
+});
+loftEl.addEventListener('pointermove', e => { if (ldrag === e.pointerId && canLoft()) loftFromY(e.clientY); });
+loftEl.addEventListener('pointerup', e => { if (ldrag === e.pointerId) ldrag = null; });
+loftEl.addEventListener('pointercancel', e => { if (ldrag === e.pointerId) ldrag = null; });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    if (!$('#rules').hidden) $('#rulesClose').click();
+    else if (!$('#share').hidden) $('#shareClose').click();
+    else if (!$('#menu').hidden) $('#resumeBtn').click();
+    else if (G && G.running && !overlayOpen()) openMenu();
+    return;
+  }
+  if (overlayOpen() || (e.target.closest && e.target.closest('input,select,textarea'))) return;
+  if (e.target !== tapBtn && e.target.closest && e.target.closest('button')) return;
+  if (e.key === ' ' || e.key === 'Enter'){
+    e.preventDefault();
+    if (e.repeat) return;
+    if (soundOn) try { audio(); } catch(_){}
+    if (isBotTurn()){ skipBot(); return; }
+    tap();
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+    if (!canLoft()) return;
+    e.preventDefault();
+    setLoft(LOFT + (e.key === 'ArrowUp' || e.key === 'ArrowRight' ? .1 : -.1));
+  } else if (e.key === 'Home' || e.key === 'End'){
+    if (!canLoft() || e.target !== loftEl) return;
+    e.preventDefault(); setLoft(e.key === 'End' ? 1 : 0);
+  }
+});
+function skipBot(){
+  if (!isBotTurn() || skipping || paused || overlayOpen()) return;
+  skipping = true;
+  fx = []; trail = [];
+  flushTimers();
+  refreshControls();
+}
+
+/* ---------- HUD ---------- */
+let plateEls = [];
+function buildPlates(){
+  const box = $('#plates'), n = G.M.players.length;
+  box.innerHTML = '';
+  plateEls = G.M.players.map((p, i) => {
+    const c = PCOL[i % 4], el = document.createElement('div');
+    el.className = 'plate' + (n > 2 ? ' many' : '');
+    el.style.setProperty('--c1', c.c1); el.style.setProperty('--c2', c.c2);
+    const arcs = [0, 1, 2].map(k => `<circle cx="50" cy="50" r="46" pathLength="100" stroke-dasharray="28 72" stroke-dashoffset="${-(k*33.333 + 2.7)}"/>`).join('');
+    el.innerHTML = `<div class="avwrap"><svg class="lives" viewBox="0 0 100 100" aria-hidden="true">${arcs}</svg><div class="avatar">${esc((p.name || '?').charAt(0).toUpperCase())}</div></div>
+      <div class="pinfo"><span class="pnm"></span><span class="ppts"></span></div>`;
+    box.appendChild(el);
+    return el;
+  });
+}
+function renderHud(bump){
+  if (!G) return;
+  const M = G.M, solo = G.mode === 'solo', best = loadBest();
+  M.players.forEach((p, i) => {
+    const el = plateEls[i];
+    if (!el) return;
+    const batting = !!(G.running && INN && INN.pi === i && !INN.done);
+    const total = p.total + (batting ? INN.total : 0);
+    el.classList.toggle('turn', !!batting);
+    el.classList.toggle('win', !!(G.winners && G.winners.includes(i)));
+    el.querySelector('.pnm').innerHTML = esc(p.name) + (p.bot ? `<small>${LV[p.bot]}</small>` : '');
+    const pts = el.querySelector('.ppts');
+    pts.innerHTML = `${total}<small>${solo ? (best.total ? 'best ' + Math.max(best.total, 0) : 'dandi') : 'dandi'}</small>`;
+    if (bump === i){ pts.classList.remove('bump'); void pts.offsetWidth; pts.classList.add('bump'); }
+    el.querySelectorAll('.lives circle').forEach((c, k) => c.classList.toggle('lost', !batting || k >= INN.lives));
+    el.setAttribute('aria-label', `${p.name}: ${total} dandi lengths${batting ? `, ${INN.lives} ${INN.lives === 1 ? 'life' : 'lives'} left` : ''}`);
+  });
+  $('#limA').innerHTML = solo ? 'Solo' : `Innings<b>${Math.min(M.round + 1, M.rounds)}/${M.rounds}</b>`;
+  $('#limB').innerHTML = `Hit<b>${INN ? INN.hits.length + (INN.over ? 0 : 1) : 1}</b>`;
+  $('#limC').innerHTML = solo ? `Best<b>${best.total}</b>` : `Lives<b>${INN ? INN.lives : LIVES}</b>`;
+}
+function banner(text, bad){
+  if (skipping) return;
+  const b = $('#banner');
+  b.textContent = text; b.classList.toggle('bad', !!bad);
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+function qlabel(text){
+  if (skipping) return;
+  const q = $('#qlabel');
+  clearTimeout(toastTimer); $('#toast').classList.remove('show');
+  q.textContent = text; q.className = text === 'Perfect!' ? 'p' : text === 'Good' ? 'g' : 'w';
+  void q.offsetWidth; q.classList.add('show');
+}
+let toastTimer;
+function toast(text, ms){
+  if (skipping) return;
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2600);
+}
+const announce = text => { $('#sr').textContent = text; };
+
+/* ---------- one hit ---------- */
+function makeKid(i, x, z){ return {i, x, z, face:-1, state:'ready', step:Math.random()*6, t0:0}; }
+// fielders walk to their new places while the camera comes back to the batter
+async function setupHit(F){
+  PH = {k:'idle'}; cam.follow = false; trail = [];
+  while (FL.length < F.length){ const i = FL.length; FL.push(makeKid(i, F[i].x + 18, F[i].z)); }
+  if (FL.length > F.length) FL.length = F.length;
+  const from = FL.map(k => ({x:k.x, z:k.z}));
+  const cx = cam.x, cs = cam.s, far = cx > 2 || Math.abs(cs - S0) > 1;
+  if (biyo.held >= 0 || far){ biyo.held = -1; }
+  FL.forEach((k, i) => { k.state = Math.hypot(F[i].x - k.x, F[i].z - k.z) > .3 ? 'walk' : 'ready'; k.face = F[i].x > k.x ? 1 : -1; });
+  const dur = far ? (reduceMotion ? .2 : .9) : .45;
+  const resetBiyo = () => { biyo.x = GUCCHI_X; biyo.z = 0; biyo.h = .05; biyo.r = 0; biyo.held = -1; biyo.vis = true; };
+  if (!far) resetBiyo();
+  bat.pose = 'stance';
+  await tw(dur, k => {
+    cam.x = cx*(1 - k); cam.s = cs + (S0 - cs)*k;
+    FL.forEach((kid, i) => { kid.x = lerp(from[i].x, F[i].x, k); kid.z = lerp(from[i].z, F[i].z, k); });
+    if (far && k > .5) resetBiyo();
+  });
+  resetBiyo();
+  cam.x = 0; cam.s = S0;
+  FL.forEach(k => { k.state = 'ready'; k.face = -1; });
+}
+// run the needle until the person taps, or the bot taps at the moment it picked
+async function flickStep(n, inp){
+  const period = meterPeriod(n);
+  PH = {k:'flick', t0:clock, period};
+  setMeter('flick'); refreshControls(); kick();
+  if (!inp){
+    if (!G.hinted){ G.hinted = 1; toast('Tap when the needle is in the green', 3000); }
+    const tc = await waitTap('flick');
+    return meterPos(tc - PH.t0, period);
+  }
+  // when does the needle pass inp.pos? going right at u, coming back at 1 - u (fractions of a period)
+  const u = inp.pos/2, earliest = .35 + Math.random()*.45;
+  let at = Infinity;
+  for (let k = 0; k < 6 && at === Infinity; k++) for (const c of [u, 1 - u]){ const tt = (k + c)*period; if (tt >= earliest && tt < at) at = tt; }
+  await waitUntil(PH.t0 + at);
+  return inp.pos;
+}
+async function playHit(){
+  const P = curPlayer(), n = INN.hits.length, inp = P.bot ? botInputs(P.bot, n) : null;
+  const F = placeFielders(n, recentDists(INN), Math.random);
+  await setupHit(F);
+  if (inp){ const l0 = showLoft; tw(.5, k => showLoftValue(lerp(l0, inp.loft, k))).catch(() => {}); }
+  else showLoftValue(LOFT);
+  const pos = await flickStep(n, inp);
+  const fl = flick(pos);
+  PH = {k:'flicked', pos}; setNeedle(pos); refreshControls();
+  bat.pose = 'flick'; bat.t0 = clock; animUntil = clock + .4;
+  sfx('tick');
+  if (fl.fail){
+    PH = {k:'drop', t0:clock, T:fl.T/slowMo(n), fl};
+    setMeter('');
+    await wait(PH.T + .35);
+    bat.pose = 'stance';
+    return resolveHit(pos, null, LOFT, F, Math.random);
+  }
+  // the biyo pops up in slow motion; tap as the ring closes
+  const T = fl.T/(inp ? Math.max(.8, slowMo(n)) : slowMo(n));
+  PH = {k:'pop', t0:clock, T, fl, struck:false};
+  setMeter('strike');
+  if (!inp && G.hinted === 1){ G.hinted = 2; toast('Now tap again as the ring closes on the biyo', 2600); }
+  let phase;
+  if (inp){
+    await waitUntil(PH.t0 + clamp(inp.phase, 0, 1)*T);
+    phase = inp.phase >= 1 ? null : Math.max(0, inp.phase);
+  } else {
+    const tc = await waitTap('strike', PH.t0 + T);
+    phase = tc == null ? null : (tc - PH.t0)/T;
+  }
+  const loft = inp ? inp.loft : LOFT;
+  const res = resolveHit(pos, phase, loft, F, Math.random);
+  PH.struck = true;
+  setMeter(''); refreshControls();
+  if (phase != null){
+    bat.hb = popHeight(fl, Math.min(1, phase)); bat.pose = 'swing'; bat.t0 = clock; animUntil = clock + .5;
+    sfx('whoosh');
+  }
+  if (res.kind === 'miss'){
+    PH.k = 'drop';
+    await waitUntil(PH.t0 + T + .3);
+    return res;
+  }
+  sfx('tock', res.st.P);
+  qlabel(res.st.label);
+  await flyBiyo(res);
+  return res;
+}
+// a fielder's run: the one who can get under it goes for the catch, the nearest other one chases it down
+function planRuns(res){
+  const f = res.f, c = res.c, rest = f.rest;
+  let chaser = -1, cd = Infinity;
+  FL.forEach((k, i) => { if (c && c.fi === i) return; const d = Math.hypot(rest.x - k.x, rest.z - k.z); if (d < cd){ cd = d; chaser = i; } });
+  return FL.map((k, i) => {
+    if (c && c.fi === i){
+      const d = Math.hypot(c.x - k.x, c.z - k.z), go = Math.max(0, d - REACH*.4);
+      const tx = d ? k.x + (c.x - k.x)*go/d : k.x, tz = d ? k.z + (c.z - k.z)*go/d : k.z;
+      return {x0:k.x, z0:k.z, tx, tz, react:REACT, speed:Math.max(.5, go/Math.max(.05, c.t - REACT - .05)), catcher:true};
+    }
+    const d = Math.hypot(rest.x - k.x, rest.z - k.z), share = i === chaser ? 1 : .3, go = Math.max(0, d - 1.2)*share;
+    return {x0:k.x, z0:k.z, tx:d ? k.x + (rest.x - k.x)*go/d : k.x, tz:d ? k.z + (rest.z - k.z)*go/d : k.z, react:REACT + .1, speed:RUN*(i === chaser ? .95 : .6), catcher:false};
+  });
+}
+function zoomFor(apex){ return clamp(Math.min(S0, (Y0 - TOP - 26)/(apex + 1.3)), 5, S0); }
+async function flyBiyo(res){
+  const f = res.f, c = res.c, caught = res.kind === 'caught';
+  const endT = caught ? c.t : f.rest.t;
+  PH = {k:'flight', t0:clock, f, c, endT, plans:planRuns(res), sT:zoomFor(f.apex), landed:false, struck:true};
+  cam.follow = true; refreshControls(); kick();
+  await waitUntil(PH.t0 + endT/FLY_SPEED + .05);
+  PH.done = true;
+  updateFlightFinal(res);
+  if (caught){
+    const kid = FL[c.fi];
+    kid.state = 'cheer'; kid.t0 = clock;
+    FL.forEach((k, i) => { if (i !== c.fi){ k.state = 'cheer'; k.t0 = clock + i*.1; } });
+    sfx('catch');
+    banner('Caught!', true);
+    toast(`Caught by ${KIDS[kid.i % KIDS.length].name}`, 1800);
+    await wait(1.4);
+  } else {
+    const d = res.dist, top = d >= 60;
+    marks.last = {x:f.rest.x, z:f.rest.z, d};
+    if (!marks.best || d > marks.best.d) marks.best = {x:f.rest.x, z:f.rest.z, d};
+    fx.push({type:'text', text:'+' + d, x:f.rest.x, z:f.rest.z, h:1, t0:clock, d:1.5, big:true, col:top ? '#a6f3b4' : '#f5c851'});
+    if (d >= 25) sfx('cheer', clamp((d - 20)/70, 0, 1));
+    FL.forEach(k => { if (k.state === 'run') k.state = 'idle'; });
+    await wait(top ? 1.3 : 1.05);
+  }
+  cam.follow = false;
+}
+function updateFlightFinal(res){
+  if (PH.k !== 'flight') return;
+  PH.t0 = clock - PH.endT/FLY_SPEED - 1;           // jump to the end (used after Skip too)
+  updateFlight();
+  trail = [];
+  if (res.kind !== 'caught'){ biyo.x = res.f.rest.x; biyo.z = res.f.rest.z; biyo.h = 0; }
+  if (skipping){ cam.x = 0; cam.s = S0; }
+}
+async function reportHit(res){
+  const n = INN.lives;
+  let msg = '';
+  if (res.kind === 'hit'){
+    msg = `${curPlayer().name}: ${res.st.label.replace('!', '')} hit, ${res.dist} dandi lengths`;
+  } else {
+    sfx('bad');
+    const why = res.kind === 'fail' ? 'Flick failed!' : res.kind === 'caught' ? '' : res.st.why === 'early' ? 'Too early!' : res.st.why === 'late' ? 'Too late!' : 'Missed!';
+    if (why) banner(why, true);
+    msg = `${curPlayer().name}: ${res.kind === 'caught' ? 'caught' : why}, ${n} ${n === 1 ? 'life' : 'lives'} left`;
+    if (!INN.over) toast(n === 1 ? 'Last life!' : `${n} lives left`, 1600);
+    await wait(res.kind === 'caught' ? .2 : 1.1);
+  }
+  announce(msg);
+}
+
+/* ---------- innings and match flow ---------- */
+async function playInnings(){
+  const P = curPlayer();
+  INN = newInnings();
+  INN.pi = G.M.turn;
+  marks = {last:null, best:null};
+  bat.pose = 'stance';
+  if (!FL.length) placeFielders(0, [], Math.random).forEach((f, i) => FL.push(makeKid(i, f.x + 18, f.z)));
+  renderHud(); refreshControls();
+  if (G.mode === 'multi' || G.M.round > 0) banner(P.bot ? `${P.name} bats` : `${P.name} to bat`);
+  sfx('start');
+  await wait(G.mode === 'solo' ? .4 : 1.1);
+  while (!INN.over){
+    const res = await playHit();
+    applyHit(INN, res.kind, res.dist);
+    renderHud(res.kind === 'hit' ? G.M.turn : undefined);
+    await reportHit(res);
+  }
+  const was = skipping;
+  skipping = false;
+  if (was){ cam.x = 0; cam.s = S0; PH = {k:'idle'}; resetScene(); }
+  refreshControls();
+  return INN.total;
+}
+function resetScene(){
+  biyo.x = GUCCHI_X; biyo.z = 0; biyo.h = .05; biyo.r = 0; biyo.held = -1; biyo.vis = true;
+  bat.pose = 'stance'; trail = []; fx = [];
+  FL.forEach(k => { k.state = 'ready'; k.face = -1; });
+  draw();
+}
+async function run(){
+  const g = gen;
+  try {
+    while (g === gen && !G.M.over){
+      const pi = G.M.turn, P = G.M.players[pi], total = await playInnings();
+      const innBest = INN.best, hits = INN.hits.slice();
+      endInnings(G.M, total);
+      INN.done = true;
+      G.lastInn = {pi, total, hits, best:innBest, name:P.name, bot:P.bot};
+      renderHud();
+      PH = {k:'idle'}; setMeter(''); refreshControls();
+      banner(`Innings over: ${total}`);
+      sfx(total > 0 ? 'good' : 'bad');
+      cam.follow = false;
+      const cx = cam.x, cs = cam.s;
+      await tw(reduceMotion ? .1 : .8, k => { cam.x = cx*(1 - k); cam.s = cs + (S0 - cs)*k; });
+      resetScene();
+      await wait(.8);
+      FL.forEach(k => { k.state = 'ready'; });
+      if (G.M.over) break;
+      showInningsPanel();
+      await guard(new Promise(res => { panelWait = res; }));
+      $('#innP').hidden = true;
+    }
+    if (g === gen) showResult();
+  } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
+}
+const chipsHtml = hits => hits.map(h => h.kind === 'hit' ? `<span class="chip${h.dist >= 60 ? ' top' : ''}">+${h.dist}</span>` :
+  `<span class="chip x">${h.kind === 'caught' ? 'Caught' : h.kind === 'fail' ? 'Flick' : 'Miss'}</span>`).join('');
+function rankRows(nextI){
+  return standings(G.M).map(r => {
+    const c = PCOL[r.i % 4], sub = [r.bot ? 'Bot · ' + LV[r.bot] : 'Player', r.innings.length > 1 ? r.innings.join(' + ') : r.innings.length ? '' : 'yet to bat'].filter(Boolean).join(' · ');
+    return `<li class="${G.winners && G.winners.includes(r.i) ? 'me' : ''}${r.i === nextI ? ' next' : ''}"><span class="pl">${r.place}</span><span class="av" style="--c1:${c.c1};--c2:${c.c2}">${esc(r.name.charAt(0).toUpperCase())}</span><span class="nm2">${esc(r.name)}<small>${esc(sub)}</small></span><span class="n">${r.total}</span></li>`;
+  }).join('');
+}
+function showInningsPanel(){
+  const L = G.lastInn, M = G.M, nx = M.players[M.turn];
+  $('#ipTitle').textContent = `${L.name} scored ${L.total}`;
+  $('#ipSub').textContent = L.best ? `Longest hit: ${L.best} dandi lengths` : 'No hits this time';
+  $('#ipScore').innerHTML = `${L.total}<small>dandi</small>`;
+  $('#ipHits').innerHTML = chipsHtml(L.hits);
+  $('#ipList').innerHTML = rankRows(M.turn);
+  $('#ipNext').textContent = `Next up: ${nx.name}${nx.bot ? ' (bot, ' + LV[nx.bot] + ')' : ''}${M.rounds > 1 ? ` · innings ${M.round + 1} of ${M.rounds}` : ''}`;
+  $('#ipGo').textContent = nx.bot ? `Watch ${nx.name}` : `${nx.name}, bat!`;
+  ['#menu', '#rules', '#share'].forEach(s => $(s).hidden = true);
+  $('#innP').hidden = false;
+  refreshControls();
+  $('#ipGo').focus();
+}
+function showResult(){
+  const M = G.M, st = standings(M);
+  G.running = false;
+  const top = st[0].total, win = st.filter(r => r.total === top).map(r => r.i);
+  G.winners = M.players.length > 1 ? win : [];
+  PH = {k:'idle'}; setMeter(''); refreshControls(); renderHud();
+  if (G.mode === 'solo'){
+    const L = G.lastInn, best = loadBest(), newBest = L.total > best.total;
+    const nb = {total:Math.max(best.total, L.total), hit:Math.max(best.hit, L.best)};
+    saveBest(nb);
+    $('#resTitle').textContent = newBest && L.total > 0 ? 'New best!' : 'Innings over';
+    $('#resSub').textContent = newBest && best.total ? `Your old best was ${best.total}.` : `Best total ${nb.total} · Longest hit ${nb.hit}`;
+    $('#resScore').innerHTML = `${L.total}<small>dandi</small>`;
+    $('#resHits').innerHTML = chipsHtml(L.hits);
+    $('#resList').innerHTML = '';
+    sfx(newBest && L.total > 0 ? 'win' : 'good');
+    if (newBest && L.total > 0) sfx('cheer', 1);
+    renderHud();
+  } else {
+    const names = win.map(i => M.players[i].name);
+    $('#resTitle').textContent = win.length > 1 ? "It's a tie!" : `${names[0]} wins!`;
+    $('#resSub').textContent = win.length > 1 ? `${names.join(' and ')} share the top with ${top}.` : `${top} dandi lengths in ${M.rounds} innings.`;
+    $('#resScore').textContent = '';
+    $('#resHits').innerHTML = '';
+    $('#resList').innerHTML = rankRows(-1);
+    const human = win.some(i => !M.players[i].bot), anyHuman = M.players.some(p => !p.bot);
+    sfx(!anyHuman || human ? 'win' : 'lose');
+    if (human) sfx('cheer', 1);
+  }
+  ['#menu', '#rules', '#share', '#innP'].forEach(s => $(s).hidden = true);
+  $('#result').hidden = false;
+  $('#againBtn').focus();
+}
+function stopGame(){
+  gen++;
+  if (pending){ const p = pending; pending = null; p.res(null); }
+  if (panelWait){ const r = panelWait; panelWait = null; r(); }
+  flushTimers();
+  skipping = false;
+  setPaused(false);
+  PH = {k:'idle'}; cam.follow = false; fx = []; trail = [];
+}
+function startGame(mode, cfg){
+  stopGame();
+  OVERLAYS.forEach(s => $(s).hidden = true);
+  let players;
+  if (mode === 'solo') players = [{name:'You', bot:false}];
+  else {
+    const used = new Set();
+    players = cfg.players.slice(0, cfg.n).map((p, i) => {
+      const bot = p.type === 'human' ? false : p.type;
+      let name = String(p.name || '').trim().slice(0, 12);
+      if (!name){
+        if (bot){ name = BOT_NAMES.find(b => !used.has(b)) || 'Bot ' + (i + 1); }
+        else name = 'Player ' + (i + 1);
+      }
+      used.add(name);
+      return {name, bot};
+    });
+  }
+  G = {mode, cfg, M:newMatch(players, mode === 'solo' ? 1 : cfg.rounds), running:true, winners:null, hinted:G ? G.hinted : 0};
+  INN = newInnings();
+  FL = []; marks = {last:null, best:null};
+  cam.x = 0; cam.s = S0;
+  buildPlates(); renderHud(); refreshControls();
+  sizeAll();
+  run();
+}
+
+/* ---------- splash and setup ---------- */
+let setup = loadSetup(), draft = null;
+function showSplash(){
+  ['#menu', '#rules', '#share', '#result', '#setup', '#innP'].forEach(s => $(s).hidden = true);
+  const inGame = !!(G && G.running && !G.M.over);
+  if (inGame) setPaused(true);
+  $('#splashBack').hidden = !inGame;
+  const b = loadBest();
+  $('#splashBest').innerHTML = b.total ? `Your best<b>${b.total}</b>` : '';
+  $('#splash').hidden = false;
+  $('#soloBtn').focus();
+}
+function renderNames(){
+  const list = $('#nameList');
+  list.querySelectorAll('.nrow').forEach(row => { const i = +row.dataset.i; draft.players[i] = {name:row.querySelector('input').value, type:row.querySelector('select').value}; });
+  list.innerHTML = '';
+  for (let i = 0; i < draft.n; i++){
+    const p = draft.players[i], c = PCOL[i];
+    const row = document.createElement('div');
+    row.className = 'nrow'; row.dataset.i = i;
+    row.innerHTML = `<span class="dot" style="--c1:${c.c1};--c2:${c.c2}"></span><input maxlength="12" placeholder="${p.type === 'human' ? 'Player ' + (i + 1) : 'Bot name'}" value="${esc(p.name || '')}" aria-label="Player ${i + 1} name" autocomplete="off">
+      <select aria-label="Player ${i + 1} type"><option value="human">Person</option><option value="easy">Bot · Easy</option><option value="medium">Bot · Medium</option><option value="hard">Bot · Hard</option></select>`;
+    row.querySelector('select').value = p.type;
+    row.querySelector('select').addEventListener('change', e => { row.querySelector('input').placeholder = e.target.value === 'human' ? 'Player ' + (i + 1) : 'Bot name'; });
+    list.appendChild(row);
+  }
+}
+function renderSetup(){
+  document.querySelectorAll('#setup .seg').forEach(seg => {
+    const k = seg.dataset.k;
+    seg.querySelectorAll('.segb').forEach(b => b.setAttribute('aria-checked', String(String(draft[k]) === b.dataset.v)));
+  });
+}
+function openSetup(){
+  draft = {n:setup.n, rounds:setup.rounds, players:setup.players.map(p => Object.assign({}, p))};
+  $('#nameList').innerHTML = '';
+  renderNames();
+  $('#splash').hidden = true;
+  $('#setup').hidden = false;
+  renderSetup();
+  $('#startBtn').focus();
+}
+document.querySelectorAll('#setup .seg').forEach(seg => seg.addEventListener('click', e => {
+  const b = e.target.closest('.segb');
+  if (!b) return;
+  const k = seg.dataset.k;
+  draft[k] = +b.dataset.v;
+  if (k === 'n') renderNames();
+  sfx('click');
+  renderSetup();
+}));
+$('#soloBtn').addEventListener('click', () => { sfx('click'); startGame('solo'); });
+$('#multiBtn').addEventListener('click', () => { sfx('click'); openSetup(); });
+$('#setupBack').addEventListener('click', () => { $('#setup').hidden = true; $('#splash').hidden = false; });
+$('#startBtn').addEventListener('click', () => {
+  document.querySelectorAll('#nameList .nrow').forEach(row => { draft.players[+row.dataset.i] = {name:row.querySelector('input').value.trim().slice(0, 12), type:row.querySelector('select').value}; });
+  setup = draft; saveSetup(setup);
+  startGame('multi', setup);
+});
+$('#splashBack').addEventListener('click', () => { $('#splash').hidden = true; if (panelWait) $('#innP').hidden = false; setPaused(false); });
+$('#ipGo').addEventListener('click', () => { if (panelWait){ const r = panelWait; panelWait = null; r(); } });
+$('#ipHome').addEventListener('click', () => showSplash());
+$('#againBtn').addEventListener('click', () => startGame(G.mode, G.cfg));
+$('#homeBtn').addEventListener('click', () => showSplash());
+
+/* ---------- overlays ---------- */
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+function drawQR(el, url){
+  try { const qr = qrcode(0, 'M'); qr.addData(url); qr.make(); el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true}); }
+  catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
+}
+let shareFrom = null, rulesFrom = null;
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true;
+  const url = siteUrl();
+  $('#shareLink').value = url; drawQR($('#qrBox'), url);
+  $('#share').hidden = false; setPaused(true); $('#copyBtn').focus();
+}
+function openRules(from){ rulesFrom = from; if (from) $(from).hidden = true; else setPaused(true); $('#rules').hidden = false; $('#rulesClose').focus(); }
+const coveringOverlay = () => ['#splash', '#setup', '#result', '#innP', '#menu'].find(s => !$(s).hidden) || null;
+function openMenu(){ if (coveringOverlay()) return; $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus(); }
+function resume(){ setPaused(false); refreshControls(); }
+$('#menuBtn').addEventListener('click', openMenu);
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; resume(); });
+$('#newBtn').addEventListener('click', () => showSplash());
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+$('#shareBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openShare(coveringOverlay()); });
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else resume(); });
+$('#copyBtn').addEventListener('click', () => {
+  const inp = $('#shareLink'), btn = $('#copyBtn');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+});
+$('#rulesBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openRules(coveringOverlay()); });
+$('#splashRules').addEventListener('click', () => openRules('#splash'));
+$('#menuRules').addEventListener('click', () => openRules('#menu'));
+$('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; else resume(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !overlayOpen()) openMenu(); });
+
+/* ---------- init ---------- */
+setMeter('');
+setLoft(.5);
+sizeAll();
+placeFielders(0, [], mulberry(5)).forEach((f, i) => FL.push(makeKid(i, f.x, f.z)));
+showSplash();
+draw();
+let rzT = 0;
+window.addEventListener('resize', () => { sizeAll(); clearTimeout(rzT); rzT = setTimeout(sizeAll, 120); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { sizeAll(); });
+})();
+</script>
