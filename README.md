@@ -34,6 +34,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Game | Folder | Description |
 | --- | --- | --- |
 | Dandi Biyo | [`games/arcade-games/dandi-biyo`](games/arcade-games/dandi-biyo) | Traditional Nepali stick game: flick, strike for distance, avoid catches |
+| Snake | [`games/arcade-games/snake`](games/arcade-games/snake) | Nokia-style Snake with swipe/D-pad controls, wrap and maze modes |
 
 ## Adding a game
 
