@@ -1,0 +1,2033 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chor Police</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Lilita+One&family=Mukta:wght@600;800&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wood-hi:#8d5629; --wood:#5c3417; --wood-lo:#2b1608;
+  --gold:#f5c851; --gold-lo:#b98a25;
+  --straw-hi:#f0d595; --straw:#d3a55a; --straw-lo:#a8782f;
+  --paper:#fffdf4; --paper-lo:#f1e9d2; --rule:#9cc0e6; --margin:#e8798a; --pencil:#4b5260;
+  --panel:#0f1d3a; --panel-hi:#1c3466;
+  --text:#fbf5e3; --muted:#b9c6e2;
+  --ground:#120a05;
+  --c-chor:#c62828; --c-police:#2457c5; --c-citizen:#2e9d57; --c-raja:#c98a06; --c-mantri:#7b3fb5;
+  --av:clamp(38px,6.6vmin,58px);
+  --sw:80px; --sh:57px; --bw:260px;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ground)}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 40%,#3d2513 0%,#1f1108 60%,#110802 100%);
+  font-family:'Nunito','Mukta',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+#game.many{--av:clamp(34px,5.6vmin,48px)}
+button{font:inherit}
+
+/* top bar */
+#topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px 4px;position:relative;z-index:30;flex:none}
+.tbr{display:flex;gap:10px}
+.ibtn{width:40px;height:40px;flex:none;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#2c4a8a,#132650);color:var(--gold);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #08142e,inset 0 1px 0 rgba(255,255,255,.15);padding:0}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 #08142e}
+.ibtn svg{width:20px;height:20px}
+.ibtn:focus-visible,.btn:focus-visible,.opt:focus-visible,.slip:focus-visible,.sbtn:focus-visible,.seg button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.roundpill{display:flex;align-items:center;gap:10px;min-width:0;font-family:'Lilita One',Impact,sans-serif;font-size:18px;letter-spacing:.03em;padding:6px 16px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(245,200,81,.35);color:var(--gold);white-space:nowrap}
+.roundpill .md{font-family:'Nunito',sans-serif;font-weight:900;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:420px){.roundpill{font-size:16px;padding:6px 12px;gap:8px}.roundpill .md{display:none}}
+.nettag{font-family:'Nunito',sans-serif;font-weight:900;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#063a19;background:#7be495;border-radius:999px;padding:2px 8px}
+
+/* table: a woven gundri mat on a wooden floor */
+#tableWrap{position:relative;flex:1;min-height:0;margin:4px 12px 6px;border-radius:26px;padding:clamp(7px,1.3vmin,13px);
+  background:linear-gradient(160deg,var(--wood-hi),var(--wood) 40%,var(--wood-lo));
+  box-shadow:0 22px 50px rgba(0,0,0,.7),inset 0 2px 2px rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.5)}
+#mat{position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;
+  background:
+    repeating-linear-gradient(90deg,rgba(120,75,20,.2) 0 2px,transparent 2px 9px),
+    repeating-linear-gradient(0deg,rgba(255,240,200,.16) 0 4px,rgba(100,62,16,.15) 4px 8px),
+    radial-gradient(ellipse at 50% 45%,var(--straw-hi) 0%,var(--straw) 58%,var(--straw-lo) 100%);
+  box-shadow:inset 0 0 0 5px #8c1d1d,inset 0 0 0 8px #f0c75e,inset 0 0 0 12px #1d6b3c,inset 0 0 0 14px #f0c75e,inset 0 12px 40px rgba(0,0,0,.42)}
+#watermark{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;color:rgba(90,52,10,.2);font-family:'Kalam',cursive;line-height:1}
+#watermark .s{font-size:min(16vmin,110px)}
+#watermark .t{font-family:'Lilita One',Impact,sans-serif;font-size:min(4vmin,24px);letter-spacing:.32em;padding-left:.32em;margin-top:.4em}
+
+/* seats */
+.seat{position:absolute;left:50%;top:50%;z-index:12;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translate(-50%,-50%);pointer-events:none;transition:opacity .4s}
+.seat.bub{z-index:16}
+@media (max-height:540px){.seat{flex-direction:row;gap:6px}.seat .plate{align-items:flex-start}}
+.avwrap{position:relative;width:var(--av);height:var(--av);flex:none}
+.avatar{position:relative;z-index:1;width:100%;height:100%;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;
+  font-family:'Lilita One',Impact,sans-serif;font-size:calc(var(--av)*.46);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);
+  background:linear-gradient(145deg,var(--c1),var(--c2));border:3px solid var(--gold);box-shadow:0 4px 10px rgba(0,0,0,.5);transition:box-shadow .2s,filter .3s}
+.timer{position:absolute;z-index:2;left:-7px;top:-7px;width:calc(100% + 14px);height:calc(100% + 14px);transform:rotate(-90deg);opacity:0;pointer-events:none}
+.timer circle{fill:none;stroke-width:5;stroke-linecap:round;stroke:#7be495;stroke-dasharray:100;stroke-dashoffset:0}
+.seat.turn:not(.notimer) .timer{opacity:1}
+.seat.turn .timer circle{animation:tick var(--t,1s) linear forwards}
+.seat.turn .avatar{box-shadow:0 0 22px 6px rgba(245,200,81,.65)}
+#game.paused .timer circle{animation-play-state:paused}
+@keyframes tick{0%{stroke-dashoffset:0;stroke:#7be495}60%{stroke:#f5c851}100%{stroke-dashoffset:100;stroke:#ef4d5a}}
+.seat.accused .avatar{box-shadow:0 0 0 4px #ff4d5a,0 0 26px 8px rgba(255,77,90,.6);animation:shakeav .5s ease-in-out 2}
+@keyframes shakeav{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.seat.hit .avatar{box-shadow:0 0 0 4px #7be495,0 0 26px 8px rgba(123,228,149,.55)}
+.seat.out .avatar{filter:grayscale(1) brightness(.6)}
+.seat.out .plate{opacity:.55}
+.outtag{position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg);font-family:'Lilita One',Impact,sans-serif;font-size:calc(var(--av)*.34);letter-spacing:.06em;
+  color:#fff;background:#b3202d;border:2px solid #fff;border-radius:6px;padding:0 5px;line-height:1.3;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.plate{display:flex;flex-direction:column;align-items:center;background:rgba(0,0,0,.6);border:1px solid rgba(245,200,81,.3);border-radius:10px;padding:2px 9px 3px;min-width:58px;box-sizing:border-box}
+.plate .nm{font-weight:900;font-size:13px;line-height:1.25;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plate .sc{font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+#game.many .plate{min-width:0;padding:1px 7px 2px}
+#game.many .plate .nm{max-width:70px;font-size:12px}
+.mini{position:absolute;z-index:3;right:calc(var(--av)*-.3);bottom:calc(var(--av)*-.14);width:calc(var(--av)*.56);height:calc(var(--av)*.4);border-radius:2px;transform:rotate(-10deg);
+  background:repeating-linear-gradient(180deg,transparent 0 3px,var(--rule) 3px 4px),linear-gradient(170deg,var(--paper),var(--paper-lo));box-shadow:0 2px 4px rgba(0,0,0,.45),inset 0 2px 0 rgba(0,0,0,.08)}
+.mini.open{width:calc(var(--av)*.62);height:calc(var(--av)*.62);border-radius:50%;transform:none;background:var(--paper);border:2px solid var(--rc,#888);box-sizing:border-box;display:grid;place-items:center}
+.mini.open svg{width:86%;height:86%}
+.mini.flip{animation:flip .55s ease-out}
+@keyframes flip{0%{transform:rotateY(90deg) scale(1.3)}60%{transform:rotateY(0) scale(1.3)}100%{transform:none}}
+.r-chor{--rc:var(--c-chor)}.r-police{--rc:var(--c-police)}.r-citizen{--rc:var(--c-citizen)}.r-raja{--rc:var(--c-raja)}.r-mantri{--rc:var(--c-mantri)}
+.pts{position:absolute;z-index:5;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);font-family:'Lilita One',Impact,sans-serif;font-size:15px;color:#3a2300;white-space:nowrap;
+  background:linear-gradient(#ffe08a,#e2a92b);border:2px solid #fff3c4;border-radius:999px;padding:0 8px;box-shadow:0 2px 6px rgba(0,0,0,.5);opacity:0;pointer-events:none}
+.pts.zero{background:linear-gradient(#cfd6e6,#8792aa);color:#1d2333;border-color:#eef}
+.pts.show{animation:ptsup 2.6s ease forwards}
+@keyframes ptsup{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}25%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
+.bubble{position:absolute;z-index:20;width:max-content;max-width:min(190px,44vw);box-sizing:border-box;text-align:center;white-space:normal;line-height:1.25;
+  background:#fff;color:#1b1b1b;font-weight:900;font-size:13px;padding:6px 11px;border-radius:13px;box-shadow:0 4px 10px rgba(0,0,0,.4);
+  opacity:0;transform:var(--bt) scale(var(--bs,.7));transition:opacity .2s,transform .2s;pointer-events:none}
+.bubble.show{opacity:1;--bs:1}
+.bubble::after{content:"";position:absolute;border:6px solid transparent}
+.bubble.police{background:#dfe9ff;color:#0f2a66}
+.bubble.good{background:#c9f7d4;color:#063a19}
+.bubble.bad{background:#ffd3d7;color:#6b0b15}
+.seat[data-side="bottom"] .bubble{bottom:calc(100% + 8px);left:50%;--bt:translateX(-50%);transform-origin:50% 100%}
+.seat[data-side="bottom"] .bubble::after{top:100%;left:50%;margin-left:-6px;border-bottom:0;border-top-color:var(--bbg,#fff)}
+.seat[data-side="top"] .bubble{top:calc(100% + 8px);left:50%;--bt:translateX(-50%);transform-origin:50% 0}
+.seat[data-side="top"] .bubble::after{bottom:100%;left:50%;margin-left:-6px;border-top:0;border-bottom-color:var(--bbg,#fff)}
+.seat[data-side="left"] .bubble{left:calc(100% + 10px);top:50%;--bt:translateY(-50%);transform-origin:0 50%}
+.seat[data-side="left"] .bubble::after{right:100%;top:50%;margin-top:-6px;border-left:0;border-right-color:var(--bbg,#fff)}
+.seat[data-side="right"] .bubble{right:calc(100% + 10px);top:50%;--bt:translateY(-50%);transform-origin:100% 50%}
+.seat[data-side="right"] .bubble::after{left:100%;top:50%;margin-top:-6px;border-right:0;border-left-color:var(--bbg,#fff)}
+.bubble.police{--bbg:#dfe9ff}.bubble.good{--bbg:#c9f7d4}.bubble.bad{--bbg:#ffd3d7}
+
+/* folded paper slips */
+#slips{position:absolute;inset:0;z-index:8;pointer-events:none}
+.slip{position:absolute;left:0;top:0;width:var(--sw);height:var(--sh);margin:calc(var(--sh)/-2) 0 0 calc(var(--sw)/-2);padding:0;border:0;background:none;cursor:default;pointer-events:auto;
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,.35));touch-action:manipulation;transition:translate .18s,scale .18s}
+.paper{position:absolute;inset:0;border-radius:2px;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.12),transparent 14%),
+    linear-gradient(90deg,transparent 15%,var(--margin) 15% calc(15% + 1.5px),transparent calc(15% + 1.5px)),
+    repeating-linear-gradient(180deg,transparent 0 calc(var(--sh)*.16 - 1.2px),var(--rule) calc(var(--sh)*.16 - 1.2px) calc(var(--sh)*.16)),
+    linear-gradient(170deg,var(--paper),var(--paper-lo));
+  clip-path:polygon(0 0,100% 0,97% 9%,100% 18%,96.5% 27%,99.5% 36%,96% 45%,100% 54%,97% 63%,99.5% 72%,96% 81%,99% 90%,97% 100%,0 100%)}
+.paper.under{inset:3px -2px -3px 2px;background:linear-gradient(170deg,#e9dfc2,#d6c9a4)}
+.slip .q{position:absolute;inset:0;display:grid;place-items:center;font-family:'Kalam',cursive;color:var(--pencil);font-size:calc(var(--sh)*.46);opacity:.55;padding-left:10%}
+#slips.pickable .slip:not(.taken){cursor:pointer;animation:glowslip 1.2s ease-in-out infinite alternate}
+#slips.pickable .slip:not(.taken):hover,#slips.pickable .slip:not(.taken):focus-visible{translate:0 -6px;scale:1.07}
+@keyframes glowslip{from{filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)) drop-shadow(0 0 0 rgba(255,232,140,0))}to{filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)) drop-shadow(0 0 7px rgba(255,232,140,.95))}}
+.slip.taken{pointer-events:none}
+
+/* result card */
+#result{position:absolute;left:50%;top:50%;z-index:9;transform:translate(-50%,-50%);width:var(--rw,260px);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.stamp{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(17px,calc(var(--rw,260px)*.1),26px);letter-spacing:.04em;color:#b3202d;border:3px solid #b3202d;border-radius:8px;padding:2px 12px;
+  background:rgba(255,253,244,.85);transform:rotate(-6deg);animation:stampin .45s cubic-bezier(.3,1.6,.5,1) both;text-align:center;line-height:1.15}
+.stamp.ok{color:#1a7a3c;border-color:#1a7a3c}
+.stamp small{display:block;font-family:'Kalam',cursive;font-size:.62em;letter-spacing:0}
+@keyframes stampin{from{opacity:0;transform:rotate(-6deg) scale(2.2)}}
+.rlist{width:100%;display:flex;flex-direction:column;gap:5px;animation:fadein .4s .25s both}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}}
+.rrow{display:flex;align-items:center;gap:6px;background:rgba(255,253,244,.92);color:#222;border-radius:9px;padding:4px 8px;font-weight:900;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.3);min-width:0}
+.rrow svg{width:22px;height:22px;flex:none}
+.rrow .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rrow .ar{flex:none;color:#888}
+.rrow .mk{margin-left:auto;flex:none;font-family:'Lilita One',Impact,sans-serif;font-size:15px}
+.mk.y{color:#1a7a3c}.mk.n{color:#b3202d}
+#result.narrow .rrow{flex-wrap:wrap;row-gap:1px}
+#result.narrow .rrow .rn:first-of-type{flex:1 1 calc(100% - 32px)}
+#result.narrow .rrow .ar{margin-left:4px}
+
+#banner{position:absolute;left:50%;top:50%;z-index:26;font-family:'Lilita One',Impact,sans-serif;font-size:clamp(26px,6vmin,52px);color:var(--gold);text-align:center;line-height:1.1;
+  text-shadow:0 3px 0 #6b4609,0 0 3px #000,0 8px 20px rgba(0,0,0,.7);transform:translate(-50%,-50%);opacity:0;pointer-events:none;width:max-content;max-width:90%;text-wrap:balance}
+#banner.show{animation:banner 1.8s ease forwards}
+@keyframes banner{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+
+/* hint */
+#hintbar{flex:none;display:flex;justify-content:center;padding:0 16px 8px;min-height:34px;box-sizing:border-box}
+#hint{max-width:100%;box-sizing:border-box;padding:6px 16px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(245,200,81,.3);font-weight:800;font-size:14px;text-align:center;line-height:1.3}
+#hint:empty{visibility:hidden}
+@media (max-height:540px){#hint{padding:3px 14px;font-size:13px}#hintbar{min-height:28px;padding-bottom:5px}#topbar{padding-top:5px}}
+
+/* the big slip you unfold */
+#reveal{position:absolute;inset:0;z-index:45;display:grid;place-items:center;padding:16px;background:rgba(6,10,24,.72);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.rv-in{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;max-width:100%}
+.rv-in.row{flex-direction:row;gap:24px;text-align:left}
+.rv-in.row .rv-text{align-items:flex-start}
+.rv-slip{filter:drop-shadow(0 14px 18px rgba(0,0,0,.55))}
+.bigslip{position:relative;width:var(--bw);height:calc(var(--bw)*1.36);perspective:1200px;transition:transform .5s cubic-bezier(.3,.7,.3,1),opacity .3s}
+.bigslip.folded{transform:translateY(-25%)}
+.bigslip.enter{transform:translateY(-25%) scale(.3) rotate(-14deg);opacity:0}
+.bigslip.leave{transform:translateY(-25%) scale(.2) rotate(10deg);opacity:0}
+.half{position:absolute;left:0;right:0;height:50%;overflow:hidden}
+.half.bot{top:50%}
+.flap{position:absolute;left:0;right:0;top:0;height:50%;z-index:2;transform-origin:50% 100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.35,.6,.3,1.15)}
+.bigslip.folded .flap{transform:rotateX(-180deg)}
+.face{position:absolute;inset:0;overflow:hidden;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.face.back{transform:rotateX(180deg);
+  background:linear-gradient(0deg,rgba(0,0,0,.14),transparent 12%),repeating-linear-gradient(180deg,transparent 0 calc(var(--bw)*.075 - 1.5px),var(--rule) calc(var(--bw)*.075 - 1.5px) calc(var(--bw)*.075)),linear-gradient(170deg,#f7f1de,#e6dcc0);
+  clip-path:polygon(0 0,100% 0,97% 12%,100% 25%,96.5% 37%,99.5% 50%,96% 62%,100% 75%,97% 88%,99% 100%,0 100%)}
+.face.back .q{position:absolute;inset:0;display:grid;place-items:center;font-family:'Kalam',cursive;font-size:calc(var(--bw)*.22);color:var(--pencil);opacity:.5}
+.sheet{position:absolute;left:0;right:0;top:0;height:200%;
+  background:
+    linear-gradient(180deg,transparent 48.6%,rgba(0,0,0,.1) 50%,rgba(255,255,255,.6) 50.6%,transparent 52%),
+    linear-gradient(90deg,transparent 13%,var(--margin) 13% calc(13% + 2px),transparent calc(13% + 2px)),
+    repeating-linear-gradient(180deg,transparent 0 calc(var(--bw)*.075 - 1.5px),var(--rule) calc(var(--bw)*.075 - 1.5px) calc(var(--bw)*.075)),
+    linear-gradient(170deg,var(--paper),var(--paper-lo));
+  clip-path:polygon(0 0,100% 0,97.5% 6%,100% 12%,97% 18%,99.5% 24%,96.5% 30%,100% 36%,97% 42%,99.5% 48%,96.5% 54%,100% 60%,97% 66%,99.5% 72%,96.5% 78%,100% 84%,97% 90%,99.5% 96%,98% 100%,0 100%)}
+.half.bot .sheet{top:-100%}
+.s-ic{position:absolute;left:50%;top:9%;width:36%;aspect-ratio:1;transform:translateX(-50%) rotate(-4deg)}
+.s-ic svg{width:100%;height:100%}
+.s-np{position:absolute;left:0;right:0;top:53%;font-family:'Kalam',cursive;font-size:calc(var(--bw)*.2);line-height:1;color:var(--rc);transform:rotate(-3deg)}
+.s-np.long{font-size:calc(var(--bw)*.15);top:55%}
+.s-en{position:absolute;left:0;right:0;top:70%;font-family:'Kalam',cursive;font-size:calc(var(--bw)*.13);line-height:1;color:#29324a;letter-spacing:.04em;transform:rotate(-2deg)}
+.s-en::after{content:"";display:block;width:52%;height:3px;margin:4px auto 0;border-radius:3px;background:var(--rc);opacity:.6;transform:rotate(1.5deg)}
+.s-note{position:absolute;left:14%;right:6%;top:86%;font-family:'Kalam',cursive;font-size:calc(var(--bw)*.058);line-height:1.15;color:var(--pencil)}
+.rv-text{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:min(360px,86vw);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.rv-text.show{opacity:1;transform:none}
+.rv-text .ptitle{font-size:clamp(22px,4.6vmin,30px)}
+.rv-text .psub{margin:0;font-size:14px}
+
+/* pass-the-phone cover: fully opaque */
+#cover{position:absolute;inset:0;z-index:70;display:grid;place-items:center;padding:20px;overflow:auto;background:radial-gradient(ellipse at 50% 40%,#1c3466,#0a1430 70%,#050a18)}
+.cover-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;max-width:420px}
+.cover-in .cv-av{width:84px;height:84px;--av:84px;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:40px;color:#fff;background:linear-gradient(145deg,var(--c1),var(--c2));border:4px solid var(--gold);box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.cover-in .cv-ic{width:90px;height:90px}
+.cover-in .ptitle{font-size:clamp(26px,6vmin,36px)}
+.cover-in .psub{font-size:15px}
+
+/* panels */
+.panel{box-sizing:border-box;background:linear-gradient(180deg,var(--panel-hi),var(--panel));border:2px solid var(--gold-lo);border-radius:18px;padding:16px 18px;
+  box-shadow:0 0 0 4px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)}
+.ptitle{font-family:'Lilita One',Impact,sans-serif;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.45);margin:0;text-wrap:balance}
+.psub{text-align:center;color:var(--muted);font-weight:800;font-size:13px;margin:4px 0 0;text-wrap:balance}
+#ask{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(460px,calc(100% - 20px));max-height:calc(100% - 12px);overflow:auto;z-index:28;padding:12px 14px 14px}
+#ask .ptitle{font-size:22px}
+.opts{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:10px}
+.opts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:420px){.opts.two{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;min-width:0;padding:8px 12px;border-radius:12px;cursor:pointer;color:var(--text);
+  background:rgba(0,0,0,.3);border:1.5px solid rgba(245,200,81,.4);box-shadow:0 3px 0 rgba(0,0,0,.35);touch-action:manipulation}
+.opt:hover{border-color:var(--gold);background:rgba(245,200,81,.1)}
+.opt:active{transform:translateY(2px);box-shadow:none}
+.opt .dot{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:17px;color:#fff;background:linear-gradient(145deg,var(--c1),var(--c2));border:2px solid var(--gold)}
+.opt .ot{display:flex;flex-direction:column;min-width:0}
+.opt .ot b{font-weight:900;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt .ot i{font-style:normal;font-weight:700;font-size:13px;color:var(--muted);line-height:1.25}
+.opt.line .ot b{white-space:normal;font-size:15px;line-height:1.3}
+.tone{flex:none;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;color:#fff;width:72px;text-align:center;box-sizing:border-box}
+.t-calm{background:#2e7d5b}.t-defensive{background:#b3412d}.t-cheeky{background:#7b3fb5}
+
+.overlay{position:absolute;inset:0;z-index:50;display:grid;place-items:center;padding:16px;overflow:auto;background:rgba(5,9,22,.64);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.overlay>.panel{width:min(560px,100%);max-height:calc(100% - 8px);overflow:auto}
+.btnrow{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.btn{font-family:'Lilita One',Impact,sans-serif;font-size:20px;letter-spacing:.03em;color:#3a2300;padding:9px 28px;border-radius:999px;border:2px solid #fff3c4;cursor:pointer;
+  background:linear-gradient(#ffe08a,#e2a92b 55%,#c58a1c);box-shadow:0 4px 0 #6b4609,0 8px 16px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #6b4609}
+.btn.green{background:linear-gradient(#8ef0a4,#33b35e 55%,#1f8a44);color:#04300f;border-color:#e0ffe7;box-shadow:0 4px 0 #0d4a22,0 8px 16px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(0,0,0,.25);color:var(--text);border-color:rgba(245,200,81,.5);box-shadow:none;font-size:17px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;align-items:stretch}
+
+/* setup form */
+.form{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.slbl{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.snote{margin:0;color:var(--muted);font-weight:700;font-size:12.5px;line-height:1.35}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper b{min-width:26px;text-align:center;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:22px;color:var(--gold);font-variant-numeric:tabular-nums}
+.sbtn{width:34px;height:34px;padding:0;border-radius:50%;border:2px solid var(--gold-lo);background:linear-gradient(#2c4a8a,#132650);color:var(--gold);font-family:'Lilita One',Impact,sans-serif;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 2px 0 #08142e}
+.sbtn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.35);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;border-radius:9px;background:none;color:var(--muted);font-weight:900;font-size:14px;padding:6px 14px;cursor:pointer;line-height:1.15}
+.seg button[aria-pressed="true"]{background:linear-gradient(#ffe08a,#e2a92b);color:#3a2300}
+.seg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;box-sizing:border-box}
+.seg3 button{padding:6px 6px;font-size:13px}
+.roles{display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.25);border:1px solid rgba(245,200,81,.2);border-radius:12px;padding:8px 10px}
+.rolerow{display:flex;align-items:center;gap:10px;min-height:34px}
+.rolerow .ric{width:28px;height:28px;flex:none;border-radius:50%;background:var(--paper);border:2px solid var(--rc);display:grid;place-items:center;box-sizing:border-box}
+.rolerow .ric svg{width:88%;height:88%}
+.rolerow .rnm{flex:1;min-width:0;font-weight:900;font-size:14px}
+.rolerow .rnm small{color:var(--muted);font-weight:700;font-family:'Mukta',sans-serif;font-size:13px;margin-left:4px}
+.rolerow .fix{min-width:26px;text-align:center;font-family:'Lilita One',Impact,sans-serif;font-size:22px;color:var(--gold);margin-right:44px}
+.split{margin:0;text-align:center;font-weight:900;font-size:13px;color:var(--text);background:rgba(245,200,81,.1);border-radius:10px;padding:6px 8px;text-wrap:balance}
+.autobtn{border:1.5px solid rgba(245,200,81,.5);background:rgba(0,0,0,.25);color:var(--gold);font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 12px;cursor:pointer}
+.autobtn[aria-pressed="true"]{background:rgba(123,228,149,.18);border-color:#7be495;color:#c9f7d4}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.names .tinput{width:100%;font-size:15px;padding:7px 10px}
+.sumline{margin:10px 0 0;text-align:center;font-weight:800;font-size:13px;color:var(--text);background:rgba(0,0,0,.25);border-radius:10px;padding:8px}
+
+.stable-wrap{overflow-x:auto;margin-top:12px}
+.stable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-weight:800}
+.stable th,.stable td{padding:7px 6px;text-align:center;border-bottom:1px solid rgba(245,200,81,.14);white-space:nowrap}
+.stable th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:900}
+.stable td.who{text-align:left;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.stable td.who .dot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;margin-right:6px;vertical-align:-6px;font-family:'Lilita One',Impact,sans-serif;font-size:12px;color:#fff;background:linear-gradient(145deg,var(--c1),var(--c2))}
+.stable tr.me td{background:rgba(245,200,81,.08)}
+.stable tr.isout td{opacity:.55}
+.stable .slipc svg{width:24px;height:24px;vertical-align:middle}
+.stable .slipc span{font-size:11px;color:var(--muted);margin-left:4px}
+.stable .tot{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:19px;color:var(--gold)}
+.stable .tot.lead{color:#fff;text-shadow:0 0 10px rgba(245,200,81,.8)}
+@media (max-width:520px){.stable th,.stable td{padding:7px 3px}.stable .slipc span{display:none}.stable td.who{max-width:96px}.stable th{letter-spacing:.03em;font-size:10px}.stable .tot{font-size:17px}}
+.stable .pos{color:#a6f3b4}.stable .zero{color:rgba(255,255,255,.4)}
+.stable .st-in{color:#a6f3b4}.stable .st-out{color:#ff9aa2}
+
+.rules{font-size:14px;line-height:1.55;font-weight:600;max-width:62ch;margin:10px auto 0}
+.rules h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;color:var(--gold);font-size:17px;margin:14px 0 4px;letter-spacing:.02em}
+.rules ul{margin:0;padding-left:18px}
+.rules li{margin:3px 0}
+.rules b{color:#fff}
+.rules .note{background:rgba(0,0,0,.25);border:1px solid rgba(245,200,81,.3);border-radius:10px;padding:8px 12px;margin:10px 0 0;color:var(--muted);font-weight:700}
+
+.qrbox{background:#fff;border-radius:14px;padding:12px;margin:14px auto 0;width:min(240px,70vw);aspect-ratio:1;max-width:100%;box-sizing:border-box;display:grid;place-items:center;box-shadow:0 0 0 4px var(--gold-lo)}
+.qrbox svg{width:100%;height:100%;display:block}
+.qrbox p{color:#333;font-weight:800;text-align:center;margin:0;font-size:13px}
+.linkrow{display:flex;gap:8px;margin-top:14px}
+.linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
+.linkrow .btn{font-size:16px;padding:6px 18px}
+#toast{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:80;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.85);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:999px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}
+.field{display:flex;flex-direction:column;gap:4px;width:min(320px,100%);text-align:left;margin-top:4px}
+.field label{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tinput{box-sizing:border-box;background:rgba(0,0,0,.4);border:1.5px solid rgba(245,200,81,.45);border-radius:12px;color:var(--text);padding:9px 12px;font:800 16px 'Nunito','Mukta',sans-serif;-webkit-user-select:text;user-select:text;min-width:0}
+.tinput::placeholder{color:rgba(251,245,227,.4)}
+.tinput:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,81,.25)}
+.joinrow{display:flex;gap:8px;width:min(320px,100%);margin:12px 0 0}
+.joinrow .tinput{flex:1;text-transform:uppercase;letter-spacing:.25em}
+.joinrow .btn{font-size:17px;padding:6px 20px}
+.links{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:4px 2px;color:var(--gold);font-weight:900;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(245,200,81,.4)}
+.linkbtn:hover{text-decoration-color:var(--gold)}
+.linkbtn:focus-visible,.tinput:focus-visible,.autobtn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.invite{background:rgba(123,228,149,.14);border:1px solid rgba(123,228,149,.5);color:#c9f7d4;border-radius:999px;padding:6px 16px;font-weight:800;font-size:14px}
+.invite b{color:#fff;letter-spacing:.15em}
+.lobby{width:min(680px,100%)!important}
+.lobbygrid{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:20px;align-items:start;margin-top:14px}
+@media (max-width:620px){.lobbygrid{grid-template-columns:minmax(0,1fr)}}
+.qrcol .qrbox{margin-top:0;width:min(200px,60vw)}
+.qrcol .code{text-align:center;margin-top:10px;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qrcol .code b{display:block;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:28px;letter-spacing:.2em;color:var(--gold);text-transform:none}
+.qrcol .linkrow{margin-top:8px}
+.seatlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.seatlist li{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.28);border:1px solid rgba(245,200,81,.2);border-radius:12px;padding:6px 8px;min-width:0}
+.seatlist .dot{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:14px;color:#fff;background:linear-gradient(145deg,var(--c1),var(--c2));border:2px solid var(--gold)}
+.seatlist .who{flex:1;min-width:0;font-weight:900;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seatlist .tg{font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.seatlist li.open{border-style:dashed;background:transparent}
+.seatlist li.open .dot{background:rgba(255,255,255,.06);border-color:rgba(245,200,81,.35);color:var(--muted)}
+.seatlist li.open .who{color:var(--muted);font-weight:800}
+.lobbymsg{min-height:1.4em;margin:12px 0 0;text-align:center;font-weight:800;font-size:13px;color:var(--muted)}
+.lobbymsg.err{color:#ff9aa2}
+#lobbyForm .form{margin-top:14px;border-top:1px solid rgba(245,200,81,.2);padding-top:12px}
+
+/* splash */
+.splash{background:radial-gradient(ellipse at 50% 45%,rgba(28,52,102,.6),rgba(5,9,22,.92))}
+.splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.logo{font-family:'Lilita One',Impact,sans-serif;font-size:clamp(46px,11vmin,92px);line-height:1;color:var(--gold);letter-spacing:.01em;
+  text-shadow:0 3px 0 #8a5a12,0 6px 0 #4a2d06,0 12px 24px rgba(0,0,0,.6)}
+.logo small{display:block;font-family:'Kalam',cursive;font-weight:700;font-size:.42em;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.6);margin-top:.12em}
+.demo{position:relative;display:flex;justify-content:center;gap:4px;margin:10px 0 4px;--dw:clamp(58px,10vmin,84px)}
+.oslip{width:var(--dw);height:calc(var(--dw)*1.25);border-radius:3px;box-sizing:border-box;position:relative;box-shadow:0 6px 14px rgba(0,0,0,.45);
+  background:linear-gradient(90deg,transparent 12%,var(--margin) 12% calc(12% + 1.5px),transparent calc(12% + 1.5px)),repeating-linear-gradient(180deg,transparent 0 calc(var(--dw)*.11 - 1px),var(--rule) calc(var(--dw)*.11 - 1px) calc(var(--dw)*.11)),linear-gradient(170deg,var(--paper),var(--paper-lo))}
+.oslip svg{position:absolute;left:50%;top:8%;width:52%;transform:translateX(-50%)}
+.oslip .on{position:absolute;left:0;right:0;bottom:22%;font-family:'Kalam',cursive;font-size:calc(var(--dw)*.17);line-height:1;color:var(--rc)}
+.oslip .oe{position:absolute;left:0;right:0;bottom:7%;font-family:'Kalam',cursive;font-size:calc(var(--dw)*.13);line-height:1;color:#29324a}
+.demo .oslip:nth-child(1){transform:rotate(-12deg) translateY(6px)}
+.demo .oslip:nth-child(2){transform:rotate(1deg);z-index:1}
+.demo .oslip:nth-child(3){transform:rotate(11deg) translateY(6px)}
+.tag{margin:0 0 10px;color:var(--muted);font-weight:800;font-size:14px;letter-spacing:.04em;text-wrap:balance}
+.tag b{color:var(--text)}
+.mainbtns{display:grid;grid-template-columns:repeat(3,auto);gap:10px;justify-content:center;margin-top:14px}
+@media (max-width:560px){.mainbtns{grid-template-columns:repeat(2,auto)}.mainbtns .btn{font-size:18px;padding:8px 20px}}
+@media (max-height:600px){.demo{display:none}.logo{font-size:clamp(40px,10vmin,72px)}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="game">
+  <div id="topbar">
+    <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="roundpill"><span id="roundLbl">Chor Police</span><span class="md" id="modeLbl"></span><span class="nettag" id="netTag" hidden>Online</span></div>
+    <div class="tbr">
+      <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+      </button>
+      <button class="ibtn" id="scoreBtn" aria-label="Scoreboard" title="Scoreboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 20v-8M12 20V5M19 20v-11"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="tableWrap">
+    <div id="mat"><div id="watermark"><div class="s">चोर पुलिस</div><div class="t">CHOR POLICE</div></div></div>
+    <div id="slips" aria-label="Folded slips"></div>
+    <div id="result" hidden></div>
+    <div id="banner"></div>
+    <div id="ask" class="panel" hidden role="dialog" aria-labelledby="askTitle">
+      <h2 class="ptitle" id="askTitle"></h2>
+      <p class="psub" id="askSub"></p>
+      <div class="opts" id="askOpts"></div>
+    </div>
+  </div>
+
+  <div id="hintbar"><div id="hint" role="status"></div></div>
+  <div id="toast" role="status"></div>
+
+  <div id="reveal" hidden>
+    <div class="rv-in" id="rvIn">
+      <div class="rv-slip"><div class="bigslip folded" id="bigslip"></div></div>
+      <div class="rv-text" id="rvText">
+        <h2 class="ptitle" id="rvTitle"></h2>
+        <p class="psub" id="rvSub"></p>
+        <button class="btn" id="rvBtn">Fold it</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cover" hidden>
+    <div class="cover-in">
+      <div id="coverArt"></div>
+      <h2 class="ptitle" id="coverTitle"></h2>
+      <p class="psub" id="coverSub"></p>
+      <div class="btnrow"><button class="btn green" id="coverBtn"></button></div>
+      <button class="linkbtn" id="coverQuit">Quit to main menu</button>
+    </div>
+  </div>
+
+  <div id="splash" class="overlay splash">
+    <div class="splash-in">
+      <div class="logo">Chor Police<small>चोर पुलिस</small></div>
+      <div class="demo" id="demo" aria-hidden="true"></div>
+      <p class="tag"><b>3–10 players</b> · Pick a folded slip · Police, find the Chor!</p>
+      <div class="invite" id="invite" hidden>You're invited to table <b id="inviteCode"></b></div>
+      <div class="field">
+        <label for="playerName">Your name</label>
+        <input class="tinput" id="playerName" maxlength="14" autocomplete="nickname" placeholder="Enter your name">
+      </div>
+      <div class="mainbtns" id="mainBtns">
+        <button class="btn green" id="playBtn">Play vs bots</button>
+        <button class="btn" id="passBtn">Pass &amp; play</button>
+        <button class="btn" id="hostBtn">Create table</button>
+      </div>
+      <div class="btnrow" id="inviteBtns" hidden>
+        <button class="btn green" id="inviteJoin">Join table</button>
+        <button class="btn ghost" id="inviteSolo">Play vs bots</button>
+      </div>
+      <form class="joinrow" id="joinForm">
+        <input class="tinput" id="joinCode" maxlength="5" placeholder="Table code" aria-label="Table code" autocomplete="off" spellcheck="false">
+        <button class="btn ghost" type="submit">Join</button>
+      </form>
+      <div class="links"><button class="linkbtn" id="splashRules">How to play</button><span aria-hidden="true">·</span><button class="linkbtn" id="splashShare">Share game</button></div>
+    </div>
+  </div>
+
+  <div id="setup" class="overlay" hidden>
+    <div class="panel" style="width:min(480px,100%)">
+      <h2 class="ptitle" id="setupTitle">Play vs bots</h2>
+      <div id="setupForm"></div>
+      <div class="btnrow">
+        <button class="btn green" id="setupGo">Start</button>
+        <button class="btn ghost" id="setupBack">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lobby" class="overlay" hidden>
+    <div class="panel lobby">
+      <h2 class="ptitle" id="lobbyTitle">Your table</h2>
+      <p class="psub" id="lobbySub"></p>
+      <div class="lobbygrid">
+        <div class="qrcol">
+          <div class="qrbox" id="lobbyQr"><p>Opening table…</p></div>
+          <div class="code">Table code <b id="lobbyCode">·····</b></div>
+          <div class="linkrow"><input id="lobbyLink" readonly aria-label="Invite link"><button class="btn" id="lobbyCopy">Copy</button></div>
+        </div>
+        <ol class="seatlist" id="seatList"></ol>
+      </div>
+      <div id="lobbyForm"></div>
+      <p class="lobbymsg" id="lobbyMsg" role="status"></p>
+      <div class="btnrow">
+        <button class="btn green" id="startBtn" disabled>Start game</button>
+        <button class="btn ghost" id="leaveBtn">Leave</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay" hidden>
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle" id="menuTitle">Paused</h2>
+      <div class="menu-list">
+        <button class="btn green" id="resumeBtn">Resume</button>
+        <button class="btn" id="newBtn">New game</button>
+        <button class="btn ghost" id="menuRules">How to play</button>
+        <button class="btn ghost" id="soundBtn">Sound: On</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scores" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle" id="scoreTitle">Scoreboard</h2>
+      <p class="psub" id="scoreSub"></p>
+      <div class="stable-wrap"><table class="stable" id="scoreTable"></table></div>
+      <div class="btnrow" id="scoreBtns"></div>
+    </div>
+  </div>
+
+  <div id="share" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle" id="shareTitle">Share Chor Police</h2>
+      <p class="psub" id="shareSub">Friends scan this code to open Chor Police on their phone.</p>
+      <div class="qrbox" id="qrBox"></div>
+      <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
+      <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="notice" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle" id="noticeTitle"></h2>
+      <p class="psub" id="noticeText"></p>
+      <div class="btnrow"><button class="btn" id="noticeOk">Back to menu</button></div>
+    </div>
+  </div>
+
+  <div id="rules" class="overlay" hidden>
+    <div class="panel">
+      <h2 class="ptitle">How to play</h2>
+      <div class="rules">
+        <p class="note">Chor Police (चोर पुलिस) is a classic Nepali children's game played with folded paper slips torn from a school notebook. Every school and neighbourhood plays it a little differently; these are our house rules.</p>
+        <h3>The slips</h3>
+        <ul>
+          <li>3 to 10 players. There is <b>one folded slip per player</b>: at least one <b>चोर Chor</b> (thief), at least one <b>पुलिस Police</b>, and everyone else is a <b>नागरिक Citizen</b>.</li>
+          <li>The slips are shuffled and spread on the mat. Everyone <b>picks one</b> and looks at it secretly.</li>
+          <li>The Police reveal themselves. Then everyone else says one line (the <b>talk round</b>): the Chor tries to bluff.</li>
+          <li>Each Police then secretly names one suspect. A Chor is <b>caught</b> if any Police names them. Then all slips are opened.</li>
+        </ul>
+        <h3>Roles: how many of each</h3>
+        <ul>
+          <li>On setup, choose the split with the <b>Roles</b> steppers. Citizens are everyone left over, so it always adds up.</li>
+          <li><b>2 Chor</b>, <b>2 Police</b> (and 2 Mantri) are allowed from <b>6 players</b>. With 5 or fewer it is 1 of each. <b>Auto</b> brings back the default split.</li>
+          <li>With 2 Police, they guess one after another without seeing each other's pick, and may name the same person.</li>
+        </ul>
+        <h3>Mode 1: Points (our default)</h3>
+        <ul>
+          <li>Each <b>Citizen +500</b> every round.</li>
+          <li>Each Police who names a Chor: <b>+1000</b>; a wrong guess gets 0.</li>
+          <li>Each Chor who is not caught: <b>+1000</b>; a caught Chor gets 0.</li>
+          <li>Play 5 or 10 rounds. The highest total wins. (Point values modelled on Raja Mantri Chor Sipahi scoring.)</li>
+        </ul>
+        <h3>Mode 2: Elimination (the classic chit version)</h3>
+        <ul>
+          <li>A caught Chor is <b>out</b>. A Police who names someone who isn't a Chor is <b>out</b>.</li>
+          <li>Each round has one slip per player still in, so the pile gets smaller. If players drop to 5 or fewer, it goes back to 1 Chor and 1 Police.</li>
+          <li>When only 2 players are left, both of them win.</li>
+        </ul>
+        <h3>Mode 3: Raja Mantri Chor Sipahi (राजा मन्त्री चोर सिपाही)</h3>
+        <ul>
+          <li>4 to 10 players. Slips: <b>राजा Raja</b> (always 1), <b>मन्त्री Mantri</b> (1, or 2 with 8 or more players by default), <b>चोर Chor</b>, <b>सिपाही Police</b>, and <b>प्रजा Citizens</b> for everyone else.</li>
+          <li>The Raja reveals first and calls <b>"मेरो सिपाही को हो?"</b> (Who is my soldier?). The Police reveal, everyone else talks, and the Police name the Chor. The Raja can't be named.</li>
+          <li>Points: <b>Raja 1000</b>, each <b>Mantri 800</b>, each <b>Citizen 300</b>. Each Police who names a Chor gets <b>500</b>; each Chor who isn't caught gets <b>500</b> instead.</li>
+          <li>Point values vary by region and family. This is one common version (in some places the Mantri does the guessing instead).</li>
+        </ul>
+        <h3>Ways to play</h3>
+        <ul>
+          <li><b>Play vs bots</b>: you and 2 to 9 bots. Bots that are nervous tend to say defensive things, and the bot Police notices, but not always.</li>
+          <li><b>Pass &amp; play</b>: one phone, 3 to 10 people. Each player picks a slip, looks, then taps <b>Fold &amp; pass</b>. A cover screen hides it before the next player takes the phone. Do the talking out loud!</li>
+          <li><b>Create table</b>: everyone uses their own phone. Friends scan the QR code or open the link. Empty seats are played by bots, and a bot takes over if someone leaves. The host's device runs the game, so the host should keep the page open.</li>
+        </ul>
+      </div>
+      <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
+    </div>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ic-police" viewBox="0 0 64 64">
+    <path d="M8 32c2-12 13-20 24-20s22 8 24 20z" fill="#2457c5" stroke="#0d1f4d" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M14 22c4-4 10-6 14-6" stroke="rgba(255,255,255,.35)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <rect x="10" y="31" width="44" height="9" rx="2" fill="#13265c" stroke="#0d1f4d" stroke-width="2.2"/>
+    <path d="M11 35.5h42" stroke="#f5c851" stroke-width="2"/>
+    <path d="M8 40h48c-3 7-12 10-24 10S11 47 8 40z" fill="#16181f" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M16 43.5c5 2 11 3 16 3" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M32 16L33.8 20.6L38.7 20.8L34.9 23.9L36.1 28.7L32 26L27.9 28.7L29.1 23.9L25.3 20.8L30.2 20.6Z" fill="#f5c851" stroke="#a87a14" stroke-width="1.2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-chor" viewBox="0 0 64 64">
+    <circle cx="32" cy="35" r="21" fill="#f1c27d" stroke="#8a5a2b" stroke-width="2"/>
+    <path d="M11 31c0-14 9-22 21-22s21 8 21 22z" fill="#2d2f3a" stroke="#14151b" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M13 24h38M16 17h32" stroke="#c62828" stroke-width="3"/>
+    <path d="M9 34c8-4 38-4 46 0v8c-8-3-38-3-46 0z" fill="#111"/>
+    <path d="M9 36l-6-3M9 39l-6 4" stroke="#111" stroke-width="2.6" stroke-linecap="round"/>
+    <ellipse cx="24" cy="38" rx="4.6" ry="3.2" fill="#fff"/><ellipse cx="40" cy="38" rx="4.6" ry="3.2" fill="#fff"/>
+    <circle cx="26" cy="38.3" r="1.9" fill="#111"/><circle cx="42" cy="38.3" r="1.9" fill="#111"/>
+    <path d="M26 49c4 2.5 9 2 13-1.5" stroke="#7a3b1a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-citizen" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="24" fill="#ffd54a" stroke="#c48a0a" stroke-width="2.5"/>
+    <ellipse cx="24" cy="27" rx="3" ry="4" fill="#3a2a10"/><ellipse cx="40" cy="27" rx="3" ry="4" fill="#3a2a10"/>
+    <circle cx="17.5" cy="37" r="4" fill="#ff8a65" opacity=".55"/><circle cx="46.5" cy="37" r="4" fill="#ff8a65" opacity=".55"/>
+    <path d="M21 38c5 8 17 8 22 0" stroke="#3a2a10" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-praja" viewBox="0 0 64 64">
+    <circle cx="32" cy="39" r="19" fill="#f1c27d" stroke="#8a5a2b" stroke-width="2"/>
+    <path d="M13 28l5-15h28l5 15c-7-3-31-3-38 0z" fill="#c0392b" stroke="#6e1a12" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M20 17.5l3.5 3 3.5-3 3.5 3 3.5-3 3.5 3 3.5-3 3.5 3" stroke="#f5c851" stroke-width="1.6" fill="none"/>
+    <path d="M18 23.5l3 2 3-2 3 2 3-2 3 2 3-2 3 2 3-2 3 2 2-1" stroke="#1f6b3c" stroke-width="1.6" fill="none"/>
+    <circle cx="25" cy="39" r="2.3" fill="#3a2a10"/><circle cx="39" cy="39" r="2.3" fill="#3a2a10"/>
+    <path d="M25 47c4 3 10 3 14 0" stroke="#7a3b1a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-raja" viewBox="0 0 64 64">
+    <path d="M11 46L7 20l13 11 12-18 12 18 13-11-4 26z" fill="#f5c851" stroke="#a5740e" stroke-width="2.4" stroke-linejoin="round"/>
+    <rect x="10" y="45" width="44" height="9" rx="2" fill="#e0a92a" stroke="#a5740e" stroke-width="2.4"/>
+    <path d="M14 49.5h36" stroke="#fff3c4" stroke-width="1.5" opacity=".7"/>
+    <circle cx="32" cy="38" r="3.8" fill="#d0182f" stroke="#7a0a18" stroke-width="1"/>
+    <circle cx="20" cy="40" r="2.6" fill="#2a7de1"/><circle cx="44" cy="40" r="2.6" fill="#2a7de1"/>
+    <circle cx="7" cy="20" r="2.8" fill="#f5c851" stroke="#a5740e" stroke-width="1.6"/><circle cx="32" cy="12" r="3" fill="#f5c851" stroke="#a5740e" stroke-width="1.6"/><circle cx="57" cy="20" r="2.8" fill="#f5c851" stroke="#a5740e" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="ic-mantri" viewBox="0 0 64 64">
+    <path d="M12 31c0-12 9-20 20-20s20 8 20 20c0 3-2 5-5 5H17c-3 0-5-2-5-5z" fill="#8e44ad" stroke="#4a1f63" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M14 27c8-4 28-4 36 0M16 20.5c8-5 24-5 32 0" stroke="#c9a3dc" stroke-width="2" fill="none"/>
+    <path d="M32 22c-2-6 0-10 4-14-1 5 0 9-2 14z" fill="#f5c851" stroke="#a5740e" stroke-width="1"/>
+    <circle cx="32" cy="25" r="3.6" fill="#2ecc71" stroke="#145a32" stroke-width="1.2"/>
+    <rect x="17" y="41" width="30" height="14" rx="2" fill="#f7ecd0" stroke="#8a6326" stroke-width="2"/>
+    <rect x="12" y="39" width="6" height="18" rx="3" fill="#d9b779" stroke="#8a6326" stroke-width="2"/><rect x="46" y="39" width="6" height="18" rx="3" fill="#d9b779" stroke="#8a6326" stroke-width="2"/>
+    <path d="M22 46h20M22 50h14" stroke="#8a6326" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+// ==== LOGIC START ====
+/* Variants. Roles: chor, police, citizen (+ raja, mantri in Raja Mantri Chor Sipahi).
+   The Police always guess. Counts: chor/police/mantri 1-2 (2 only with 6+ players), raja 1 (rmcs only),
+   citizens fill the rest. Special roles never exceed players-1, except the classic 4-player rmcs set. */
+const VARIANTS = {
+  points:{key:'points', name:'Points', short:'Points', min:3, max:10},
+  elim:{key:'elim', name:'Elimination', short:'Elimination', min:3, max:10},
+  rmcs:{key:'rmcs', name:'Raja Mantri Chor Sipahi', short:'Raja Mantri', min:4, max:10},
+};
+const SPECIALS = ['raja', 'mantri', 'chor', 'police'];
+const RMCS_PTS = {raja:1000, mantri:800, citizen:300, police:500};
+const PTS = {citizen:500, police:1000, chor:1000};
+function shuffle(a, rnd = Math.random){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd()*(i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const specialCount = r => SPECIALS.reduce((s, k) => s + (r[k] || 0), 0);
+const roleCap = n => n >= 6 ? 2 : 1;
+const maxSpecials = (variant, n) => Math.max(n - 1, variant === 'rmcs' ? 4 : 2);
+function autoRoles(variant, n){
+  const rm = variant === 'rmcs';
+  return {raja:rm ? 1 : 0, mantri:rm ? (n >= 8 ? 2 : 1) : 0, chor:1, police:1};
+}
+function fitRoles(variant, n, roles){
+  const cap = roleCap(n), cl = v => Math.max(1, Math.min(cap, Math.floor(+v) || 1)), rm = variant === 'rmcs';
+  roles = roles || autoRoles(variant, n);
+  const r = {raja:rm ? 1 : 0, mantri:rm ? cl(roles.mantri) : 0, chor:cl(roles.chor), police:cl(roles.police)};
+  for (const k of ['mantri', 'police', 'chor']) while (specialCount(r) > maxSpecials(variant, n) && r[k] > 1) r[k]--;
+  return r;
+}
+// [min, max] each role stepper may reach from the current split
+function roleLimits(variant, n, roles){
+  const r = fitRoles(variant, n, roles), room = maxSpecials(variant, n) - specialCount(r), cap = roleCap(n), out = {};
+  for (const k of ['mantri', 'chor', 'police']){
+    if (k === 'mantri' && variant !== 'rmcs') continue;
+    out[k] = [1, Math.max(1, Math.min(cap, r[k] + room))];
+  }
+  return out;
+}
+function roleSplit(variant, n, roles){ const r = fitRoles(variant, n, roles); return {...r, citizen:n - specialCount(r)}; }
+function deckFor(variant, n, roles){
+  const V = VARIANTS[variant];
+  if (!V || !(n >= V.min && n <= V.max)) throw new Error(`${variant}: ${n} players not allowed`);
+  const sp = roleSplit(variant, n, roles), deck = [];
+  for (const k of [...SPECIALS, 'citizen']) for (let i = 0; i < sp[k]; i++) deck.push(k);
+  return deck;
+}
+const dealSlips = (variant, n, roles, rnd = Math.random) => shuffle(deckFor(variant, n, roles), rnd);
+const seatsWith = (roles, role) => roles.map((r, i) => r === role ? i : -1).filter(i => i >= 0);
+// who a Police may name: anyone playing this round except the revealed Raja and the Police
+const suspectsFor = roles => roles.map((r, i) => i).filter(i => roles[i] && roles[i] !== 'police' && roles[i] !== 'raja');
+/* roles: by seat (null = not playing this round); acc: {policeSeat: namedSeat} */
+function resolveRound(variant, roles, acc){
+  const named = new Set(Object.values(acc).map(Number));
+  const caught = seatsWith(roles, 'chor').filter(s => named.has(s));
+  const hits = {};
+  for (const p of seatsWith(roles, 'police')) hits[p] = roles[acc[p]] === 'chor';
+  const pts = roles.map((r, i) => {
+    if (!r || variant === 'elim') return 0;
+    if (variant === 'rmcs'){
+      if (r === 'police') return hits[i] ? RMCS_PTS.police : 0;
+      if (r === 'chor') return caught.includes(i) ? 0 : RMCS_PTS.police;
+      return RMCS_PTS[r];
+    }
+    if (r === 'citizen') return PTS.citizen;
+    if (r === 'police') return hits[i] ? PTS.police : 0;
+    if (r === 'chor') return caught.includes(i) ? 0 : PTS.chor;
+    return 0;
+  });
+  const out = variant === 'elim' ? [...caught, ...Object.keys(hits).map(Number).filter(p => !hits[p])].sort((a, b) => a - b) : [];
+  return {caught, hits, pts, out};
+}
+
+/* the talk round: lines are calm (c), defensive (d) or cheeky (k). {g} names the Police. */
+const LINES = {
+  calm:['म त सधैं नागरिक नै हुँ!', '{g}, I was home all day.', 'म त भात खाँदै थिएँ।', "Ask anyone, I'm innocent.", 'मलाई केही थाहा छैन, साँच्चै।', 'I was doing my homework.', '{gn}, जे सोध्नु छ सोध्नुस्।', 'Just a simple, honest kid here.'],
+  defensive:['किन मलाई हेरेको?', 'म होइन! म होइन!', "Wait, why me? I didn't do anything!", 'कसम! मैले केही चोरेको छैन!', "Stop staring, it wasn't me!", 'मलाई किन शंका गरेको?', 'I… I was nowhere near it!', '{gn}, म त निर्दोष हुँ, हेर्नुस् न!'],
+  cheeky:['चोर त तिम्रै छेउमा छ!', 'Catch me if you can!', '{g}, check your own pockets!', 'मैले त सपनामा मात्र चोरेँ!', "Maybe it's you, {g}?", 'आज त चोरले चिया खुवाउँछ!', "I'd make a terrible thief, honestly.", 'हेर हेर, उसको अनुहार!'],
+};
+const OPENERS = {
+  p:['ल, सबैजना लाइनमा!', 'Who stole the mangoes?', 'चोर, म तिमीलाई चिन्छु!', 'Hands up, everyone!', 'सत्य बोल्नु है!'],
+  r:['मेरो सिपाही को हो?'],
+};
+const TONE_KEY = {c:'calm', d:'defensive', k:'cheeky'};
+const TONES = ['calm', 'defensive', 'cheeky'];
+const toneOf = id => (id && TONE_KEY[id[0]]) || null;
+function lineText(id, variant){
+  const k = id[0], j = +id.slice(1), raw = TONE_KEY[k] ? LINES[TONE_KEY[k]][j] : (OPENERS[k] || [])[j];
+  const rm = variant === 'rmcs';
+  return String(raw || '').replace('{g}', rm ? 'Sipahi dai' : 'Police dai').replace('{gn}', rm ? 'सिपाही दाइ' : 'पुलिस दाइ');
+}
+const TONE_ODDS = {chor:{calm:.2, defensive:.55, cheeky:.25}, innocent:{calm:.5, defensive:.15, cheeky:.35}};
+function botTone(role, rnd = Math.random){
+  const o = TONE_ODDS[role === 'chor' ? 'chor' : 'innocent'];
+  let x = rnd();
+  for (const t of TONES){ x -= o[t]; if (x < 0) return t; }
+  return 'cheeky';
+}
+function randomLine(tone, used, rnd = Math.random){
+  const key = {calm:'c', defensive:'d', cheeky:'k'}[tone], all = LINES[tone].map((_, j) => key + j);
+  const free = all.filter(id => !(used && used.has(id)));
+  const pool = free.length ? free : all;
+  return pool[Math.floor(rnd()*pool.length)];
+}
+const botLine = (role, used, rnd = Math.random) => randomLine(botTone(role, rnd), used, rnd);
+const lineOptions = (used, rnd = Math.random) => TONES.map(t => randomLine(t, used, rnd));
+// the bot Police weighs what everyone said, with plenty of noise
+const TELL = {calm:1, cheeky:1.3, defensive:4};
+function botGuess(suspects, tones, rnd = Math.random){
+  const w = suspects.map(s => TELL[tones[s]] || 1), sum = w.reduce((a, b) => a + b, 0);
+  let x = rnd()*sum;
+  for (let k = 0; k < suspects.length; k++){ x -= w[k]; if (x < 0) return suspects[k]; }
+  return suspects[suspects.length - 1];
+}
+/* online: each player only ever receives their own slip */
+const pickEvent = (p, i, role) => s => s === p ? {t:'pick', p, i, role} : {t:'pick', p, i};
+const validPick = (taken, i) => Number.isInteger(i) && i >= 0 && i < taken.length && !taken[i];
+const validGuess = (opts, s) => Number.isInteger(s) && opts.includes(s);
+// ==== LOGIC END ====
+
+const PICK_TIME = 20000, LINE_TIME = 20000, GUESS_TIME = 30000, GRACE = 5000, MAXP = 10, HB_DROP = 30000;
+const COLORS = [['#4f8df0','#1d3f8f'],['#ee6b4d','#8f2f5e'],['#2fc4a4','#0b5d55'],['#f7a531','#a3540a'],['#a77bf3','#4b2a8f'],['#f06292','#880e4f'],['#4dd0e1','#00626e'],['#9ccc65','#33691e'],['#ff8a65','#a1381a'],['#90a4ae','#37474f']];
+const BOT_NAMES = ['Bikash','Sunita','Rajan','Anita','Prakash','Gita','Sagar','Puja','Kiran','Nabin','Sita','Hari'];
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/party-games/chor-police/';
+const PEER_PREFIX = 'chorpolice-9bs-';
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const ROLE = {
+  chor:{np:'चोर', en:'Chor'}, police:{np:'पुलिस', en:'Police'}, citizen:{np:'नागरिक', en:'Citizen'},
+  raja:{np:'राजा', en:'Raja'}, mantri:{np:'मन्त्री', en:'Mantri'},
+};
+
+const game = $('#game'), tableWrap = $('#tableWrap'), slipsEl = $('#slips'), bannerEl = $('#banner'), roundLbl = $('#roundLbl');
+let G, S = {}, gen = 0, paused = false, pending = null, passMode = false;
+let waiting = {};
+let clientChain = Promise.resolve();
+const net = {mode:'solo', mySeat:0, mySlot:0, peer:null, conns:[], lconns:[], host:null, code:'', slots:null, st:null, inGame:false};
+class Cancel extends Error {}
+
+/* ---------- helpers ---------- */
+const rand = (a, b) => a + Math.random()*(b - a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const center = r => ({x:r.left + r.width/2, y:r.top + r.height/2});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const cleanName = n => String(n || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 14);
+const fmtPts = n => Number(n).toLocaleString('en-IN');
+const online = () => net.mode !== 'solo';
+const N = () => G.players.length;
+const view = p => (p - net.mySeat + N()) % N();
+const isMe = p => !passMode && p === net.mySeat;
+const initial = n => (String(n || '?').trim().charAt(0) || '?').toUpperCase();
+const colorOf = p => COLORS[p % COLORS.length];
+const roleLabel = (role, variant) => role === 'police' && variant === 'rmcs' ? {np:'सिपाही', en:'Police'} : role === 'citizen' && variant === 'rmcs' ? {np:'प्रजा', en:'Citizen'} : ROLE[role];
+const icon = (role, variant) => `<svg viewBox="0 0 64 64" aria-hidden="true"><use href="#ic-${role === 'citizen' && variant === 'rmcs' ? 'praja' : role}"/></svg>`;
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+function splitText(variant, n, roles){
+  const sp = roleSplit(variant, n, roles), parts = [];
+  if (variant === 'rmcs') parts.push(`1 Raja`, `${sp.mantri} Mantri`);
+  parts.push(`${sp.chor} Chor`, `${sp.police} Police`, plural(sp.citizen, 'Citizen'));
+  return `${n} players: ${parts.join(' · ')}`;
+}
+function loadJSON(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v && typeof v === 'object' ? v : d; } catch(e){ return d; } }
+function saveJSON(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function loadName(){ try { return cleanName(localStorage.getItem('chorpolice-name')); } catch(e){ return ''; } }
+function saveName(n){ try { localStorage.setItem('chorpolice-name', n); } catch(e){} }
+let myName = loadName();
+
+const cfg = Object.assign({variant:'points', bots:5, pass:5, rounds:5, roles:{chor:1, police:1, mantri:1}, auto:true, names:[]}, loadJSON('chorpolice-cfg', {}));
+if (!VARIANTS[cfg.variant]) cfg.variant = 'points';
+const saveCfg = () => saveJSON('chorpolice-cfg', cfg);
+
+async function sleep(ms){
+  const g = gen;
+  await new Promise(r => setTimeout(r, ms));
+  while (paused && g === gen) await new Promise(r => setTimeout(r, 120));
+  if (g !== gen) throw new Cancel();
+}
+function setPaused(v){ if (v && online()) return; paused = v; game.classList.toggle('paused', v); }
+
+/* ---------- sound ---------- */
+let actx = null, soundOn = true;
+function sfx(kind){
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime, out = actx.destination;
+    const tone = (f, at, vol, type, len) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + .008); g.gain.exponentialRampToValueAtTime(.001, at + len);
+      o.connect(g).connect(out); o.start(at); o.stop(at + len + .03);
+    };
+    const crinkle = (at, dur, freq, vol, curve = 3) => {
+      const buf = actx.createBuffer(1, Math.max(1, Math.floor(actx.sampleRate*dur)), actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2 - 1)*Math.pow(1 - i/d.length, curve)*(Math.random() < .3 ? 1 : .35);
+      const src = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = .7; g.gain.value = vol;
+      src.connect(f).connect(g).connect(out); src.start(at);
+    };
+    const whistle = (at, len) => {
+      const o = actx.createOscillator(), g = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+      o.type = 'sine'; o.frequency.value = 2750; lfo.frequency.value = 27; lg.gain.value = 160;
+      lfo.connect(lg).connect(o.frequency);
+      g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.11, at + .02); g.gain.setValueAtTime(.11, at + len - .05); g.gain.linearRampToValueAtTime(0, at + len);
+      o.connect(g).connect(out); o.start(at); lfo.start(at); o.stop(at + len + .02); lfo.stop(at + len + .02);
+      crinkle(at, len, 5200, .05, .5);
+    };
+    const hit = (at, f, len, vol) => {
+      [f, f*1.06, f*2].forEach((fr, j) => {
+        const o = actx.createOscillator(), g = actx.createGain(), lp = actx.createBiquadFilter();
+        o.type = j === 2 ? 'square' : 'sawtooth'; o.frequency.value = fr; lp.type = 'lowpass'; lp.frequency.value = 900;
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol*(j === 2 ? .3 : 1), at + .01); g.gain.exponentialRampToValueAtTime(.001, at + len);
+        o.connect(lp).connect(g).connect(out); o.start(at); o.stop(at + len + .05);
+      });
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(140, at); o.frequency.exponentialRampToValueAtTime(40, at + .25);
+      g.gain.setValueAtTime(.5, at); g.gain.exponentialRampToValueAtTime(.001, at + .3);
+      o.connect(g).connect(out); o.start(at); o.stop(at + .32);
+    };
+    switch (kind){
+      case 'rustle': for (let i = 0; i < 16; i++) crinkle(t + i*.07 + Math.random()*.04, .05 + Math.random()*.08, 2400 + Math.random()*4200, .14 + Math.random()*.12); break;
+      case 'pick': crinkle(t, .08, 3600, .32); crinkle(t + .07, .06, 5200, .2); break;
+      case 'unfold': for (let i = 0; i < 6; i++) crinkle(t + i*.06, .06, 2800 + i*350, .22); break;
+      case 'whistle': whistle(t, .22); whistle(t + .3, .5); break;
+      case 'tweet': whistle(t, .16); break;
+      case 'sting': hit(t, 98, .55, .16); hit(t + .38, 92.5, 1.1, .2); break;
+      case 'fanfare': [523, 659, 784, 1047].forEach((f, i) => tone(f, t + i*.1, .1, 'triangle', i === 3 ? .5 : .16)); break;
+      case 'turn': tone(740, t, .12, 'sine', .2); break;
+      case 'pop': tone(560 + Math.random()*120, t, .06, 'sine', .09); break;
+      case 'buzz': tone(150, t, .12, 'square', .25); break;
+      case 'win': [660, 880, 1100, 1320].forEach((f, i) => tone(f, t + i*.09, .12, 'sine', .22)); break;
+      case 'lose': [440, 349].forEach((f, i) => tone(f, t + i*.12, .08, 'triangle', .22)); break;
+    }
+  } catch(e){}
+}
+
+/* ---------- seats ---------- */
+const seatEls = [];
+function buildSeats(n){
+  seatEls.forEach(s => s.remove()); seatEls.length = 0;
+  for (let v = 0; v < n; v++){
+    const s = document.createElement('div');
+    s.className = 'seat';
+    s.innerHTML = `<div class="avwrap">
+        <svg class="timer" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>
+        <div class="avatar"></div><div class="mini" hidden></div><div class="outtag" hidden>OUT</div><div class="pts"></div></div>
+      <div class="plate"><span class="nm"></span><span class="sc"></span></div><div class="bubble"></div>`;
+    tableWrap.appendChild(s);
+    seatEls.push(s);
+  }
+  game.classList.toggle('many', n >= 8);
+  layout();
+}
+const seatOf = p => seatEls[view(p)];
+const avOf = p => seatOf(p).querySelector('.avatar');
+const displayName = p => isMe(p) ? 'You' : G.players[p].name;
+const fullName = p => G.players[p].name;
+function updateSeat(p, flip){
+  const s = seatOf(p), pl = G.players[p];
+  if (!s || !pl) return;
+  const av = s.querySelector('.avatar');
+  av.textContent = initial(pl.name);
+  av.style.setProperty('--c1', colorOf(p)[0]); av.style.setProperty('--c2', colorOf(p)[1]);
+  s.querySelector('.nm').textContent = displayName(p) + (online() && pl.kind === 'bot' ? ' · bot' : '');
+  s.querySelector('.sc').textContent = G.variant === 'elim' ? (pl.out ? 'Out' : 'In') : fmtPts(pl.total);
+  s.classList.toggle('out', !!pl.out);
+  s.querySelector('.outtag').hidden = !pl.out;
+  const m = s.querySelector('.mini');
+  if (pl.slip && !pl.out){ m.hidden = false; m.className = 'mini open r-' + pl.slip; m.innerHTML = icon(pl.slip, G.variant); m.title = roleLabel(pl.slip, G.variant).en; }
+  else if (pl.picked && !pl.out){ m.hidden = false; m.className = 'mini'; m.innerHTML = ''; m.title = 'Folded slip'; }
+  else m.hidden = true;
+  if (flip && !m.hidden){ m.classList.remove('flip'); void m.offsetWidth; m.classList.add('flip'); }
+}
+const updateAll = () => { for (let p = 0; p < N(); p++) updateSeat(p); updateTop(); };
+const refreshLayout = () => { updateAll(); layout(); };
+const bubbleTimers = new Map();
+function bubble(p, text, ms = 2400, cls = ''){
+  const s = seatOf(p); if (!s) return;
+  const b = s.querySelector('.bubble');
+  b.textContent = text; b.className = 'bubble show' + (cls ? ' ' + cls : '');
+  s.classList.add('bub');
+  clearTimeout(bubbleTimers.get(s));
+  bubbleTimers.set(s, setTimeout(() => { b.classList.remove('show'); s.classList.remove('bub'); }, ms));
+}
+function clearBubbles(){ seatEls.forEach(s => { s.querySelector('.bubble').classList.remove('show'); s.classList.remove('bub'); }); }
+function setTurn(p, ms){
+  seatEls.forEach(s => s.classList.remove('turn', 'notimer'));
+  if (p == null) return;
+  const s = seatOf(p); if (!s) return;
+  if (!ms || !isFinite(ms)) s.classList.add('notimer');
+  else s.style.setProperty('--t', ms + 'ms');
+  void s.offsetWidth;
+  s.classList.add('turn');
+}
+function showPts(p, v){
+  const el = seatOf(p).querySelector('.pts');
+  el.textContent = v > 0 ? '+' + fmtPts(v) : '0';
+  el.classList.toggle('zero', !(v > 0));
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+function banner(text){
+  bannerEl.textContent = text;
+  bannerEl.classList.remove('show'); void bannerEl.offsetWidth; bannerEl.classList.add('show');
+}
+let toastTimer;
+function toast(text){
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+const hint = text => { $('#hint').textContent = text || ''; };
+const activeSeats = () => G.players.map((p, i) => i).filter(i => !G.players[i].out);
+function updateTop(){
+  if (!G || !G.started){ roundLbl.textContent = 'Chor Police'; $('#modeLbl').textContent = ''; return; }
+  roundLbl.textContent = G.variant === 'elim' ? `Round ${G.round + 1} · ${activeSeats().length} in` : `Round ${G.round + 1}/${G.rounds}`;
+  $('#modeLbl').textContent = VARIANTS[G.variant].short;
+}
+
+/* ---------- layout: seats round an ellipse, slips in the clear middle ---------- */
+let box = {hw:100, hh:100}, slipEls = [], slipPos = [], slipJit = [];
+function ellipseSpots(rx, ry, n){
+  const M = 720, pts = [], cum = [0];
+  for (let k = 0; k <= M; k++){
+    const a = Math.PI/2 + k/M*Math.PI*2;
+    pts.push([rx*Math.cos(a), ry*Math.sin(a)]);
+    if (k) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  }
+  const L = cum[M], out = [];
+  let j = 0;
+  for (let v = 0; v < n; v++){ const target = v/n*L; while (j < M && cum[j + 1] < target) j++; out.push(pts[j]); }
+  return out;
+}
+function slipGrid(n, bw, bh){
+  let best = {c:1, r:n, w:0};
+  for (let c = 1; c <= n; c++){
+    const r = Math.ceil(n/c), w = Math.min(bw/c*.84, bh/r*.8*1.4, 150);
+    if (w > best.w) best = {c, r, w};
+  }
+  return best;
+}
+function innerBox(W, H, rects, gap, n){
+  const edge = 16, cands = new Set([H/2 - edge]);
+  rects.forEach(r => { cands.add(Math.abs(r.y0) - gap); cands.add(Math.abs(r.y1) - gap); });
+  let best = {hw:0, hh:0, w:-1};
+  for (const hh of cands){
+    if (!(hh > 10) || hh > H/2 - edge) continue;
+    let hw = W/2 - edge;
+    for (const r of rects){
+      if (!(r.y0 < hh && r.y1 > -hh)) continue;
+      if (r.x0 < 0 && r.x1 > 0){ hw = 0; break; }
+      hw = Math.min(hw, (r.x0 >= 0 ? r.x0 : -r.x1) - gap);
+    }
+    if (hw < 20) continue;
+    const g = slipGrid(n || 6, hw*2, hh*2), score = g.w + Math.min(hw, hh)*.02;
+    if (score > best.w) best = {hw, hh, w:score};
+  }
+  return best;
+}
+function layout(){
+  const W = tableWrap.clientWidth, H = tableWrap.clientHeight, n = seatEls.length;
+  if (!W || !H || !n) return;
+  let sw = 0, sh = 0;
+  seatEls.forEach(s => { sw = Math.max(sw, s.offsetWidth); sh = Math.max(sh, s.offsetHeight); });
+  const rx = Math.max(10, W/2 - sw/2 - 2), ry = Math.max(10, H/2 - sh/2 - 2);
+  const spots = ellipseSpots(rx, ry, n), rects = [];
+  seatEls.forEach((s, v) => {
+    const [x, y] = spots[v], w = s.offsetWidth, h = s.offsetHeight;
+    s.style.left = (W/2 + x) + 'px'; s.style.top = (H/2 + y) + 'px';
+    const nx = x/rx;
+    s.dataset.side = nx > .55 ? 'right' : nx < -.55 ? 'left' : y > 0 ? 'bottom' : 'top';
+    rects.push({x0:x - w/2, x1:x + w/2, y0:y - h/2, y1:y + h/2});
+  });
+  box = innerBox(W, H, rects, 8, n);
+  layoutSlips(); layoutResult();
+}
+function layoutSlips(){
+  const n = slipEls.length;
+  if (!n) return;
+  const W = tableWrap.clientWidth, H = tableWrap.clientHeight, bw = box.hw*2, bh = box.hh*2;
+  const g = slipGrid(n, bw, bh);
+  const sw = Math.max(44, Math.floor(g.w)), sh = Math.round(sw/1.4);
+  slipsEl.style.setProperty('--sw', sw + 'px'); slipsEl.style.setProperty('--sh', sh + 'px');
+  const cw = bw/g.c, ch = bh/g.r;
+  slipPos = slipEls.map((el, i) => {
+    const row = Math.floor(i/g.c), inRow = Math.min(g.c, n - row*g.c), col = i - row*g.c, j = slipJit[i];
+    const x = W/2 - inRow*cw/2 + (col + .5)*cw + j.jx*Math.max(0, cw - sw*1.1);
+    const y = H/2 - bh/2 + (row + .5)*ch + j.jy*Math.max(0, ch - sh*1.15);
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    if (!el.classList.contains('taken')) el.style.transform = `rotate(${j.r}deg)`;
+    return {x, y, r:j.r};
+  });
+}
+function layoutResult(){
+  const w = Math.max(150, Math.min(300, box.hw*2 - 8));
+  $('#result').style.setProperty('--rw', w + 'px');
+  $('#result').classList.toggle('narrow', w < 220);
+}
+function sizeBig(){
+  const W = game.clientWidth, H = game.clientHeight, row = W > H*1.15 && H < 640;
+  $('#rvIn').classList.toggle('row', row);
+  const bw = row ? Math.min(250, (H - 40)/1.36, W*.38) : Math.min(290, W*.72, (H - 230)/1.36);
+  game.style.setProperty('--bw', Math.max(130, Math.floor(bw)) + 'px');
+}
+
+/* ---------- slips on the mat ---------- */
+function createSlips(n){
+  slipsEl.innerHTML = ''; slipEls = []; slipJit = [];
+  for (let i = 0; i < n; i++){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'slip'; b.dataset.i = i; b.tabIndex = -1;
+    b.setAttribute('aria-label', `Folded slip ${i + 1}`);
+    b.innerHTML = '<span class="paper under"></span><span class="paper"><span class="q">?</span></span>';
+    slipsEl.appendChild(b); slipEls.push(b);
+    slipJit.push({jx:rand(-.5, .5), jy:rand(-.5, .5), r:rand(-13, 13)});
+  }
+  layoutSlips();
+}
+async function shuffleAnim(n){
+  createSlips(n);
+  const W = tableWrap.clientWidth, H = tableWrap.clientHeight, R = Math.min(box.hw, box.hh, 140)*.8;
+  sfx('rustle');
+  const D = RM ? 1 : 1500;
+  slipEls.forEach((el, i) => {
+    const p = slipPos[i], kf = [], a0 = i/n*Math.PI*2;
+    for (let k = 0; k <= 10; k++){
+      const t = k/10, ang = a0 + t*Math.PI*3, r = R*Math.sin(Math.PI*t)*(.6 + .4*((i % 3)/2));
+      kf.push({transform:`translate(${W/2 + r*Math.cos(ang) - p.x}px,${H/2 + r*Math.sin(ang) - p.y}px) rotate(${(ang*57.3 + i*40) % 360}deg) scale(.8)`, offset:t*.7});
+    }
+    kf.push({transform:`translate(0px,0px) rotate(${p.r}deg) scale(1)`, offset:1});
+    el.animate(kf, {duration:D, delay:RM ? 0 : i*45, easing:'ease-in-out', fill:'backwards'});
+  });
+  if (!RM) setTimeout(() => sfx('rustle'), 700);
+  await sleep(RM ? 40 : D + n*45 + 120);
+}
+async function pickAnim(p, i, toCenter){
+  const el = slipEls[i];
+  if (!el) return;
+  el.classList.add('taken'); el.tabIndex = -1;
+  const pos = slipPos[i], tr = tableWrap.getBoundingClientRect();
+  let tx = tr.width/2, ty = tr.height/2, sc = 1.7;
+  if (!toCenter){ const a = center(avOf(p).getBoundingClientRect()); tx = a.x - tr.left; ty = a.y - tr.top; sc = .35; }
+  sfx('pick');
+  el.animate([
+    {transform:`rotate(${pos.r}deg)`},
+    {transform:`translate(${(tx - pos.x)*.25}px,${(ty - pos.y)*.25 - 26}px) rotate(${pos.r/2}deg) scale(1.25)`, offset:.35},
+    {transform:`translate(${tx - pos.x}px,${ty - pos.y}px) rotate(0deg) scale(${sc})`, opacity:toCenter ? 1 : .25},
+  ], {duration:RM ? 1 : 540, easing:'cubic-bezier(.4,.1,.3,1)', fill:'forwards'});
+  await sleep(RM ? 20 : 560);
+  el.style.visibility = 'hidden';
+}
+function clearRoundFx(){
+  slipsEl.innerHTML = ''; slipEls = []; slipPos = [];
+  $('#result').hidden = true; $('#result').innerHTML = '';
+  seatEls.forEach(s => s.classList.remove('accused', 'hit'));
+  clearBubbles(); setTurn(null);
+}
+
+/* ---------- the big slip ---------- */
+function slipNote(role, variant){
+  if (variant === 'elim') return {chor:'Caught = you are out!', police:'Name a wrong person = you are out!', citizen:'Safe this round.'}[role] || '';
+  if (variant === 'rmcs') return {raja:'+1000 for the king!', mantri:'+800, keep quiet.', citizen:'+300, relax.', police:'+500 if you catch the Chor', chor:'+500 if nobody catches you'}[role] || '';
+  return {chor:'+1000 if nobody catches you', police:'+1000 if you catch the Chor', citizen:'+500, relax!'}[role] || '';
+}
+function sheetHTML(role, variant){
+  const L = roleLabel(role, variant);
+  return `<div class="sheet r-${role}"><div class="s-ic">${icon(role, variant)}</div><div class="s-np${L.np.length > 4 ? ' long' : ''}">${L.np}</div><div class="s-en">${L.en.toUpperCase()}</div><div class="s-note">${esc(slipNote(role, variant))}</div></div>`;
+}
+function revealTip(role, variant){
+  const many = G && G.split && ((role === 'chor' && G.split.chor > 1) || (role === 'police' && G.split.police > 1));
+  const extra = many ? (role === 'chor' ? ' There are 2 Chors this round.' : ' There are 2 Police this round.') : '';
+  if (role === 'chor') return 'Keep a straight face, and bluff when it is your turn to talk.' + extra;
+  if (role === 'police') return (variant === 'rmcs' ? 'When the Raja calls, show yourself. Then find the Chor.' : 'You will show yourself, then find the Chor.') + extra;
+  if (role === 'raja') return 'You will show yourself and call for your Sipahi. Easy 1000!';
+  if (role === 'mantri') return 'Stay calm: the Police might suspect you.';
+  return variant === 'elim' ? 'You are safe this round. Help the Police!' : 'Relax and help the Police find the Chor.';
+}
+let rv = null;
+function revealSlip(role, o = {}){
+  finishReveal();
+  const big = $('#bigslip'), variant = G.variant, L = roleLabel(role, variant);
+  const sheet = sheetHTML(role, variant);
+  big.innerHTML = `<div class="half bot">${sheet}</div><div class="flap"><div class="face front">${sheet}</div><div class="face back"><span class="q">?</span></div></div>`;
+  $('#rvTitle').textContent = (o.name ? `${o.name}, you are ` : 'You are ') + (role === 'police' || role === 'raja' ? 'the ' : role === 'citizen' ? 'a ' : 'the ') + L.en + '!';
+  $('#rvSub').textContent = revealTip(role, variant);
+  $('#rvBtn').textContent = o.pass ? 'Fold & pass' : 'Fold it';
+  $('#rvText').classList.remove('show');
+  sizeBig();
+  $('#reveal').hidden = false;
+  big.className = 'bigslip folded enter';
+  void big.offsetWidth;
+  return new Promise(resolve => {
+    rv = {resolve, timers:[]};
+    rv.timers.push(setTimeout(() => big.classList.remove('enter'), 20));
+    rv.timers.push(setTimeout(() => { big.classList.remove('folded'); sfx('unfold'); }, RM ? 30 : 480));
+    rv.timers.push(setTimeout(() => { $('#rvText').classList.add('show'); $('#rvBtn').focus({preventScroll:true}); }, RM ? 40 : 1100));
+    if (o.wait) rv.timers.push(setTimeout(closeReveal, o.wait));
+  });
+}
+function closeReveal(){
+  if (!rv || rv.closing) return;
+  rv.closing = true;
+  const r = rv, big = $('#bigslip');
+  r.timers.forEach(clearTimeout);
+  big.classList.add('folded'); $('#rvText').classList.remove('show'); sfx('pick');
+  setTimeout(() => {
+    if (rv !== r) return;
+    big.classList.add('leave');
+    setTimeout(() => { if (rv === r) finishReveal(); }, RM ? 10 : 280);
+  }, RM ? 10 : 560);
+}
+function finishReveal(){
+  const r = rv; rv = null;
+  $('#reveal').hidden = true; $('#bigslip').innerHTML = '';
+  if (r){ r.timers.forEach(clearTimeout); r.resolve(); }
+}
+$('#rvBtn').addEventListener('click', closeReveal);
+
+/* ---------- your own input ---------- */
+function waitHuman(kind, timeout, fallback){
+  if (pending) pending.cancel();
+  return new Promise((resolve, reject) => {
+    let left = timeout;
+    const iv = setInterval(() => { if (paused) return; left -= 100; if (left <= 0) finish(fallback()); }, 100);
+    function finish(v){ if (!pending || pending.iv !== iv) return; clearInterval(iv); pending = null; resolve(v); }
+    pending = {kind, iv, finish, cancel(){ clearInterval(iv); if (pending && pending.iv === iv) pending = null; reject(new Cancel()); }};
+  });
+}
+function randomUntaken(){ const f = G.taken.map((t, i) => t ? -1 : i).filter(i => i >= 0); return f[Math.floor(Math.random()*f.length)]; }
+async function humanPick(ms){
+  closeReveal();
+  slipsEl.classList.add('pickable');
+  slipEls.forEach((el, i) => el.tabIndex = G.taken[i] ? -1 : 0);
+  sfx('turn');
+  try { return await waitHuman('pick', ms, randomUntaken); }
+  finally { slipsEl.classList.remove('pickable'); slipEls.forEach(el => el.tabIndex = -1); }
+}
+slipsEl.addEventListener('click', e => {
+  const el = e.target.closest('.slip');
+  if (!el || !pending || pending.kind !== 'pick') return;
+  const i = +el.dataset.i;
+  if (validPick(G.taken, i)) pending.finish(i);
+});
+let askKind = null;
+async function askChoice(kind, title, sub, options, ms, fallback){
+  closeReveal();
+  askKind = kind;
+  $('#askTitle').textContent = title; $('#askSub').textContent = sub;
+  const opts = $('#askOpts');
+  opts.innerHTML = options.map(o => `<button type="button" class="opt${o.cls ? ' ' + o.cls : ''}" data-v="${o.v}">${o.html}</button>`).join('');
+  opts.classList.toggle('two', options.length > 4 && !options.some(o => o.cls === 'line'));
+  $('#ask').hidden = false;
+  sfx('turn');
+  const fb = fallback || (() => options[Math.floor(Math.random()*options.length)].v);
+  try { return await waitHuman(kind, ms, fb); }
+  finally { $('#ask').hidden = true; askKind = null; }
+}
+$('#askOpts').addEventListener('click', e => {
+  const b = e.target.closest('.opt');
+  if (!b || !pending || pending.kind !== askKind) return;
+  pending.finish(+b.dataset.v);
+});
+const personOpt = (p, sub) => ({v:p, html:`<span class="dot" style="--c1:${colorOf(p)[0]};--c2:${colorOf(p)[1]}">${esc(initial(fullName(p)))}</span><span class="ot"><b>${esc(displayName(p))}</b>${sub ? `<i>${esc(sub)}</i>` : ''}</span>`});
+function humanLine(opts, ms){
+  const me = G.players[net.mySeat], role = me && me.slip;
+  const sub = role === 'chor' ? 'You are the Chor: pick a line to bluff with.' : 'Say something to the Police.';
+  return askChoice('line', 'Your turn to talk', sub, opts.map((id, k) => ({v:k, cls:'line', html:`<span class="tone t-${toneOf(id)}">${toneOf(id)}</span><span class="ot"><b>${esc(lineText(id, G.variant))}</b></span>`})), ms);
+}
+const toneMap = () => G.players.map(pl => toneOf(pl.line));
+function humanGuess(p, opts, ms){
+  const two = G.split && G.split.police > 1;
+  const sub = passMode ? (two ? `${fullName(p)}, pick secretly.` : `${fullName(p)}, who is it?`) : (two ? 'Name one suspect. The other Police will not see your pick.' : 'Name one suspect.');
+  return askChoice('guess', two ? 'Who is a Chor?' : 'Who is the Chor?', sub,
+    opts.map(s => personOpt(s, G.players[s].line ? `“${lineText(G.players[s].line, G.variant)}”` : '')), ms, () => botGuess(opts, toneMap()));
+}
+function cover(title, sub, btn, p, role){
+  closeReveal(); $('#ask').hidden = true;
+  $('#coverTitle').textContent = title; $('#coverSub').textContent = sub; $('#coverBtn').textContent = btn;
+  $('#coverArt').innerHTML = role ? `<div class="cv-ic">${icon(role, G.variant)}</div>` : p != null ? `<div class="cv-av" style="--c1:${colorOf(p)[0]};--c2:${colorOf(p)[1]}">${esc(initial(fullName(p)))}</div>` : '';
+  $('#cover').hidden = false;
+  $('#coverBtn').focus({preventScroll:true});
+  return waitHuman('cover', Infinity, () => {}).finally(() => { $('#cover').hidden = true; });
+}
+$('#coverBtn').addEventListener('click', () => { if (pending && pending.kind === 'cover') pending.finish(); });
+
+/* ---------- scoreboard ---------- */
+function showScores(mode){         // view | next (host) | wait (guest) | final
+  const ps = G.players, elim = G.variant === 'elim';
+  let order = ps.map((p, i) => i);
+  const outKey = i => ps[i].out ? ps[i].outRound : 999;
+  if (elim) order.sort((a, b) => outKey(b) - outKey(a) || a - b);
+  else order.sort((a, b) => ps[b].total - ps[a].total || a - b);
+  const best = Math.max(...ps.map(p => p.total));
+  const slipCell = p => p.lastRole ? `<td class="slipc r-${p.lastRole}">${icon(p.lastRole, G.variant)}<span>${roleLabel(p.lastRole, G.variant).en}</span></td>` : '<td class="zero">–</td>';
+  let html = elim ? '<thead><tr><th>Player</th><th>Last slip</th><th>Status</th></tr></thead><tbody>'
+                  : '<thead><tr><th>#</th><th>Player</th><th>Slip</th><th>Round</th><th>Total</th></tr></thead><tbody>';
+  order.forEach(i => {
+    const p = ps[i], c = colorOf(i), who = `<td class="who"><span class="dot" style="--c1:${c[0]};--c2:${c[1]}">${esc(initial(p.name))}</span>${esc(displayName(i))}</td>`;
+    const cls = [isMe(i) ? 'me' : '', p.out ? 'isout' : ''].join(' ');
+    if (elim) html += `<tr class="${cls}">${who}${slipCell(p)}<td class="${p.out ? 'st-out' : 'st-in'}">${p.out ? `Out (round ${p.outRound + 1})` : 'Still in'}</td></tr>`;
+    else {
+      const rank = ps.filter(q => q.total > p.total).length + 1;
+      html += `<tr class="${cls}"><td>${rank}</td>${who}${slipCell(p)}<td class="${p.last > 0 ? 'pos' : 'zero'}">${p.last == null ? '–' : (p.last > 0 ? '+' : '') + fmtPts(p.last)}</td><td class="tot${G.started && p.total === best && best > 0 ? ' lead' : ''}">${fmtPts(p.total)}</td></tr>`;
+    }
+  });
+  $('#scoreTable').innerHTML = html + '</tbody>';
+  const sub = $('#scoreSub'), title = $('#scoreTitle'), btns = $('#scoreBtns');
+  btns.innerHTML = '';
+  const addBtn = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn); btns.appendChild(b); return b; };
+  $('#scores').hidden = false;
+  if (mode === 'final'){
+    let winners;
+    if (elim) winners = activeSeats();
+    else winners = ps.map((p, i) => i).filter(i => ps[i].total === best);
+    const names = winners.map(displayName);
+    const meWin = winners.some(isMe);
+    title.textContent = winners.length === 1 ? (meWin ? 'You win!' : `${names[0]} wins!`) : (meWin ? `${names.filter(n => n !== 'You').join(' & ')} and you win!` : `${names.join(' & ')} win!`);
+    sub.textContent = (elim ? `Last ${winners.length} standing after ${G.round + 1} rounds` : `Final score ${fmtPts(best)} after ${G.rounds} rounds`) + (net.mode === 'client' ? ' · Waiting for the host to play again' : '');
+    if (net.mode !== 'client') addBtn('Play again', 'green', playAgain).focus();
+    addBtn('Close', 'ghost', () => { $('#scores').hidden = true; });
+    sfx(meWin || passMode ? 'win' : 'lose');
+    return;
+  }
+  if (mode === 'next' || mode === 'wait'){
+    title.textContent = `Round ${G.round + 1} done`;
+    sub.textContent = (G.summary || '') + (mode === 'wait' ? ` Waiting for ${ps[0].name} to start the next round…` : '');
+    if (mode === 'wait') return;
+    const p = waitHuman('next', Infinity, () => {});
+    addBtn('Next round', 'green', () => { if (pending && pending.kind === 'next') pending.finish(); }).focus();
+    return p.finally(() => { $('#scores').hidden = true; });
+  }
+  title.textContent = 'Scoreboard';
+  sub.textContent = G.started ? (elim ? `Round ${G.round + 1} · ${activeSeats().length} still in` : `Round ${G.round + 1} of ${G.rounds}`) : 'No rounds played yet';
+  setPaused(true);
+  addBtn('Close', '', () => { $('#scores').hidden = true; setPaused(false); }).focus();
+}
+
+/* ---------- game events (same on every device) ---------- */
+function freshState(seats, variant = 'points', rounds = 5, roles = null){
+  return {round:0, rounds, variant, roleCfg:roles || autoRoles(variant, seats.length), started:false, phase:'idle', split:null, taken:[], summary:'',
+    players:seats.map(s => ({name:s.name, kind:s.kind, slip:null, picked:false, line:null, total:0, last:null, lastRole:null, out:false, outRound:-1}))};
+}
+async function apply(ev){
+  switch (ev.t){
+    case 'start':
+      if (ev.me != null) net.mySeat = ev.me;
+      G = freshState(ev.seats, ev.variant, ev.rounds, ev.roles); G.started = true;
+      net.inGame = true;
+      finishReveal();
+      ['#splash','#setup','#lobby','#scores','#menu','#rules','#share','#notice','#cover','#ask'].forEach(s => $(s).hidden = true);
+      buildSeats(N()); clearRoundFx(); refreshLayout();
+      $('#netTag').hidden = !online();
+      hint('');
+      break;
+    case 'seat':
+      G.players[ev.p].name = ev.name; G.players[ev.p].kind = ev.kind; updateSeat(ev.p);
+      break;
+    case 'round': {
+      $('#scores').hidden = true;
+      G.round = ev.round; G.phase = 'shuffle'; G.split = ev.split; G.taken = Array(ev.n).fill(false); G.summary = '';
+      G.players.forEach(p => { p.slip = null; p.picked = false; p.line = null; });
+      clearRoundFx(); updateAll();
+      banner(`Round ${G.round + 1}`);
+      hint(`Shuffling ${ev.n} slips · ${splitText(G.variant, ev.n, ev.split).replace(/^\d+ players: /, '')}`);
+      await sleep(1000);
+      await shuffleAnim(ev.n);
+      G.phase = 'pick';
+      break;
+    }
+    case 'turn': {
+      setTurn(ev.p, ev.ms);
+      const me = isMe(ev.p), nm = fullName(ev.p);
+      if (ev.phase === 'pick') hint(me ? 'Your turn: tap a folded slip' : passMode ? `${nm}'s turn to pick a slip` : `${nm} is picking a slip…`);
+      else if (ev.phase === 'line') hint(me ? 'Your turn to talk' : `${nm} is talking…`);
+      else if (ev.phase === 'guess') hint(me ? 'You are the Police: name the Chor!' : passMode ? `Police ${nm}: name the Chor` : `Police ${nm} is deciding…`);
+      if (me && net.mode === 'client') guestPrompt(ev);
+      break;
+    }
+    case 'pick': {
+      if (isMe(ev.p) && pending && pending.kind === 'pick') pending.finish(null);
+      G.taken[ev.i] = true;
+      const pl = G.players[ev.p];
+      pl.picked = true;
+      const mine = !!ev.role && (passMode || ev.p === net.mySeat);
+      setTurn(null);
+      await pickAnim(ev.p, ev.i, mine);
+      if (mine && !passMode) pl.slip = ev.role;
+      updateSeat(ev.p);
+      if (mine){
+        if (passMode){ await revealSlip(ev.role, {name:pl.name, pass:true}); await sleep(30); }
+        else if (net.mode === 'solo'){ await revealSlip(ev.role, {wait:8000}); await sleep(80); }
+        else revealSlip(ev.role, {wait:5000});      // online: don't hold up the table
+      }
+      break;
+    }
+    case 'show': {
+      const pl = G.players[ev.p];
+      pl.slip = ev.role; updateSeat(ev.p, true);
+      setTurn(null);
+      if (ev.role === 'raja'){
+        sfx('fanfare');
+        banner(isMe(ev.p) ? 'You are the Raja!' : `राजा: ${fullName(ev.p)}`);
+        bubble(ev.p, 'म राजा!', 1500);
+        hint(`${displayName(ev.p)} ${isMe(ev.p) ? 'are' : 'is'} the Raja`);
+      } else {
+        sfx('whistle');
+        banner(isMe(ev.p) ? 'You are the Police!' : `${G.variant === 'rmcs' ? 'सिपाही' : 'पुलिस'}: ${fullName(ev.p)}`);
+        bubble(ev.p, G.variant === 'rmcs' ? 'हजुर, म सिपाही!' : 'म पुलिस!', 1800, 'police');
+        hint(`${displayName(ev.p)} ${isMe(ev.p) ? 'are' : 'is'} the Police`);
+      }
+      await sleep(1900);
+      break;
+    }
+    case 'say': {
+      if (isMe(ev.p) && pending && pending.kind === 'line') pending.finish(null);
+      G.players[ev.p].line = ev.id;
+      setTurn(null);
+      bubble(ev.p, lineText(ev.id, G.variant), 3000, 'pr'.includes(ev.id[0]) ? 'police' : '');
+      sfx('pop');
+      await sleep(ev.id[0] === 'r' ? 1500 : 1800);
+      break;
+    }
+    case 'talkout':
+      banner('Talk it out!');
+      hint('Talk out loud! Police, ask questions, then name the Chor.');
+      await sleep(1600);
+      break;
+    case 'guessed':
+      setTurn(null);
+      hint(`${displayName(ev.p)} ${isMe(ev.p) ? 'have' : 'has'} named a suspect`);
+      sfx('pop');
+      await sleep(500);
+      break;
+    case 'accuse': {
+      if (pending && pending.kind === 'guess') pending.finish(null);
+      setTurn(null);
+      const pairs = Object.entries(ev.acc).map(([p, s]) => [+p, +s]);
+      for (const [p, s] of pairs){
+        seatOf(s).classList.add('accused');
+        bubble(p, isMe(s) ? 'तिमी नै चोर!' : `तिमी नै चोर, ${fullName(s)}!`, 2600, 'police');
+        sfx('tweet');
+        await sleep(pairs.length > 1 ? 700 : 300);
+      }
+      hint(pairs.map(([p, s]) => `${displayName(p)} → ${displayName(s)}`).join(' · '));
+      await sleep(1400);
+      break;
+    }
+    case 'reveal': {
+      G.phase = 'reveal';
+      const acc = Object.entries(ev.acc).map(([p, s]) => [+p, +s]);
+      ev.roles.forEach((r, i) => {
+        const p = G.players[i];
+        if (!r) return;
+        p.slip = r; p.lastRole = r; p.last = ev.pts[i]; p.total += ev.pts[i];
+      });
+      sfx('rustle');
+      ev.roles.forEach((r, i) => { if (r) setTimeout(() => updateSeat(i, true), RM ? 0 : (view(i)*70)); });
+      await sleep(700);
+      sfx('sting');
+      const chors = seatsWith(ev.roles, 'chor'), caught = new Set(ev.caught);
+      acc.forEach(([p]) => seatOf(p).classList.toggle('hit', ev.roles[acc.find(a => a[0] === p)[1]] === 'chor'));
+      const allCaught = chors.every(c => caught.has(c)), noneCaught = !chors.some(c => caught.has(c));
+      banner(allCaught ? (chors.length > 1 ? 'Both Chors caught!' : 'Chor caught!') : noneCaught ? (chors.length > 1 ? 'The Chors escaped!' : 'Chor escaped!') : 'One Chor caught!');
+      chors.forEach(c => bubble(c, caught.has(c) ? 'ओहो, समातियो!' : 'हाहा, भागेँ!', 2600, caught.has(c) ? 'bad' : 'good'));
+      await sleep(RM ? 100 : 1500);
+      showResult(ev, acc);
+      if (G.variant !== 'elim') ev.roles.forEach((r, i) => { if (r) showPts(i, ev.pts[i]); });
+      const cn = chors.map(c => displayName(c));
+      const was = list => list.length > 1 || list.some(isMe) ? 'were' : 'was';
+      const caughtL = chors.filter(c => caught.has(c)), freeL = chors.filter(c => !caught.has(c));
+      G.summary = allCaught ? `${cn.join(' & ')} ${was(chors)} caught.` : noneCaught ? `${cn.join(' & ')} got away.` : `${caughtL.map(displayName).join('')} ${was(caughtL)} caught, ${freeL.map(displayName).join('')} got away.`;
+      if (G.variant === 'elim' && ev.out.length) G.summary += ` Out: ${ev.out.map(displayName).join(', ')}.`;
+      hint(G.summary);
+      const me = !passMode && ev.roles[net.mySeat] ? ev.pts[net.mySeat] : null;
+      await sleep(1200);
+      if (G.variant === 'elim' && ev.out.length){
+        ev.out.forEach(i => { G.players[i].out = true; G.players[i].outRound = G.round; updateSeat(i); });
+        sfx(ev.out.includes(net.mySeat) && !passMode ? 'lose' : 'buzz');
+        updateTop();
+      } else if (me != null) sfx(me > 0 ? 'win' : 'lose');
+      updateAll();
+      await sleep(1500);
+      break;
+    }
+    case 'roundEnd':
+      G.phase = 'done';
+      if (net.mode === 'client') showScores(ev.last ? 'final' : 'wait');
+      break;
+  }
+}
+function showResult(ev, acc){
+  const el = $('#result'), chors = seatsWith(ev.roles, 'chor'), caught = new Set(ev.caught), named = new Set(acc.map(a => a[1]));
+  const allCaught = chors.every(c => caught.has(c)), noneCaught = !chors.some(c => caught.has(c));
+  const stamp = allCaught ? `<div class="stamp ok">पक्राउ! · CAUGHT</div>` : noneCaught ? `<div class="stamp">भाग्यो! · ESCAPED</div>` : `<div class="stamp">आधा! · 1 OF 2 CAUGHT</div>`;
+  const rows = acc.map(([p, s]) => {
+    const ok = ev.roles[s] === 'chor';
+    return `<div class="rrow">${icon('police', G.variant)}<span class="rn">${esc(displayName(p))}</span><span class="ar">→</span>${icon(ev.roles[s], G.variant)}<span class="rn">${esc(displayName(s))}</span><span class="mk ${ok ? 'y' : 'n'}">${ok ? '✓' : '✗'}</span></div>`;
+  });
+  chors.filter(c => !named.has(c)).forEach(c => rows.push(`<div class="rrow">${icon('chor', G.variant)}<span class="rn">${esc(displayName(c))}</span><span class="mk n" style="font-size:12px">got away</span></div>`));
+  el.innerHTML = stamp + `<div class="rlist">${rows.join('')}</div>`;
+  el.hidden = false;
+  layoutResult();
+}
+
+/* ---------- host: runs the game and tells everyone ---------- */
+async function emit(ev, perSeat){
+  if (net.mode === 'host'){
+    for (let s = 0; s < net.conns.length; s++){
+      if (s === net.mySeat) continue;
+      const c = net.conns[s];
+      if (c && c.open){ try { c.send(perSeat ? perSeat(s) : ev); } catch(e){} }
+    }
+  }
+  await apply(perSeat ? perSeat(net.mySeat) : ev);
+}
+function cancelWaiting(){ Object.values(waiting).forEach(w => w.cancel()); waiting = {}; }
+function stopAll(){
+  gen++;
+  if (pending) pending.cancel();
+  cancelWaiting();
+  finishReveal();
+  $('#cover').hidden = true; $('#ask').hidden = true;
+  setPaused(false);
+}
+async function hostGame(seats, st){
+  stopAll();
+  S = {};
+  try {
+    await emit(null, s => ({t:'start', seats, variant:st.variant, rounds:st.rounds, roles:st.roles, me:s}));
+    for (let r = 0; ; r++){
+      const last = await hostRound(r);
+      if (last){ showScores('final'); break; }
+      await showScores('next');
+    }
+  } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
+}
+async function hostRound(r){
+  const V = G.variant, active = activeSeats(), n = active.length, total = N();
+  const split = roleSplit(V, n, G.roleCfg);
+  const pile = dealSlips(V, n, G.roleCfg);
+  S = {roles:Array(total).fill(null), opts:{}, gopts:{}};
+  await emit({t:'round', round:r, n, split});
+  const first = r % n;
+  for (let k = 0; k < n; k++){
+    const p = active[(first + k) % n];
+    await emit({t:'turn', p, ms:passMode ? 0 : G.players[p].kind === 'bot' ? 900 : PICK_TIME, phase:'pick'});
+    const i = await getPick(p);
+    S.roles[p] = pile[i];
+    if (passMode) await emit({t:'pick', p, i, role:pile[i]});
+    else await emit(null, pickEvent(p, i, pile[i]));
+  }
+  const police = seatsWith(S.roles, 'police');
+  if (passMode) await cover('Everyone has a slip!', 'Put the phone where everyone can see it.', 'Continue');
+  if (V === 'rmcs'){
+    const raja = S.roles.indexOf('raja');
+    if (passMode) await passFind('raja');
+    else await emit({t:'show', p:raja, role:'raja'});
+    await emit({t:'say', p:raja, id:'r0'});
+  }
+  if (passMode) await passFind('police');
+  else {
+    for (const p of police){
+      await emit({t:'show', p, role:'police'});
+      if (V !== 'rmcs') await emit({t:'say', p, id:'p' + Math.floor(Math.random()*OPENERS.p.length)});
+    }
+  }
+  const suspects = suspectsFor(S.roles);
+  if (!passMode){
+    const used = new Set(), start = police[0];
+    const order = suspects.slice().sort((a, b) => ((a - start + total) % total) - ((b - start + total) % total));
+    for (const p of order){
+      const opts = lineOptions(used);
+      S.opts[p] = opts;
+      const kind = G.players[p].kind;
+      await emit(null, s => s === p ? {t:'turn', p, ms:kind === 'bot' ? 900 : LINE_TIME, phase:'line', opts} : {t:'turn', p, ms:kind === 'bot' ? 900 : LINE_TIME, phase:'line'});
+      let id;
+      if (p === net.mySeat) id = opts[await humanLine(opts, LINE_TIME)];
+      else if (kind === 'remote') id = await remoteAsk(p, 'line', LINE_TIME, () => pick(opts));
+      else { await sleep(rand(600, 1100)); id = botLine(S.roles[p], used); }
+      used.add(id);
+      await emit({t:'say', p, id});
+    }
+  } else await emit({t:'talkout'});
+  const acc = {};
+  for (const p of police){
+    S.gopts[p] = suspects.slice();
+    await emit({t:'turn', p, ms:passMode ? 0 : G.players[p].kind === 'bot' ? 1400 : GUESS_TIME, phase:'guess', opts:suspects});
+    acc[p] = await getGuess(p, suspects, police.length > 1);
+    if (police.length > 1) await emit({t:'guessed', p});
+  }
+  const res = resolveRound(V, S.roles, acc);
+  await emit({t:'accuse', acc});
+  await emit({t:'reveal', roles:S.roles, acc, caught:res.caught, pts:res.pts, out:res.out});
+  const last = V === 'elim' ? activeSeats().length <= 2 : r >= G.rounds - 1;
+  await emit({t:'roundEnd', last});
+  return last;
+}
+async function passFind(role){
+  const need = seatsWith(S.roles, role), found = new Set();
+  const nm = role === 'raja' ? 'Raja' : 'Police';
+  while (found.size < need.length){
+    const left = activeSeats().filter(i => !found.has(i));
+    const title = role === 'raja' ? 'Who is the Raja?' : need.length > 1 ? (found.size ? 'Who is the other Police?' : 'Who are the Police?') : 'Who is the Police?';
+    const sub = role === 'raja' ? 'Raja, tap your name.' : need.length > 1 && !found.size ? 'Each Police, tap your own name.' : 'Police, tap your name.';
+    const s = await askChoice('who', title, sub, left.map(i => personOpt(i)), Infinity);
+    if (need.includes(s) && !found.has(s)){ found.add(s); await emit({t:'show', p:s, role}); }
+    else { sfx('buzz'); toast(`${fullName(s)} is not ${role === 'raja' ? 'the Raja' : 'a Police'}. Only the ${nm} should tap!`); }
+  }
+}
+async function getPick(p){
+  const pl = G.players[p];
+  if (passMode){
+    await cover(`Pass the phone to ${pl.name}`, `Only ${pl.name} should look now. No peeking, everyone else!`, `I'm ${pl.name}`, p);
+    await emit({t:'turn', p, ms:0, phase:'pick'});
+    return humanPick(Infinity);
+  }
+  if (p === net.mySeat) return humanPick(PICK_TIME);
+  if (pl.kind === 'remote') return remoteAsk(p, 'pick', PICK_TIME, randomUntaken);
+  await sleep(rand(450, 900));
+  return randomUntaken();
+}
+async function getGuess(p, opts, secret){
+  const pl = G.players[p];
+  if (passMode){
+    if (secret) await cover(`Police ${pl.name}, take the phone`, 'Name your suspect secretly. Nobody else should look.', `I'm ${pl.name}`, null, 'police');
+    return humanGuess(p, opts, Infinity);
+  }
+  if (p === net.mySeat) return humanGuess(p, opts, GUESS_TIME);
+  if (pl.kind === 'remote') return remoteAsk(p, 'guess', GUESS_TIME, () => botGuess(opts, toneMap()));
+  await sleep(rand(1100, 1900));
+  return botGuess(opts, toneMap());
+}
+function remoteAsk(p, kind, ms, fallback){
+  const g = gen;
+  return new Promise(resolve => {
+    let left = ms + GRACE;
+    const iv = setInterval(() => { left -= 100; if (left <= 0) w.done(fallback()); }, 100);
+    const w = {kind, fallback,
+      done(v){ clearInterval(iv); if (waiting[p] !== w) return; delete waiting[p]; resolve(v); },
+      cancel(){ clearInterval(iv); }};
+    waiting[p] = w;
+  }).then(v => { if (g !== gen) throw new Cancel(); return v; });
+}
+function onGuestMove(seat, d){
+  const w = waiting[seat];
+  if (!w || !d) return;
+  if (d.t === 'pick' && w.kind === 'pick'){
+    const i = Math.floor(+d.i);
+    if (validPick(G.taken, i)) w.done(i);
+  } else if (d.t === 'line' && w.kind === 'line'){
+    const k = Math.floor(+d.k), opts = S.opts[seat];
+    if (opts && k >= 0 && k < opts.length) w.done(opts[k]);
+  } else if (d.t === 'guess' && w.kind === 'guess'){
+    const s = Math.floor(+d.s);
+    if (validGuess(S.gopts[seat] || [], s)) w.done(s);
+  }
+}
+let lastLocal = null;
+function playAgain(){
+  if (net.mode === 'host'){
+    for (let s = 1; s < MAXP; s++) if (net.slots[s] && !(net.lconns[s] && net.lconns[s].open)){ net.lconns[s] = null; net.slots[s] = null; }
+    startOnline();
+  } else if (lastLocal) lastLocal();
+}
+function botNames(k, avoid){
+  const taken = new Set(avoid.map(n => n.toLowerCase()));
+  return shuffle(BOT_NAMES.filter(n => !taken.has(n.toLowerCase()))).slice(0, k);
+}
+const curSettings = kind => ({variant:cfg.variant, players:cfg[kind], rounds:cfg.rounds, roles:fitRoles(cfg.variant, cfg[kind], cfg.roles), auto:cfg.auto});
+function startBots(){
+  const st = curSettings('bots'), me = myName || 'You';
+  passMode = false; resetOnline();
+  const seats = [{name:me, kind:'human'}, ...botNames(st.players - 1, [me]).map(n => ({name:n, kind:'bot'}))];
+  lastLocal = startBots;
+  hostGame(seats, st);
+}
+function startPass(){
+  const st = curSettings('pass');
+  resetOnline(); passMode = true;
+  const used = new Set(), seats = [];
+  for (let i = 0; i < st.players; i++){
+    let n = cleanName(cfg.names[i]) || `Player ${i + 1}`, base = n, k = 2;
+    while (used.has(n.toLowerCase())) n = `${base.slice(0, 11)} ${k++}`;
+    used.add(n.toLowerCase());
+    seats.push({name:n, kind:'human'});
+  }
+  lastLocal = startPass;
+  hostGame(seats, st);
+}
+function startOnline(){
+  const st = net.st, seats = [], conns = Array(MAXP).fill(null);
+  for (let slot = 0; slot < MAXP; slot++){
+    const s = net.slots[slot];
+    if (!s) continue;
+    const gs = seats.length;
+    seats.push({name:s.name, kind:slot === 0 ? 'human' : 'remote'});
+    if (slot){ const c = net.lconns[slot]; if (c){ c.seat = gs; conns[gs] = c; } }
+  }
+  const size = Math.max(st.players, seats.length, VARIANTS[st.variant].min);
+  botNames(size - seats.length, seats.map(s => s.name)).forEach(n => seats.push({name:n, kind:'bot'}));
+  net.conns = conns; net.mySeat = 0;
+  passMode = false;
+  hostGame(seats, {...st, roles:fitRoles(st.variant, seats.length, st.roles)});
+}
+
+/* ---------- guest: follows the host ---------- */
+async function guestPrompt(ev){
+  try {
+    if (ev.phase === 'pick'){ const i = await humanPick(PICK_TIME); if (i != null) sendHost({t:'pick', i}); }
+    else if (ev.phase === 'line'){ const k = await humanLine(ev.opts || [], LINE_TIME); if (k != null) sendHost({t:'line', k}); }
+    else if (ev.phase === 'guess'){ const s = await humanGuess(ev.p, ev.opts || [], GUESS_TIME); if (s != null) sendHost({t:'guess', s}); }
+  } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
+}
+function sendHost(msg){ try { if (net.host && net.host.open) net.host.send(msg); } catch(e){} }
+function onHostMessage(d){
+  if (!d || typeof d !== 'object') return;
+  if (d.t === 'welcome'){ net.mySlot = d.slot; return; }
+  if (d.t === 'dropped'){ net.dropped = true; return; }
+  if (d.t === 'reject'){ lobbyMsg(d.reason || 'The host could not seat you.', true); return; }
+  if (d.t === 'lobby'){ net.slots = d.slots; net.st = d.st; net.code = d.code || net.code; renderLobby(); return; }
+  if (d.t === 'start'){ gen++; if (pending) pending.cancel(); finishReveal(); clientChain = Promise.resolve(); }
+  const g = gen;
+  clientChain = clientChain.then(() => g === gen ? apply(d) : null)
+    .catch(e => { if (!(e instanceof Cancel)) console.error(e); });
+}
+
+/* ---------- networking (peer-to-peer, no server or database) ---------- */
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+const joinUrl = code => siteUrl() + '?join=' + code;
+const randomCode = () => Array.from({length:5}, () => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join('');
+const readName = () => { myName = cleanName($('#playerName').value) || myName || ''; if (myName) saveName(myName); return myName; };
+
+function onlineUnavailable(){
+  notice('Online play is unavailable', 'The online service did not load. Check your internet connection, or open the game from its website link.');
+}
+function createTable(){
+  if (!window.Peer) return onlineUnavailable();
+  readName();
+  resetOnline();
+  passMode = false;
+  net.mode = 'host'; net.mySeat = 0; net.mySlot = 0;
+  net.slots = Array(MAXP).fill(null); net.slots[0] = {name:myName || 'Host', kind:'human'};
+  net.lconns = Array(MAXP).fill(null);
+  const pl = Math.max(VARIANTS[cfg.variant].min, Math.min(VARIANTS[cfg.variant].max, cfg.bots));
+  net.st = {variant:cfg.variant, players:pl, rounds:cfg.rounds, roles:fitRoles(cfg.variant, pl, cfg.roles), auto:cfg.auto};
+  openLobby();
+  lobbyMsg('Opening your table…');
+  const code = randomCode();
+  const peer = new Peer(PEER_PREFIX + code);
+  net.peer = peer;
+  peer.on('open', () => { if (net.peer !== peer) return; net.code = code; lobbyMsg(''); broadcastLobby(); });
+  // a phone that vanishes without closing the connection: after 30s of silence a bot takes the seat
+  net.hb = setInterval(() => {
+    if (net.peer !== peer) return;
+    const now = Date.now();
+    [...net.lconns, ...net.conns].forEach(c => {
+      if (!c || !c.lastSeen || now - c.lastSeen < HB_DROP) return;
+      c.lastSeen = 0;
+      try { c.send({t:'dropped'}); } catch(e){}
+      guestLeft(c);
+      setTimeout(() => { try { c.close(); } catch(e){} }, 300);
+    });
+  }, 2000);
+  peer.on('disconnected', () => { if (net.peer === peer && !peer.destroyed) peer.reconnect(); });
+  peer.on('error', err => {
+    if (net.peer !== peer) return;
+    if (err.type === 'unavailable-id'){ peer.destroy(); createTable(); return; }
+    if (!net.inGame && !net.code) lobbyMsg("Couldn't open a table. Check your internet connection and try again.", true);
+  });
+  peer.on('connection', conn => {
+    conn.on('data', d => {
+      if (net.peer !== peer || !d) return;
+      conn.lastSeen = Date.now();
+      if (d.t === 'hb') return;
+      if (d.t === 'hello'){
+        if (net.inGame){ conn.send({t:'reject', reason:'This game has already started. Ask the host to start a new table.'}); setTimeout(() => conn.close(), 600); return; }
+        const s = net.slots.findIndex((x, i) => i > 0 && !x);
+        if (s < 0){ conn.send({t:'reject', reason:'This table is full.'}); setTimeout(() => conn.close(), 600); return; }
+        conn.slot = s;
+        net.lconns[s] = conn;
+        net.slots[s] = {name:cleanName(d.name) || `Player ${s + 1}`, kind:'remote'};
+        const humans = net.slots.filter(Boolean).length;
+        if (humans > net.st.players) setLobbyPlayers(humans);
+        conn.send({t:'welcome', slot:s});
+        broadcastLobby();
+        toast(`${net.slots[s].name} joined the table`); sfx('turn');
+        return;
+      }
+      if (conn.seat != null && net.conns[conn.seat] === conn) onGuestMove(conn.seat, d);
+    });
+    conn.on('close', () => guestLeft(conn));
+    conn.on('error', () => guestLeft(conn));
+  });
+}
+function setLobbyPlayers(n){
+  const st = net.st, V = VARIANTS[st.variant];
+  st.players = Math.max(V.min, Math.min(V.max, n));
+  st.roles = st.auto ? autoRoles(st.variant, st.players) : fitRoles(st.variant, st.players, st.roles);
+}
+function guestLeft(conn){
+  if (net.mode !== 'host') return;
+  if (!net.inGame){
+    const s = conn.slot;
+    if (s == null || net.lconns[s] !== conn) return;
+    const name = net.slots[s] ? net.slots[s].name : 'A player';
+    net.lconns[s] = null; net.slots[s] = null;
+    broadcastLobby(); toast(`${name} left the table`);
+    return;
+  }
+  const s = conn.seat;
+  if (s == null || net.conns[s] !== conn) return;
+  net.conns[s] = null;
+  if (conn.slot != null && net.lconns[conn.slot] === conn){ net.lconns[conn.slot] = null; net.slots[conn.slot] = null; }
+  const name = G.players[s] ? G.players[s].name : 'A player';
+  emit({t:'seat', p:s, name, kind:'bot'}).catch(() => {});
+  toast(`${name} left. A bot took over their seat.`);
+  const w = waiting[s];
+  if (w) w.done(w.fallback());
+}
+function broadcastLobby(){
+  const slots = net.slots.map(s => s ? {name:s.name, kind:s.kind} : null);
+  for (let s = 1; s < MAXP; s++){ const c = net.lconns[s]; if (c && c.open) try { c.send({t:'lobby', slots, st:net.st, code:net.code}); } catch(e){} }
+  renderLobby();
+}
+function joinTable(code){
+  if (!window.Peer) return onlineUnavailable();
+  code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+  if (code.length !== 5){ $('#joinCode').focus(); toast('Enter the 5-character table code'); return; }
+  readName();
+  resetOnline();
+  passMode = false;
+  net.mode = 'client'; net.code = code; net.slots = null; net.st = null;
+  openLobby();
+  lobbyMsg('Connecting to the table…');
+  const peer = new Peer();
+  net.peer = peer;
+  peer.on('open', () => {
+    if (net.peer !== peer) return;
+    const conn = peer.connect(PEER_PREFIX + code, {reliable:true});
+    net.host = conn;
+    const timer = setTimeout(() => { if (net.host === conn && !conn.open) lobbyMsg("Couldn't reach that table. Check the code, and make sure the host still has the game open.", true); }, 15000);
+    conn.on('open', () => {
+      clearTimeout(timer); lobbyMsg(''); conn.send({t:'hello', name:myName || 'Friend'});
+      clearInterval(net.hb); net.hb = setInterval(() => sendHost({t:'hb'}), 3000);
+    });
+    conn.on('data', d => { if (net.host === conn) onHostMessage(d); });
+    conn.on('close', () => { if (net.host === conn) hostLeft(); });
+  });
+  peer.on('error', err => {
+    if (net.peer !== peer) return;
+    if (err.type === 'peer-unavailable') lobbyMsg("That table isn't open anymore. Ask your friend for a new link.", true);
+    else if (!net.inGame) lobbyMsg("Couldn't connect. Check your internet connection and try again.", true);
+  });
+}
+function hostLeft(){
+  if (net.mode !== 'client') return;
+  const wasPlaying = net.inGame, dropped = net.dropped;
+  leaveOnline(false);
+  if (dropped) return notice('You were disconnected', 'The table did not hear from your phone for a while, so a bot took over your seat.');
+  notice('The host left the table', wasPlaying ? 'The game ended because the host closed it.' : 'The table was closed before the game started.');
+}
+function resetOnline(){
+  stopAll();
+  const peer = net.peer;
+  clearInterval(net.hb);
+  Object.assign(net, {hb:0, dropped:false, mode:'solo', mySeat:0, mySlot:0, peer:null, conns:[], lconns:[], host:null, code:'', slots:null, st:null, inGame:false});
+  try { peer && peer.destroy(); } catch(e){}
+  $('#netTag').hidden = true;
+}
+function idleTable(){
+  clearRoundFx();
+  G = freshState([{name:myName || 'You', kind:'human'}, ...BOT_NAMES.slice(0, 4).map(n => ({name:n, kind:'bot'}))]);
+  buildSeats(N()); refreshLayout(); hint('');
+}
+function leaveOnline(showSplash = true){
+  resetOnline();
+  idleTable();
+  ['#lobby','#scores','#menu','#share'].forEach(s => $(s).hidden = true);
+  if (showSplash) showSplashScreen();
+}
+function goHome(){
+  if (online()) return leaveOnline();
+  stopAll(); passMode = false; idleTable();
+  ['#scores','#menu','#share','#rules','#setup'].forEach(s => $(s).hidden = true);
+  showSplashScreen();
+}
+
+/* ---------- settings form (setup and lobby) ---------- */
+function stepper(key, val, canDown, canUp, label){
+  return `<div class="stepper"><button type="button" class="sbtn" data-act="${key}-" aria-label="Fewer ${label}" ${canDown ? '' : 'disabled'}>−</button><b>${val}</b><button type="button" class="sbtn" data-act="${key}+" aria-label="More ${label}" ${canUp ? '' : 'disabled'}>+</button></div>`;
+}
+function settingsHTML(st, o){
+  const V = VARIANTS[st.variant], n = st.players, sp = roleSplit(st.variant, n, st.roles), lim = roleLimits(st.variant, n, st.roles);
+  const rm = st.variant === 'rmcs';
+  const desc = {points:'Citizens +500. Police who catch a Chor +1000. A Chor who gets away +1000.', elim:'Caught Chors are out. A Police who names the wrong person is out. Last 2 win.', rmcs:'Raja 1000 · Mantri 800 · Citizens 300 · Police 500 for a catch, or the Chor gets 500.'}[st.variant];
+  const roleRow = (role, label, np, val, l) => `<div class="rolerow r-${role}"><span class="ric">${icon(role, st.variant)}</span><span class="rnm">${label}<small>${np}</small></span>${l ? stepper(role, val, val > l[0], val < l[1], label) : `<span class="fix">${val}</span>`}</div>`;
+  let h = `<div class="form">
+    <div class="srow"><span class="slbl">Mode</span></div>
+    <div class="seg seg3" role="group" aria-label="Mode">${Object.values(VARIANTS).map(v => `<button type="button" data-act="v:${v.key}" aria-pressed="${st.variant === v.key}">${v.short}</button>`).join('')}</div>
+    <p class="snote">${desc}</p>
+    <div class="srow"><span class="slbl">Players</span>${stepper('n', n, n > Math.max(V.min, o.minPlayers || 0), n < V.max, 'players')}</div>`;
+  if (o.botsNote) h += `<p class="snote">You + ${plural(n - 1, 'bot')}</p>`;
+  if (o.names){
+    h += '<div class="names">';
+    for (let i = 0; i < n; i++) h += `<input class="tinput" data-name="${i}" maxlength="14" placeholder="Player ${i + 1}" aria-label="Player ${i + 1} name" value="${esc(cleanName(cfg.names[i]))}">`;
+    h += '</div>';
+  }
+  h += `<div class="srow"><span class="slbl">Roles</span><button type="button" class="autobtn" data-act="auto" aria-pressed="${!!st.auto}">Auto</button></div>
+    <div class="roles">
+      ${rm ? roleRow('raja', 'Raja', 'राजा', 1, null) + roleRow('mantri', 'Mantri', 'मन्त्री', sp.mantri, lim.mantri) : ''}
+      ${roleRow('chor', 'Chor', 'चोर', sp.chor, lim.chor)}
+      ${roleRow('police', 'Police', rm ? 'सिपाही' : 'पुलिस', sp.police, lim.police)}
+      ${roleRow('citizen', 'Citizens', rm ? 'प्रजा' : 'नागरिक', sp.citizen, null)}
+    </div>
+    <p class="split">${splitText(st.variant, n, st.roles)}</p>
+    <p class="snote">${n < 6 ? `2 Chor, 2 Police${rm ? ' or 2 Mantri' : ''} need 6 or more players.` : `With ${n} players you can have up to 2 Chor and 2 Police${rm ? ' (and 2 Mantri)' : ''}.`}</p>`;
+  h += st.variant === 'elim' ? '<p class="snote">Elimination plays until only 2 are left.</p>'
+    : `<div class="srow"><span class="slbl">Rounds</span><div class="seg" role="group" aria-label="Rounds"><button type="button" data-act="r:5" aria-pressed="${st.rounds === 5}">5</button><button type="button" data-act="r:10" aria-pressed="${st.rounds === 10}">10</button></div></div>`;
+  return h + '</div>';
+}
+function settingsAct(st, act, minPlayers){
+  const refit = () => { st.roles = st.auto ? autoRoles(st.variant, st.players) : fitRoles(st.variant, st.players, st.roles); };
+  if (act.startsWith('v:')){ st.variant = act.slice(2); const V = VARIANTS[st.variant]; st.players = Math.max(V.min, minPlayers || 0, Math.min(V.max, st.players)); refit(); }
+  else if (act === 'n-' || act === 'n+'){ const V = VARIANTS[st.variant]; st.players = Math.max(V.min, minPlayers || 0, Math.min(V.max, st.players + (act === 'n+' ? 1 : -1))); refit(); }
+  else if (act === 'auto'){ st.auto = true; refit(); }
+  else if (act.startsWith('r:')) st.rounds = +act.slice(2) === 10 ? 10 : 5;
+  else {
+    const m = act.match(/^(chor|police|mantri)([+-])$/);
+    if (!m) return;
+    const lim = roleLimits(st.variant, st.players, st.roles)[m[1]];
+    const r = fitRoles(st.variant, st.players, st.roles), v = r[m[1]] + (m[2] === '+' ? 1 : -1);
+    if (!lim || v < lim[0] || v > lim[1]) return;
+    r[m[1]] = v; st.roles = r; st.auto = false;
+  }
+}
+let setupKind = 'bots', setupSt = null;
+function openSetup(kind){
+  readName();
+  setupKind = kind;
+  const V = VARIANTS[cfg.variant];
+  cfg[kind] = Math.max(V.min, Math.min(V.max, cfg[kind]));
+  setupSt = curSettings(kind);
+  $('#setupTitle').textContent = kind === 'bots' ? 'Play vs bots' : 'Pass & play';
+  renderSetup();
+  $('#splash').hidden = true; $('#setup').hidden = false;
+}
+function renderSetup(){
+  $('#setupForm').innerHTML = settingsHTML(setupSt, {botsNote:setupKind === 'bots', names:setupKind === 'pass'});
+}
+function storeSetup(){
+  Object.assign(cfg, {variant:setupSt.variant, rounds:setupSt.rounds, roles:{...cfg.roles, ...setupSt.roles}, auto:setupSt.auto});
+  cfg[setupKind] = setupSt.players;
+  saveCfg();
+}
+$('#setupForm').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  settingsAct(setupSt, b.dataset.act, 0);
+  storeSetup(); renderSetup(); sfx('pop');
+  const again = $('#setupForm').querySelector(`[data-act="${b.dataset.act}"]`);
+  if (again && !again.disabled) again.focus({preventScroll:true});
+});
+$('#setupForm').addEventListener('input', e => {
+  const i = e.target.dataset && e.target.dataset.name;
+  if (i == null) return;
+  cfg.names[+i] = e.target.value; saveCfg();
+});
+$('#setupGo').addEventListener('click', () => { storeSetup(); sfx('turn'); $('#setup').hidden = true; if (setupKind === 'bots') startBots(); else startPass(); });
+$('#setupBack').addEventListener('click', () => { $('#setup').hidden = true; showSplashScreen(); });
+
+/* ---------- lobby ---------- */
+function openLobby(){
+  ['#splash','#notice','#setup'].forEach(s => $(s).hidden = true);
+  $('#lobbyQr').innerHTML = '<p>Opening table…</p>';
+  $('#lobbyCode').textContent = '·····';
+  $('#lobbyLink').value = '';
+  renderLobby();
+  $('#lobby').hidden = false;
+}
+function lobbyMsg(text, isError){
+  const m = $('#lobbyMsg'); m.textContent = text; m.classList.toggle('err', !!isError);
+}
+let qrFor = '';
+function renderLobby(){
+  const host = net.mode === 'host', st = net.st;
+  $('#lobbyTitle').textContent = host ? 'Your table' : `Table ${net.code}`;
+  $('#lobbySub').textContent = host
+    ? 'Friends scan the code or open the link to join. Empty seats are played by bots.'
+    : (net.slots ? `Waiting for ${net.slots[0] ? net.slots[0].name : 'the host'} to start the game…` : 'Joining…');
+  if (net.code){
+    const url = joinUrl(net.code);
+    if (qrFor !== url){ drawQR($('#lobbyQr'), url); qrFor = url; }
+    $('#lobbyCode').textContent = net.code;
+    $('#lobbyLink').value = url;
+  } else qrFor = '';
+  const list = $('#seatList'); list.textContent = '';
+  const humans = net.slots ? net.slots.map((s, i) => s ? i : -1).filter(i => i >= 0) : [];
+  const size = st ? Math.max(st.players, humans.length) : 4;
+  for (let k = 0; k < size; k++){
+    const slot = humans[k], s = slot != null ? net.slots[slot] : null;
+    const li = document.createElement('li'); li.className = s ? '' : 'open';
+    const dot = document.createElement('span'); dot.className = 'dot';
+    dot.style.setProperty('--c1', colorOf(k)[0]); dot.style.setProperty('--c2', colorOf(k)[1]);
+    dot.textContent = s ? initial(s.name) : k + 1;
+    const who = document.createElement('span'); who.className = 'who';
+    who.textContent = s ? s.name : (net.slots ? 'Open seat' : '…');
+    const tg = document.createElement('span'); tg.className = 'tg';
+    tg.textContent = !s ? 'Bot' : (slot === net.mySlot ? (slot === 0 ? 'You · host' : 'You') : (slot === 0 ? 'Host' : 'Friend'));
+    li.append(dot, who, tg);
+    list.appendChild(li);
+  }
+  const form = $('#lobbyForm');
+  if (!st) form.innerHTML = '';
+  else if (host) form.innerHTML = settingsHTML(st, {minPlayers:humans.length});
+  else form.innerHTML = `<p class="sumline">${esc(VARIANTS[st.variant].name)} · ${esc(splitText(st.variant, size, st.roles))}${st.variant === 'elim' ? '' : ` · ${st.rounds} rounds`}</p>`;
+  $('#startBtn').hidden = !host;
+  $('#startBtn').disabled = !(host && net.code);
+}
+$('#lobbyForm').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled || net.mode !== 'host') return;
+  const humans = net.slots.filter(Boolean).length;
+  settingsAct(net.st, b.dataset.act, humans);
+  Object.assign(cfg, {variant:net.st.variant, rounds:net.st.rounds, roles:{...cfg.roles, ...net.st.roles}, auto:net.st.auto}); saveCfg();
+  broadcastLobby(); sfx('pop');
+  const again = $('#lobbyForm').querySelector(`[data-act="${b.dataset.act}"]`);
+  if (again && !again.disabled) again.focus({preventScroll:true});
+});
+
+/* ---------- overlays ---------- */
+function drawQR(el, url){
+  try {
+    const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+    el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
+  } catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
+}
+function copyInput(inp, btn){
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
+  try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+}
+function notice(title, text){
+  $('#noticeTitle').textContent = title; $('#noticeText').textContent = text;
+  ['#splash','#lobby','#scores','#menu','#setup'].forEach(s => $(s).hidden = true);
+  $('#notice').hidden = false; $('#noticeOk').focus();
+}
+let inviteCode = '';
+function showSplashScreen(){
+  const inv = !!inviteCode;
+  $('#invite').hidden = !inv; $('#inviteBtns').hidden = !inv;
+  $('#mainBtns').hidden = inv; $('#joinForm').hidden = inv;
+  $('#inviteCode').textContent = inviteCode;
+  $('#playerName').value = myName;
+  $('#splash').hidden = false;
+}
+let shareFrom = null;
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true;
+  const atTable = online() && net.code;
+  const url = atTable ? joinUrl(net.code) : siteUrl();
+  $('#shareTitle').textContent = atTable ? 'Invite friends' : 'Share Chor Police';
+  $('#shareSub').textContent = atTable ? 'Friends scan this code to join your table.' : 'Friends scan this code to open Chor Police on their phone.';
+  $('#shareLink').value = url;
+  drawQR($('#qrBox'), url);
+  $('#share').hidden = false; setPaused(true); $('#copyBtn').focus();
+}
+const coveringOverlay = () => ['#splash', '#setup', '#lobby', '#scores', '#notice'].find(s => !$(s).hidden) || null;
+
+/* ---------- controls ---------- */
+$('#playBtn').addEventListener('click', () => { sfx('turn'); openSetup('bots'); });
+$('#inviteSolo').addEventListener('click', () => { sfx('turn'); inviteCode = ''; openSetup('bots'); });
+$('#passBtn').addEventListener('click', () => { sfx('turn'); openSetup('pass'); });
+$('#hostBtn').addEventListener('click', () => { sfx('turn'); createTable(); });
+$('#inviteJoin').addEventListener('click', () => { sfx('turn'); joinTable(inviteCode); });
+$('#joinForm').addEventListener('submit', e => { e.preventDefault(); sfx('turn'); joinTable($('#joinCode').value); });
+$('#startBtn').addEventListener('click', () => { if (net.mode === 'host' && net.code) startOnline(); });
+$('#leaveBtn').addEventListener('click', () => leaveOnline());
+$('#lobbyCopy').addEventListener('click', () => copyInput($('#lobbyLink'), $('#lobbyCopy')));
+$('#noticeOk').addEventListener('click', () => { $('#notice').hidden = true; showSplashScreen(); });
+$('#coverQuit').addEventListener('click', goHome);
+$('#menuBtn').addEventListener('click', () => {
+  if (coveringOverlay() || !$('#share').hidden || !$('#rules').hidden) return;
+  $('#menuTitle').textContent = online() ? 'Menu' : 'Paused';
+  $('#newBtn').textContent = online() ? 'Leave table' : 'New game';
+  $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus();
+});
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; setPaused(false); });
+$('#newBtn').addEventListener('click', goHome);
+$('#scoreBtn').addEventListener('click', () => { if ($('#scores').hidden && !coveringOverlay() && $('#cover').hidden) showScores('view'); });
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+$('#shareBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden && $('#cover').hidden) openShare(coveringOverlay()); });
+$('#splashShare').addEventListener('click', () => openShare('#splash'));
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else setPaused(false); });
+$('#copyBtn').addEventListener('click', () => copyInput($('#shareLink'), $('#copyBtn')));
+let rulesFrom = null;
+const openRules = from => { rulesFrom = from; $(from).hidden = true; $('#rules').hidden = false; $('#rulesClose').focus(); };
+$('#splashRules').addEventListener('click', () => openRules('#splash'));
+$('#menuRules').addEventListener('click', () => openRules('#menu'));
+$('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; });
+window.addEventListener('pagehide', () => { try { net.peer && net.peer.destroy(); } catch(e){} });
+
+$('#demo').innerHTML = ['police', 'chor', 'citizen'].map(r => `<div class="oslip r-${r}">${icon(r)}<div class="on">${ROLE[r].np}</div><div class="oe">${ROLE[r].en.toUpperCase()}</div></div>`).join('');
+
+let rz = 0;
+function onResize(){ cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { layout(); sizeBig(); }); }
+idleTable();
+sizeBig();
+window.addEventListener('resize', onResize);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
+$('#playerName').value = myName;
+try { inviteCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); } catch(e){}
+showSplashScreen();
+})();
+</script>

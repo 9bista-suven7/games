@@ -39,6 +39,12 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Ping Pong | [`games/arcade-games/ping-pong`](games/arcade-games/ping-pong) | Top-down table tennis vs the computer or 2 players on one device |
 | Snake | [`games/arcade-games/snake`](games/arcade-games/snake) | Nokia-style Snake with swipe/D-pad controls, wrap and maze modes |
 
+## Party games
+
+| Game | Folder | Description |
+| --- | --- | --- |
+| Chor Police | [`games/party-games/chor-police`](games/party-games/chor-police) | Paper-slip guessing game for 3-10: Points, Elimination and Raja Mantri Chor Sipahi; bots, pass & play or online |
+
 ## Adding a game
 
 Put it in `games/<category>/<game-name>/index.html`, then add a row to the table above.
