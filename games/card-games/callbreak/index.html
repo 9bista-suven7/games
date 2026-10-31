@@ -186,6 +186,45 @@ button{font:inherit}
 .linkrow input{flex:1;min-width:0;background:rgba(0,0,0,.35);border:1px solid rgba(245,200,81,.4);border-radius:10px;color:var(--text);padding:8px 10px;font:700 13px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text}
 .linkrow .btn{font-size:16px;padding:6px 18px}
 
+.nettag{font-family:'Nunito',sans-serif;font-weight:900;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#063a19;background:#7be495;border-radius:999px;padding:2px 8px}
+#toast{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);box-sizing:border-box;text-align:center;
+  background:rgba(0,0,0,.8);border:1px solid rgba(245,200,81,.45);padding:8px 16px;border-radius:999px;font-weight:800;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}
+.overlay{overflow:auto}
+.field{display:flex;flex-direction:column;gap:4px;width:min(320px,100%);text-align:left;margin-top:4px}
+.field label{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tinput{box-sizing:border-box;background:rgba(0,0,0,.4);border:1.5px solid rgba(245,200,81,.45);border-radius:12px;color:var(--text);padding:9px 12px;font:800 16px 'Nunito',sans-serif;-webkit-user-select:text;user-select:text;min-width:0}
+.tinput::placeholder{color:rgba(251,245,227,.4)}
+.tinput:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,81,.25)}
+.joinrow{display:flex;gap:8px;width:min(320px,100%);margin:12px 0 0}
+.joinrow .tinput{flex:1;text-transform:uppercase;letter-spacing:.25em}
+.joinrow .btn{font-size:17px;padding:6px 20px}
+.links{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--muted)}
+.linkbtn{background:none;border:0;padding:4px 2px;color:var(--gold);font-weight:900;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(245,200,81,.4)}
+.linkbtn:hover{text-decoration-color:var(--gold)}
+.linkbtn:focus-visible,.tinput:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.invite{background:rgba(123,228,149,.14);border:1px solid rgba(123,228,149,.5);color:#c9f7d4;border-radius:999px;padding:6px 16px;font-weight:800;font-size:14px}
+.invite b{color:#fff;letter-spacing:.15em}
+.lobby{width:min(640px,100%)!important}
+.lobbygrid{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:20px;align-items:start;margin-top:14px}
+@media (max-width:600px){.lobbygrid{grid-template-columns:minmax(0,1fr)}}
+.qrcol .qrbox{margin-top:0;width:min(200px,60vw)}
+.qrcol .code{text-align:center;margin-top:10px;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qrcol .code b{display:block;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:28px;letter-spacing:.2em;color:var(--gold);text-transform:none}
+.qrcol .linkrow{margin-top:8px}
+.seatlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.seatlist li{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.28);border:1px solid rgba(245,200,81,.2);border-radius:12px;padding:8px 12px}
+.seatlist .dot{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;font-family:'Lilita One',Impact,sans-serif;font-size:17px;color:#fff;background:linear-gradient(145deg,var(--c1),var(--c2));border:2px solid var(--gold)}
+.seatlist .who{flex:1;min-width:0;font-weight:900;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seatlist .tg{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.seatlist li.open{border-style:dashed;background:transparent}
+.seatlist li.open .dot{background:rgba(255,255,255,.06);border-color:rgba(245,200,81,.35);color:var(--muted)}
+.seatlist li.open .who{color:var(--muted);font-weight:800}
+.lobbymsg{min-height:1.4em;margin:12px 0 0;text-align:center;font-weight:800;font-size:13px;color:var(--muted)}
+.lobbymsg.err{color:#ff9aa2}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+@media (max-height:700px){.fanshow{display:none}}
+
 /* splash */
 .splash{background:radial-gradient(ellipse at 50% 45%,rgba(7,40,24,.55),rgba(5,10,7,.88))}
 .splash-in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
@@ -207,7 +246,7 @@ button{font:inherit}
     <button class="ibtn" id="menuBtn" aria-label="Menu" title="Menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
-    <div class="roundpill"><span id="roundLbl">Round 1/5</span><span class="trump">Trump <b>&#9824;&#xFE0E;</b></span></div>
+    <div class="roundpill"><span id="roundLbl">Round 1/5</span><span class="trump">Trump <b>&#9824;&#xFE0E;</b></span><span class="nettag" id="netTag" hidden>Online</span></div>
     <div class="tbr">
     <button class="ibtn" id="shareBtn" aria-label="Share with friends" title="Share with friends">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
@@ -235,22 +274,57 @@ button{font:inherit}
   <div id="hand" aria-label="Your hand"></div>
   <div id="fx"></div>
 
+  <div id="toast" role="status"></div>
+
   <div id="splash" class="overlay splash">
     <div class="splash-in">
       <div class="logo"><span>Call</span><span class="lsp">&#9824;&#xFE0E;</span><span>Break</span></div>
       <div class="fanshow" id="fanshow"></div>
       <p class="tag"><b>4 players</b> · 13 tricks · 5 rounds · Spades are trump</p>
-      <div class="btnrow" style="margin-top:0">
-        <button class="btn green" id="playBtn">Play now</button>
-        <button class="btn ghost" id="splashRules">How to play</button>
-        <button class="btn ghost" id="splashShare">Share</button>
+      <div class="invite" id="invite" hidden>You're invited to table <b id="inviteCode"></b></div>
+      <div class="field">
+        <label for="playerName">Your name</label>
+        <input class="tinput" id="playerName" maxlength="14" autocomplete="nickname" placeholder="Enter your name">
+      </div>
+      <div class="btnrow" id="mainBtns">
+        <button class="btn green" id="playBtn">Play vs bots</button>
+        <button class="btn" id="hostBtn">Create table</button>
+      </div>
+      <div class="btnrow" id="inviteBtns" hidden>
+        <button class="btn green" id="inviteJoin">Join table</button>
+        <button class="btn ghost" id="inviteSolo">Play vs bots</button>
+      </div>
+      <form class="joinrow" id="joinForm">
+        <input class="tinput" id="joinCode" maxlength="5" placeholder="Table code" aria-label="Table code" autocomplete="off" spellcheck="false">
+        <button class="btn ghost" type="submit">Join</button>
+      </form>
+      <div class="links"><button class="linkbtn" id="splashRules">How to play</button><span aria-hidden="true">·</span><button class="linkbtn" id="splashShare">Share game</button></div>
+    </div>
+  </div>
+
+  <div id="lobby" class="overlay" hidden>
+    <div class="panel lobby">
+      <h2 class="ptitle" id="lobbyTitle">Your table</h2>
+      <p class="psub" id="lobbySub"></p>
+      <div class="lobbygrid">
+        <div class="qrcol">
+          <div class="qrbox" id="lobbyQr"><p>Opening table…</p></div>
+          <div class="code">Table code <b id="lobbyCode">·····</b></div>
+          <div class="linkrow"><input id="lobbyLink" readonly aria-label="Invite link"><button class="btn" id="lobbyCopy">Copy</button></div>
+        </div>
+        <ol class="seatlist" id="seatList"></ol>
+      </div>
+      <p class="lobbymsg" id="lobbyMsg" role="status"></p>
+      <div class="btnrow">
+        <button class="btn green" id="startBtn" disabled>Start game</button>
+        <button class="btn ghost" id="leaveBtn">Leave</button>
       </div>
     </div>
   </div>
 
   <div id="menu" class="overlay" hidden>
     <div class="panel" style="width:min(340px,100%)">
-      <h2 class="ptitle">Paused</h2>
+      <h2 class="ptitle" id="menuTitle">Paused</h2>
       <div class="menu-list">
         <button class="btn green" id="resumeBtn">Resume</button>
         <button class="btn" id="newBtn">New game</button>
@@ -271,11 +345,19 @@ button{font:inherit}
 
   <div id="share" class="overlay" hidden>
     <div class="panel" style="width:min(380px,100%)">
-      <h2 class="ptitle">Play with friends</h2>
-      <p class="psub">Friends scan this code to open Callbreak on their phone.</p>
+      <h2 class="ptitle" id="shareTitle">Share Callbreak</h2>
+      <p class="psub" id="shareSub">Friends scan this code to open Callbreak on their phone.</p>
       <div class="qrbox" id="qrBox"></div>
       <div class="linkrow"><input id="shareLink" readonly aria-label="Game link"><button class="btn" id="copyBtn">Copy</button></div>
       <div class="btnrow"><button class="btn ghost" id="shareClose">Close</button></div>
+    </div>
+  </div>
+
+  <div id="notice" class="overlay" hidden>
+    <div class="panel" style="width:min(380px,100%)">
+      <h2 class="ptitle" id="noticeTitle"></h2>
+      <p class="psub" id="noticeText"></p>
+      <div class="btnrow"><button class="btn" id="noticeOk">Back to menu</button></div>
     </div>
   </div>
 
@@ -304,6 +386,12 @@ button{font:inherit}
           <li>Miss your call: <b>&minus;call</b> (call 4, win 3 &rarr; &minus;4).</li>
           <li>After 5 rounds, the highest total wins.</li>
         </ul>
+        <h3>Playing with friends</h3>
+        <ul>
+          <li>Tap <b>Create table</b> and let friends scan the QR code, or send them the link or table code.</li>
+          <li>Empty seats are played by bots. If someone leaves mid-game, a bot takes over their seat.</li>
+          <li>The host's device runs the game, so the host should keep the page open until the end.</li>
+        </ul>
       </div>
       <div class="btnrow"><button class="btn" id="rulesClose">Got it</button></div>
     </div>
@@ -311,6 +399,7 @@ button{font:inherit}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -321,14 +410,13 @@ const SYM = {S:'♠'+VS, H:'♥'+VS, C:'♣'+VS, D:'♦'+VS};
 const SUIT_NAME = {S:'Spades', H:'Hearts', C:'Clubs', D:'Diamonds'};
 const RL = r => ({11:'J',12:'Q',13:'K',14:'A'})[r] || String(r);
 const RN = r => ({11:'Jack',12:'Queen',13:'King',14:'Ace'})[r] || String(r);
-const ROUNDS = 5, TURN_TIME = 25000, BID_TIME = 25000;
-const POS = ['bottom','right','top','left'];          // play order: anticlockwise
-const PLAYERS = [
-  {name:'You',    ini:'Y', c1:'#4f8df0', c2:'#1d3f8f'},
-  {name:'Bikash', ini:'B', c1:'#ee6b4d', c2:'#8f2f5e'},
-  {name:'Sunita', ini:'S', c1:'#2fc4a4', c2:'#0b5d55'},
-  {name:'Rajan',  ini:'R', c1:'#f7a531', c2:'#a3540a'},
-];
+const ROUNDS = 5, TURN_TIME = 25000, BID_TIME = 25000, GRACE = 5000;
+const POS = ['bottom','right','top','left'];          // seen from your seat; play goes anticlockwise
+const COLORS = [['#4f8df0','#1d3f8f'],['#ee6b4d','#8f2f5e'],['#2fc4a4','#0b5d55'],['#f7a531','#a3540a']];
+const BOT_NAMES = ['Bikash','Sunita','Rajan'];
+const SITE_URL = 'https://9bista-suven7.github.io/games/games/card-games/callbreak/';
+const PEER_PREFIX = 'callbreak-9bs-';
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const SLOT = [
   ['0px','calc(var(--ch)*.3)'],
   ['calc(var(--cw)*.62)','0px'],
@@ -350,6 +438,9 @@ const game=$('#game'), tableWrap=$('#tableWrap'), tableEl=$('#table'), trickEl=$
       fxEl=$('#fx'), bidPanel=$('#bidPanel'), bidGrid=$('#bidGrid'), bannerEl=$('#banner'), roundLbl=$('#roundLbl');
 
 let G, gen = 0, paused = false, pending = null, CW = 80, CH = 112;
+let waiting = {};                  // host: seat -> pending remote answer
+let clientChain = Promise.resolve();
+const net = {mode:'solo', mySeat:0, peer:null, conns:[null,null,null,null], host:null, code:'', seats:null, inGame:false};
 class Cancel extends Error {}
 
 /* ---------- helpers ---------- */
@@ -360,6 +451,14 @@ const roundScore = p => p.won >= p.bid ? p.bid + (p.won-p.bid)/10 : -p.bid;
 const center = r => ({x:r.left + r.width/2, y:r.top + r.height/2});
 const minR = cs => cs.reduce((a,b)=> b.r < a.r ? b : a);
 const maxR = cs => cs.reduce((a,b)=> b.r > a.r ? b : a);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const cleanName = n => String(n || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 14);
+const view = p => (p - net.mySeat + 4) % 4;
+const cardFromId = id => ({s:id[0], r:+id.slice(1), id});
+const online = () => net.mode !== 'solo';
+function loadName(){ try { return cleanName(localStorage.getItem('callbreak-name')); } catch(e){ return ''; } }
+function saveName(n){ try { localStorage.setItem('callbreak-name', n); } catch(e){} }
+let myName = loadName();
 
 async function sleep(ms){
   const g = gen;
@@ -367,7 +466,7 @@ async function sleep(ms){
   while (paused && g === gen) await new Promise(r => setTimeout(r, 120));
   if (g !== gen) throw new Cancel();
 }
-function setPaused(v){ paused = v; game.classList.toggle('paused', v); }
+function setPaused(v){ if (v && online()) return; paused = v; game.classList.toggle('paused', v); }
 
 function makeDeck(){ const d=[]; for (const s of SUITS) for (let r=2;r<=14;r++) d.push({s, r, id:s+r}); return d; }
 function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -527,41 +626,47 @@ function cardEl(c){
   return el;
 }
 
-const seatEls = [];
+const seatEls = [];                // indexed by on-screen position (0 = you, bottom)
 function buildSeats(){
-  PLAYERS.forEach((pl, i) => {
+  POS.forEach((pos, v) => {
     const s = document.createElement('div');
-    s.className = 'seat'; s.dataset.pos = POS[i];
-    s.innerHTML = `<div class="avwrap">${i ? '<div class="minifan"><i class="back"></i><i class="back"></i><i class="back"></i></div>' : ''}
+    s.className = 'seat'; s.dataset.pos = pos;
+    s.innerHTML = `<div class="avwrap">${v ? '<div class="minifan"><i class="back"></i><i class="back"></i><i class="back"></i></div>' : ''}
       <svg class="timer" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100"/></svg>
-      <div class="avatar" style="--c1:${pl.c1};--c2:${pl.c2}">${pl.ini}</div>
+      <div class="avatar"></div>
       <div class="dchip" hidden>D</div><div class="badge">&ndash;</div><div class="bubble"></div></div>
-      <div class="plate"><span class="nm">${pl.name}</span><span class="sc">0.0</span></div>`;
-    (i === 0 ? game : tableWrap).appendChild(s);
+      <div class="plate"><span class="nm"></span><span class="sc">0.0</span></div>`;
+    (v === 0 ? game : tableWrap).appendChild(s);
     seatEls.push(s);
   });
 }
-const seatAv = i => seatEls[i].querySelector('.avatar');
+const seatOf = p => seatEls[view(p)];
+const avOf = p => seatOf(p).querySelector('.avatar');
+const displayName = p => p === net.mySeat ? 'You' : G.players[p].name;
 
-function updateSeat(i){
-  const s = seatEls[i], p = G.players[i], b = s.querySelector('.badge');
-  b.textContent = p.bid ? `${p.won}/${p.bid}` : (G.phase === 'bid' ? '…' : '–');
-  b.classList.toggle('made', p.bid > 0 && p.won >= p.bid);
-  s.querySelector('.sc').textContent = fmt(total(p));
-  s.querySelector('.dchip').hidden = G.dealer !== i || !G.started;
-  const mf = s.querySelector('.minifan'); if (mf) mf.hidden = p.hand.length === 0;
+function updateSeat(p){
+  const s = seatOf(p), pl = G.players[p], b = s.querySelector('.badge'), av = s.querySelector('.avatar');
+  av.textContent = (pl.name || '?').charAt(0).toUpperCase();
+  av.style.setProperty('--c1', COLORS[p][0]); av.style.setProperty('--c2', COLORS[p][1]);
+  s.querySelector('.nm').textContent = displayName(p) + (online() && pl.kind === 'bot' ? ' · bot' : '');
+  b.textContent = pl.bid ? `${pl.won}/${pl.bid}` : (G.phase === 'bid' ? '…' : '–');
+  b.classList.toggle('made', pl.bid > 0 && pl.won >= pl.bid);
+  s.querySelector('.sc').textContent = fmt(total(pl));
+  s.querySelector('.dchip').hidden = G.dealer !== p || !G.started;
+  const mf = s.querySelector('.minifan'); if (mf) mf.hidden = pl.count === 0;
 }
+const updateAll = () => { for (let p = 0; p < 4; p++) updateSeat(p); };
 const bubbleTimers = {};
-function bubble(i, text, ms = 1500){
-  const b = seatEls[i].querySelector('.bubble');
+function bubble(v, text, ms = 1500){
+  const b = seatEls[v].querySelector('.bubble');
   b.textContent = text; b.classList.add('show');
-  clearTimeout(bubbleTimers[i]);
-  bubbleTimers[i] = setTimeout(() => b.classList.remove('show'), ms);
+  clearTimeout(bubbleTimers[v]);
+  bubbleTimers[v] = setTimeout(() => b.classList.remove('show'), ms);
 }
-function setTurn(p, ms){
+function setTurn(v, ms){
   seatEls.forEach(s => s.classList.remove('turn'));
-  if (p == null) return;
-  const s = seatEls[p];
+  if (v == null) return;
+  const s = seatEls[v];
   s.style.setProperty('--t', ms + 'ms');
   void s.offsetWidth;
   s.classList.add('turn');
@@ -569,6 +674,11 @@ function setTurn(p, ms){
 function banner(text){
   bannerEl.textContent = text;
   bannerEl.classList.remove('show'); void bannerEl.offsetWidth; bannerEl.classList.add('show');
+}
+let toastTimer;
+function toast(text){
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
 function sizeCards(){
@@ -594,7 +704,7 @@ function layoutHand(){
 }
 function renderHand(deal){
   handEl.innerHTML = '';
-  G.players[0].hand.forEach((c, i) => {
+  G.players[net.mySeat].hand.forEach((c, i) => {
     const el = cardEl(c);
     el.tabIndex = -1; el.setAttribute('role', 'button');
     if (deal){ el.classList.add('dealin'); el.style.animationDelay = (i*40) + 'ms'; }
@@ -602,13 +712,17 @@ function renderHand(deal){
   });
   layoutHand();
 }
+function clearTable(){
+  trickEl.innerHTML = ''; handEl.innerHTML = ''; fxEl.innerHTML = '';
+  bidPanel.hidden = true; setTurn(null);
+}
 
 /* ---------- animation ---------- */
 async function dealAnim(){
   const gr = game.getBoundingClientRect(), c = center(tableEl.getBoundingClientRect());
-  const targets = [0,1,2,3].map(i => i === 0 ? center(handEl.getBoundingClientRect()) : center(seatAv(i).getBoundingClientRect()));
+  const targets = [0,1,2,3].map(v => center((v === 0 ? handEl : seatEls[v].querySelector('.avatar')).getBoundingClientRect()));
   for (let k = 0; k < 52; k++){
-    const p = (G.dealer + 1 + k) % 4, t = targets[p];
+    const v = view((G.dealer + 1 + k) % 4), t = targets[v];
     const b = document.createElement('div');
     b.className = 'card back';
     b.style.left = (c.x - gr.left - CW/2) + 'px';
@@ -617,7 +731,7 @@ async function dealAnim(){
     fxEl.appendChild(b);
     void b.offsetWidth;
     b.style.transition = 'transform .32s ease-out, opacity .15s .22s';
-    b.style.transform = `translate(${t.x-c.x}px,${t.y-c.y}px) scale(${p===0?.9:.4}) rotate(${(k*37)%40-20}deg)`;
+    b.style.transform = `translate(${t.x-c.x}px,${t.y-c.y}px) scale(${v===0?.9:.4}) rotate(${(k*37)%40-20}deg)`;
     b.style.opacity = '0';
     setTimeout(() => b.remove(), 420);
     if (k % 3 === 0) sfx('deal');
@@ -627,8 +741,8 @@ async function dealAnim(){
 }
 async function playCard(p, card){
   const pl = G.players[p];
-  const hEl = p === 0 ? handEl.querySelector(`[data-id="${card.id}"]`) : null;
-  const from = center((hEl || seatAv(p)).getBoundingClientRect());
+  const hEl = p === net.mySeat ? handEl.querySelector(`[data-id="${card.id}"]`) : null;
+  const from = center((hEl || avOf(p)).getBoundingClientRect());
   if (G.trick.length){
     const led = G.trick[0].card.s;
     if (card.s !== led){
@@ -636,13 +750,15 @@ async function playCard(p, card){
       if (card.s !== 'S' && trickWinner(G.trick).card.s !== 'S') G.voids[p].add('S');
     }
   }
-  pl.hand.splice(pl.hand.findIndex(c => c.id === card.id), 1);
+  const hi = pl.hand.findIndex(c => c.id === card.id);
+  if (hi >= 0) pl.hand.splice(hi, 1);
+  pl.count = Math.max(0, pl.count - 1);
   G.played.add(card.id);
   G.trick.push({p, card});
-  const el = cardEl(card);
+  const el = cardEl(card), slot = SLOT[view(p)];
   el.classList.add('tcard');
-  el.style.setProperty('--dx', SLOT[p][0]);
-  el.style.setProperty('--dy', SLOT[p][1]);
+  el.style.setProperty('--dx', slot[0]);
+  el.style.setProperty('--dy', slot[1]);
   el.style.zIndex = G.trick.length;
   trickEl.appendChild(el);
   const to = center(el.getBoundingClientRect());
@@ -657,7 +773,7 @@ async function playCard(p, card){
   await sleep(380);
 }
 async function collect(w){
-  const to = center(seatAv(w).getBoundingClientRect());
+  const to = center(avOf(w).getBoundingClientRect());
   [...trickEl.children].forEach(el => {
     const r = center(el.getBoundingClientRect());
     el.style.transition = 'transform .45s cubic-bezier(.5,0,.75,0), opacity .45s ease-in';
@@ -669,7 +785,7 @@ async function collect(w){
   trickEl.innerHTML = '';
 }
 
-/* ---------- human input ---------- */
+/* ---------- your own input ---------- */
 function waitHuman(kind, timeout, fallback){
   return new Promise((resolve, reject) => {
     let left = timeout;
@@ -679,24 +795,29 @@ function waitHuman(kind, timeout, fallback){
   });
 }
 async function humanBid(){
-  const me = G.players[0], sug = botBid(me.hand);
+  const me = G.players[net.mySeat], sug = botBid(me.hand);
   bidGrid.querySelectorAll('.bidbtn').forEach(b => b.classList.toggle('sug', +b.dataset.n === sug));
   $('#bidSug').textContent = `Suggested: ${sug}`;
-  $('#bidOthers').innerHTML = [1,2,3].map(i => `${G.players[i].name} <b>${G.players[i].bid || '–'}</b>`).join(' &nbsp;·&nbsp; ');
+  const others = $('#bidOthers'); others.textContent = '';
+  [1,2,3].map(k => (net.mySeat + k) % 4).forEach((p, i) => {
+    if (i) others.append(' · ');
+    const b = document.createElement('b'); b.textContent = G.players[p].bid || '–';
+    others.append(G.players[p].name + ' ', b);
+  });
   bidPanel.hidden = false;
-  setTurn(0, BID_TIME); sfx('turn');
+  sfx('turn');
   try { return await waitHuman('bid', BID_TIME, () => sug); }
   finally { bidPanel.hidden = true; }
 }
 async function humanPlay(){
-  const me = G.players[0], ids = new Set(legalCards(me.hand, G.trick).map(c => c.id));
+  const me = G.players[net.mySeat], ids = new Set(legalCards(me.hand, G.trick).map(c => c.id));
   [...handEl.children].forEach(el => {
     const ok = ids.has(el.dataset.id);
     el.classList.toggle('ok', ok); el.classList.toggle('no', !ok); el.tabIndex = ok ? 0 : -1;
   });
   handEl.classList.add('myturn');
-  setTurn(0, TURN_TIME); bubble(0, 'Your turn', 1300); sfx('turn');
-  try { return await waitHuman('play', TURN_TIME, () => botPlay(0)); }
+  bubble(0, 'Your turn', 1300); sfx('turn');
+  try { return await waitHuman('play', TURN_TIME, () => botPlay(net.mySeat)); }
   finally {
     handEl.classList.remove('myturn');
     [...handEl.children].forEach(el => { el.classList.remove('ok','no'); el.tabIndex = -1; });
@@ -705,7 +826,7 @@ async function humanPlay(){
 handEl.addEventListener('click', e => {
   const el = e.target.closest('.card');
   if (!el || !pending || pending.kind !== 'play' || !el.classList.contains('ok')) return;
-  pending.finish(G.players[0].hand.find(c => c.id === el.dataset.id));
+  pending.finish(G.players[net.mySeat].hand.find(c => c.id === el.dataset.id));
 });
 handEl.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')){ e.preventDefault(); e.target.click(); }
@@ -718,12 +839,12 @@ for (let n = 1; n <= 13; n++){
 }
 
 /* ---------- scoreboard ---------- */
-function showScores(mode){
+function showScores(mode){         // view | next (host) | wait (guest) | final
   const ps = G.players, totals = ps.map(total);
   const best = Math.max(...totals);
   const order = totals.map((t,i)=>i).sort((a,b)=> totals[b]-totals[a]);
-  const place = i => order.indexOf(i) + 1;
-  let html = '<thead><tr><th>Round</th>' + ps.map(p => `<th>${p.name}</th>`).join('') + '</tr></thead><tbody>';
+  const ord = ['1st','2nd','3rd','4th'];
+  let html = '<thead><tr><th>Round</th>' + ps.map((p,i) => `<th>${esc(displayName(i))}</th>`).join('') + '</tr></thead><tbody>';
   for (let r = 0; r < ROUNDS; r++){
     html += `<tr${r === G.round && mode !== 'final' ? ' class="cur"' : ''}><td>Round ${r+1}</td>` + ps.map(p => {
       const v = p.scores[r];
@@ -731,32 +852,37 @@ function showScores(mode){
       return `<td class="${v < 0 ? 'neg' : 'pos'}">${fmt(v)}</td>`;
     }).join('') + '</tr>';
   }
-  const ord = ['1st','2nd','3rd','4th'];
   html += '</tbody><tfoot><tr><td>Total</td>' + ps.map((p,i) =>
-    `<td class="${G.started && totals[i] === best ? 'lead' : ''}">${fmt(totals[i])}${mode === 'final' ? `<span class="rank">${ord[place(i)-1]}</span>` : ''}</td>`).join('') + '</tr></tfoot>';
+    `<td class="${G.started && totals[i] === best ? 'lead' : ''}">${fmt(totals[i])}${mode === 'final' ? `<span class="rank">${ord[order.indexOf(i)]}</span>` : ''}</td>`).join('') + '</tr></tfoot>';
   $('#scoreTable').innerHTML = html;
 
   const sub = $('#scoreSub'), title = $('#scoreTitle'), btns = $('#scoreBtns');
   btns.innerHTML = '';
   const addBtn = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn); btns.appendChild(b); return b; };
+  const me = ps[net.mySeat];
+  const mine = me.won >= me.bid ? `You called ${me.bid} and won ${me.won}. Call made!` : `You called ${me.bid} but won ${me.won}.`;
   $('#scores').hidden = false;
 
   if (mode === 'final'){
     const w = order[0];
-    title.textContent = w === 0 ? 'You win!' : `${ps[w].name} wins`;
-    sub.textContent = `Final score ${fmt(totals[w])} after ${ROUNDS} rounds`;
-    addBtn('Play again', 'green', () => newGame()).focus();
+    title.textContent = w === net.mySeat ? 'You win!' : `${ps[w].name} wins`;
+    sub.textContent = `Final score ${fmt(totals[w])} after ${ROUNDS} rounds` + (net.mode === 'client' ? ' · Waiting for the host to play again' : '');
+    if (net.mode !== 'client') addBtn('Play again', 'green', playAgain).focus();
     addBtn('Close', 'ghost', () => { $('#scores').hidden = true; });
     sfx('win');
     return;
   }
   if (mode === 'next'){
-    const me = ps[0];
     title.textContent = `Round ${G.round+1} complete`;
-    sub.textContent = me.won >= me.bid ? `You called ${me.bid} and won ${me.won}. Call made!` : `You called ${me.bid} but won ${me.won}.`;
+    sub.textContent = mine;
     const p = waitHuman('next', Infinity, () => {});
     addBtn('Next round', 'green', () => { if (pending && pending.kind === 'next') pending.finish(); }).focus();
     return p.finally(() => { $('#scores').hidden = true; });
+  }
+  if (mode === 'wait'){
+    title.textContent = `Round ${G.round+1} complete`;
+    sub.textContent = `${mine} Waiting for ${ps[0].name} to start the next round…`;
+    return;
   }
   title.textContent = 'Scoreboard';
   sub.textContent = G.started ? `Round ${G.round+1} of ${ROUNDS}` : 'No rounds played yet';
@@ -764,124 +890,434 @@ function showScores(mode){
   addBtn('Close', '', () => { $('#scores').hidden = true; setPaused(false); }).focus();
 }
 
-/* ---------- game flow ---------- */
-function freshState(){
-  return {round:0, dealer:Math.floor(Math.random()*4), started:false, phase:'idle',
-    players:PLAYERS.map(p => ({...p, hand:[], bid:0, won:0, scores:[]})),
+/* ---------- game events (same on every device) ---------- */
+function freshState(seats){
+  return {round:0, dealer:0, startDealer:0, started:false, phase:'idle',
+    players:seats.map(s => ({name:s.name, kind:s.kind, hand:[], count:0, bid:0, won:0, scores:[]})),
     played:new Set(), trick:[], voids:[0,1,2,3].map(() => new Set())};
 }
-function newGame(){
+const soloSeats = () => [{name: myName || 'You', kind:'human'}, ...BOT_NAMES.map(n => ({name:n, kind:'bot'}))];
+
+async function apply(ev){
+  switch (ev.t){
+    case 'start':
+      G = freshState(ev.seats); G.started = true; G.dealer = G.startDealer = ev.dealer;
+      net.inGame = true;
+      ['#splash','#lobby','#scores','#menu','#rules','#share','#notice'].forEach(s => $(s).hidden = true);
+      clearTable(); updateAll();
+      $('#netTag').hidden = !online();
+      break;
+    case 'seat':
+      G.players[ev.p].name = ev.name; G.players[ev.p].kind = ev.kind; updateSeat(ev.p);
+      break;
+    case 'round':
+      $('#scores').hidden = true;
+      G.round = ev.round; G.dealer = ev.dealer; G.phase = 'deal';
+      G.players.forEach(p => { p.bid = 0; p.won = 0; p.hand = []; p.count = 0; });
+      G.played.clear(); G.trick = []; G.voids.forEach(v => v.clear());
+      clearTable();
+      roundLbl.textContent = `Round ${G.round+1}/${ROUNDS}`;
+      updateAll();
+      banner(`Round ${G.round+1}`);
+      await sleep(1000);
+      break;
+    case 'deal':
+      await dealAnim();
+      if (ev.hands) ev.hands.forEach((h, p) => G.players[p].hand = h.map(cardFromId));
+      else G.players[net.mySeat].hand = ev.hand.map(cardFromId);
+      G.players.forEach(p => { p.count = 13; sortHand(p.hand); });
+      renderHand(true);
+      G.phase = 'bid'; updateAll();
+      await sleep(700);
+      break;
+    case 'turn':
+      setTurn(view(ev.p), ev.ms);
+      if (ev.p === net.mySeat && net.mode === 'client') guestPrompt(ev.phase);
+      break;
+    case 'bid':
+      if (ev.p === net.mySeat && pending && pending.kind === 'bid') pending.finish(null);
+      G.players[ev.p].bid = ev.n;
+      setTurn(null); updateSeat(ev.p); bubble(view(ev.p), `Call ${ev.n}`, 1500); sfx('card');
+      await sleep(380);
+      break;
+    case 'playstart':
+      G.phase = 'play'; updateAll();
+      await sleep(800);
+      break;
+    case 'play':
+      if (ev.p === net.mySeat && pending && pending.kind === 'play') pending.finish(null);
+      setTurn(null);
+      await playCard(ev.p, cardFromId(ev.id));
+      break;
+    case 'trick': {
+      trickEl.children[G.trick.findIndex(t => t.p === ev.w)]?.classList.add('win');
+      await sleep(850);
+      await collect(ev.w);
+      G.trick = [];
+      G.players[ev.w].won++;
+      updateSeat(ev.w);
+      if (ev.w === net.mySeat) sfx('win');
+      break;
+    }
+    case 'roundEnd':
+      G.players.forEach(p => p.scores.push(roundScore(p)));
+      G.phase = 'done'; updateAll();
+      await sleep(700);
+      if (net.mode === 'client') showScores(ev.last ? 'final' : 'wait');
+      break;
+  }
+}
+
+/* ---------- host: runs the game and tells everyone ---------- */
+async function emit(ev, perSeat){
+  if (net.mode === 'host'){
+    for (let s = 1; s < 4; s++){
+      const c = net.conns[s];
+      if (c && c.open){ try { c.send(perSeat ? perSeat(s) : ev); } catch(e){} }
+    }
+  }
+  await apply(perSeat ? perSeat(net.mySeat) : ev);
+}
+function cancelWaiting(){ Object.values(waiting).forEach(w => w.cancel()); waiting = {}; }
+
+async function hostGame(seats){
   gen++;
   if (pending) pending.cancel();
+  cancelWaiting();
   setPaused(false);
-  ['#splash','#menu','#scores','#rules','#share'].forEach(s => $(s).hidden = true);
-  trickEl.innerHTML = ''; handEl.innerHTML = ''; fxEl.innerHTML = ''; bidPanel.hidden = true;
-  setTurn(null);
-  G = freshState(); G.started = true;
-  for (let i = 0; i < 4; i++) updateSeat(i);
-  run();
-}
-async function run(){
   try {
+    await emit({t:'start', seats, dealer:Math.floor(Math.random()*4)});
     for (let r = 0; r < ROUNDS; r++){
-      G.round = r;
-      await playRound();
-      if (r < ROUNDS-1){ await showScores('next'); G.dealer = (G.dealer+1) % 4; }
+      await hostRound(r);
+      if (r < ROUNDS-1) await showScores('next');
       else showScores('final');
     }
   } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
 }
-async function playRound(){
-  const ps = G.players;
-  ps.forEach(p => { p.bid = 0; p.won = 0; p.hand = []; });
-  G.played.clear(); G.trick = []; G.voids.forEach(v => v.clear()); G.phase = 'deal';
-  roundLbl.textContent = `Round ${G.round+1}/${ROUNDS}`;
-  for (let i = 0; i < 4; i++) updateSeat(i);
-  banner(`Round ${G.round+1}`);
-  await sleep(1000);
-
+async function hostRound(r){
+  const dealer = (G.startDealer + r) % 4;
+  await emit({t:'round', round:r, dealer});
   let hands;
   do { const d = shuffle(makeDeck()); hands = [0,1,2,3].map(i => d.slice(i*13, i*13+13)); }
   while (hands.some(h => !h.some(c => c.s === 'S')));
-  await dealAnim();
-  hands.forEach((h, i) => ps[i].hand = sortHand(h));
-  renderHand(true);
-  G.phase = 'bid';
-  for (let i = 0; i < 4; i++) updateSeat(i);
-  await sleep(700);
+  const ids = hands.map(h => sortHand(h).map(c => c.id));
+  await emit(null, s => s === net.mySeat ? {t:'deal', hands:ids} : {t:'deal', hand:ids[s]});
 
   for (let k = 0; k < 4; k++){
-    const p = (G.dealer + 1 + k) % 4;
-    let b;
-    if (p === 0) b = await humanBid();
-    else { setTurn(p, 1500); await sleep(rand(700, 1300)); b = botBid(ps[p].hand); }
-    ps[p].bid = b;
-    setTurn(null); updateSeat(p); bubble(p, `Call ${b}`, 1500); sfx('card');
-    await sleep(380);
+    const p = (dealer + 1 + k) % 4;
+    await emit({t:'turn', p, ms:G.players[p].kind === 'bot' ? 1500 : BID_TIME, phase:'bid'});
+    const n = await getBid(p);
+    await emit({t:'bid', p, n});
   }
-  G.phase = 'play';
-  await sleep(800);
+  await emit({t:'playstart'});
 
-  let leader = (G.dealer + 1) % 4;
+  let leader = (dealer + 1) % 4;
   for (let t = 0; t < 13; t++){
-    G.trick = [];
     for (let k = 0; k < 4; k++){
       const p = (leader + k) % 4;
-      let card;
-      if (p === 0) card = await humanPlay();
-      else { setTurn(p, 1300); await sleep(rand(500, 1000)); card = botPlay(p); }
-      setTurn(null);
-      await playCard(p, card);
+      await emit({t:'turn', p, ms:G.players[p].kind === 'bot' ? 1300 : TURN_TIME, phase:'play'});
+      const card = await getPlay(p);
+      await emit({t:'play', p, id:card.id});
     }
-    const w = trickWinner(G.trick);
-    trickEl.children[G.trick.indexOf(w)]?.classList.add('win');
-    await sleep(850);
-    await collect(w.p);
-    ps[w.p].won++;
-    updateSeat(w.p);
-    if (w.p === 0) sfx('win');
-    leader = w.p;
+    leader = trickWinner(G.trick).p;
+    await emit({t:'trick', w:leader});
   }
-  ps.forEach(p => p.scores.push(roundScore(p)));
-  G.phase = 'done';
-  for (let i = 0; i < 4; i++) updateSeat(i);
-  await sleep(700);
+  await emit({t:'roundEnd', last:r === ROUNDS-1});
+}
+async function getBid(p){
+  const pl = G.players[p];
+  if (p === net.mySeat) return humanBid();
+  if (pl.kind === 'remote') return remoteAsk(p, 'bid', BID_TIME, () => botBid(pl.hand));
+  await sleep(rand(700, 1300));
+  return botBid(pl.hand);
+}
+async function getPlay(p){
+  const pl = G.players[p];
+  if (p === net.mySeat) return humanPlay();
+  if (pl.kind === 'remote') return remoteAsk(p, 'play', TURN_TIME, () => botPlay(p));
+  await sleep(rand(500, 1000));
+  return botPlay(p);
+}
+function remoteAsk(p, kind, ms, fallback){
+  const g = gen;
+  return new Promise(resolve => {
+    let left = ms + GRACE;
+    const iv = setInterval(() => { left -= 100; if (left <= 0) w.done(fallback()); }, 100);
+    const w = {kind, fallback,
+      done(v){ clearInterval(iv); if (waiting[p] !== w) return; delete waiting[p]; resolve(v); },
+      cancel(){ clearInterval(iv); }};
+    waiting[p] = w;
+  }).then(v => { if (g !== gen) throw new Cancel(); return v; });
+}
+function onGuestMove(seat, d){
+  const w = waiting[seat];
+  if (!w || !d) return;
+  if (d.t === 'bid' && w.kind === 'bid'){
+    const n = Math.floor(+d.n);
+    if (n >= 1 && n <= 13) w.done(n);
+  } else if (d.t === 'play' && w.kind === 'play'){
+    const c = legalCards(G.players[seat].hand, G.trick).find(c => c.id === d.id);
+    if (c) w.done(c);
+  }
+}
+function playAgain(){
+  if (net.mode === 'host'){
+    for (let s = 1; s < 4; s++) if (!(net.conns[s] && net.conns[s].open)){ net.conns[s] = null; net.seats[s] = null; }
+    startOnline();
+  } else hostGame(soloSeats());
+}
+function startOnline(){
+  hostGame(net.seats.map((s, i) => s ? {name:s.name, kind:s.kind} : {name:BOT_NAMES[i-1], kind:'bot'}));
 }
 
-/* ---------- chrome ---------- */
-$('#playBtn').addEventListener('click', () => { sfx('turn'); newGame(); });
-$('#menuBtn').addEventListener('click', () => { $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus(); });
-$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; setPaused(false); });
-$('#newBtn').addEventListener('click', () => newGame());
-$('#scoreBtn').addEventListener('click', () => { if ($('#scores').hidden) showScores('view'); });
-$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
-const SHARE_URL = 'https://claude.ai/artifact/UBfm9yFAc6o5aMHdd3eEbY';
-let shareFrom = null;
-function openShare(from){
-  shareFrom = from; if (from) $(from).hidden = true;
-  const url = SHARE_URL || location.href;
-  $('#shareLink').value = url;
-  const box = $('#qrBox');
+/* ---------- guest: follows the host ---------- */
+async function guestPrompt(phase){
+  try {
+    const v = phase === 'bid' ? await humanBid() : await humanPlay();
+    if (v == null) return;
+    sendHost(phase === 'bid' ? {t:'bid', n:v} : {t:'play', id:v.id});
+  } catch(e){ if (!(e instanceof Cancel)) console.error(e); }
+}
+function sendHost(msg){ try { if (net.host && net.host.open) net.host.send(msg); } catch(e){} }
+function onHostMessage(d){
+  if (!d || typeof d !== 'object') return;
+  if (d.t === 'welcome'){ net.mySeat = d.seat; return; }
+  if (d.t === 'reject'){ lobbyMsg(d.reason || 'The host could not seat you.', true); return; }
+  if (d.t === 'lobby'){ net.seats = d.seats; renderLobby(); return; }
+  if (d.t === 'start'){ gen++; if (pending) pending.cancel(); clientChain = Promise.resolve(); }
+  const g = gen;
+  clientChain = clientChain.then(() => g === gen ? apply(d) : null)
+    .catch(e => { if (!(e instanceof Cancel)) console.error(e); });
+}
+
+/* ---------- networking (peer-to-peer, no server or database) ---------- */
+const siteUrl = () => {
+  let top = false; try { top = window.top === window.self; } catch(e){}
+  return top && /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+};
+const joinUrl = code => siteUrl() + '?join=' + code;
+const randomCode = () => Array.from({length:5}, () => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join('');
+const readName = () => { myName = cleanName($('#playerName').value) || myName || 'Player'; saveName(myName); return myName; };
+
+function onlineUnavailable(){
+  notice('Online play is unavailable', 'The online service did not load. Check your internet connection, or open the game from its website link.');
+}
+function createTable(){
+  if (!window.Peer) return onlineUnavailable();
+  readName();
+  resetOnline();
+  net.mode = 'host'; net.mySeat = 0;
+  net.seats = [{name:myName, kind:'human'}, null, null, null];
+  openLobby();
+  lobbyMsg('Opening your table…');
+  const code = randomCode();
+  const peer = new Peer(PEER_PREFIX + code);
+  net.peer = peer;
+  peer.on('open', () => { if (net.peer !== peer) return; net.code = code; lobbyMsg(''); renderLobby(); });
+  peer.on('disconnected', () => { if (net.peer === peer && !peer.destroyed) peer.reconnect(); });
+  peer.on('error', err => {
+    if (net.peer !== peer) return;
+    if (err.type === 'unavailable-id'){ peer.destroy(); createTable(); return; }
+    if (!net.inGame && !net.code) lobbyMsg("Couldn't open a table. Check your internet connection and try again.", true);
+  });
+  peer.on('connection', conn => {
+    conn.on('data', d => {
+      if (net.peer !== peer || !d) return;
+      if (d.t === 'hello'){
+        if (net.inGame){ conn.send({t:'reject', reason:'This game has already started. Ask the host to start a new table.'}); setTimeout(() => conn.close(), 600); return; }
+        const s = [1,2,3].find(i => !net.seats[i]);
+        if (!s){ conn.send({t:'reject', reason:'This table is full.'}); setTimeout(() => conn.close(), 600); return; }
+        conn.seat = s;
+        net.conns[s] = conn;
+        net.seats[s] = {name:cleanName(d.name) || `Player ${s+1}`, kind:'remote'};
+        conn.send({t:'welcome', seat:s});
+        broadcastLobby();
+        toast(`${net.seats[s].name} joined the table`); sfx('turn');
+        return;
+      }
+      if (conn.seat != null && net.conns[conn.seat] === conn) onGuestMove(conn.seat, d);
+    });
+    conn.on('close', () => guestLeft(conn));
+    conn.on('error', () => guestLeft(conn));
+  });
+}
+function guestLeft(conn){
+  const s = conn.seat;
+  if (s == null || net.conns[s] !== conn || net.mode !== 'host') return;
+  net.conns[s] = null;
+  const name = net.seats[s] ? net.seats[s].name : 'A player';
+  if (!net.inGame){ net.seats[s] = null; broadcastLobby(); toast(`${name} left the table`); return; }
+  net.seats[s] = null;
+  emit({t:'seat', p:s, name:G.players[s].name, kind:'bot'});
+  toast(`${name} left. A bot took over their seat.`);
+  const w = waiting[s];
+  if (w) w.done(w.fallback());
+}
+function broadcastLobby(){
+  const seats = net.seats.map(s => s ? {name:s.name, kind:s.kind} : null);
+  for (let s = 1; s < 4; s++){ const c = net.conns[s]; if (c && c.open) try { c.send({t:'lobby', seats, code:net.code}); } catch(e){} }
+  renderLobby();
+}
+function joinTable(code){
+  if (!window.Peer) return onlineUnavailable();
+  code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+  if (code.length !== 5){ $('#joinCode').focus(); toast('Enter the 5-character table code'); return; }
+  readName();
+  resetOnline();
+  net.mode = 'client'; net.code = code; net.seats = null;
+  openLobby();
+  lobbyMsg('Connecting to the table…');
+  const peer = new Peer();
+  net.peer = peer;
+  peer.on('open', () => {
+    if (net.peer !== peer) return;
+    const conn = peer.connect(PEER_PREFIX + code, {reliable:true});
+    net.host = conn;
+    const timer = setTimeout(() => { if (net.host === conn && !conn.open) lobbyMsg("Couldn't reach that table. Check the code, and make sure the host still has the game open.", true); }, 15000);
+    conn.on('open', () => { clearTimeout(timer); lobbyMsg(''); conn.send({t:'hello', name:myName}); });
+    conn.on('data', d => { if (net.host === conn) onHostMessage(d); });
+    conn.on('close', () => { if (net.host === conn) hostLeft(); });
+  });
+  peer.on('error', err => {
+    if (net.peer !== peer) return;
+    if (err.type === 'peer-unavailable') lobbyMsg("That table isn't open anymore. Ask your friend for a new link.", true);
+    else if (!net.inGame) lobbyMsg("Couldn't connect. Check your internet connection and try again.", true);
+  });
+}
+function hostLeft(){
+  if (net.mode !== 'client') return;
+  const wasPlaying = net.inGame;
+  leaveOnline(false);
+  notice('The host left the table', wasPlaying ? 'The game ended because the host closed it.' : 'The table was closed before the game started.');
+}
+function resetOnline(){
+  gen++;
+  if (pending) pending.cancel();
+  cancelWaiting();
+  const peer = net.peer;
+  Object.assign(net, {mode:'solo', mySeat:0, peer:null, conns:[null,null,null,null], host:null, code:'', seats:null, inGame:false});
+  try { peer && peer.destroy(); } catch(e){}
+  $('#netTag').hidden = true;
+}
+function leaveOnline(showSplash = true){
+  resetOnline();
+  clearTable();
+  G = freshState(soloSeats());
+  updateAll();
+  roundLbl.textContent = `Round 1/${ROUNDS}`;
+  ['#lobby','#scores','#menu','#share'].forEach(s => $(s).hidden = true);
+  if (showSplash) showSplashScreen();
+}
+
+/* ---------- lobby ---------- */
+function openLobby(){
+  ['#splash','#notice'].forEach(s => $(s).hidden = true);
+  $('#lobbyQr').innerHTML = '<p>Opening table…</p>';
+  $('#lobbyCode').textContent = '·····';
+  $('#lobbyLink').value = '';
+  renderLobby();
+  $('#lobby').hidden = false;
+}
+function lobbyMsg(text, isError){
+  const m = $('#lobbyMsg'); m.textContent = text; m.classList.toggle('err', !!isError);
+}
+let qrFor = '';
+function renderLobby(){
+  const host = net.mode === 'host';
+  $('#lobbyTitle').textContent = host ? 'Your table' : `Table ${net.code}`;
+  $('#lobbySub').textContent = host
+    ? 'Friends scan the code or open the link to join. Empty seats are played by bots.'
+    : (net.seats ? `Waiting for ${net.seats[0] ? net.seats[0].name : 'the host'} to start the game…` : 'Joining…');
+  if (net.code){
+    const url = joinUrl(net.code);
+    if (qrFor !== url){ drawQR($('#lobbyQr'), url); qrFor = url; }
+    $('#lobbyCode').textContent = net.code;
+    $('#lobbyLink').value = url;
+  } else qrFor = '';
+  const list = $('#seatList'); list.textContent = '';
+  for (let i = 0; i < 4; i++){
+    const s = net.seats && net.seats[i];
+    const li = document.createElement('li'); li.className = s ? '' : 'open';
+    const dot = document.createElement('span'); dot.className = 'dot';
+    dot.style.setProperty('--c1', COLORS[i][0]); dot.style.setProperty('--c2', COLORS[i][1]);
+    dot.textContent = s ? s.name.charAt(0).toUpperCase() : i + 1;
+    const who = document.createElement('span'); who.className = 'who';
+    who.textContent = s ? s.name : (net.seats ? 'Open seat' : '…');
+    const tg = document.createElement('span'); tg.className = 'tg';
+    tg.textContent = !s ? 'Bot plays' : (i === net.mySeat ? (i === 0 ? 'You · host' : 'You') : (i === 0 ? 'Host' : 'Friend'));
+    li.append(dot, who, tg);
+    list.appendChild(li);
+  }
+  $('#startBtn').hidden = !host;
+  $('#startBtn').disabled = !(host && net.code);
+}
+
+/* ---------- overlays ---------- */
+function drawQR(el, url){
   try {
     const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
-    box.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
-  } catch(e){ box.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
-  $('#share').hidden = false; setPaused(true); $('#copyBtn').focus();
+    el.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true});
+  } catch(e){ el.innerHTML = '<p>Copy the link below and send it to your friends.</p>'; }
 }
-$('#shareBtn').addEventListener('click', () => openShare(null));
-$('#splashShare').addEventListener('click', () => openShare('#splash'));
-$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else setPaused(false); });
-$('#copyBtn').addEventListener('click', () => {
-  const inp = $('#shareLink'), btn = $('#copyBtn');
+function copyInput(inp, btn){
   const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
   const fallback = () => { inp.focus(); inp.select(); btn.textContent = 'Press Ctrl+C'; };
   try { navigator.clipboard.writeText(inp.value).then(done, fallback); } catch(e){ fallback(); }
+}
+function notice(title, text){
+  $('#noticeTitle').textContent = title; $('#noticeText').textContent = text;
+  ['#splash','#lobby','#scores','#menu'].forEach(s => $(s).hidden = true);
+  $('#notice').hidden = false; $('#noticeOk').focus();
+}
+let inviteCode = '';
+function showSplashScreen(){
+  const inv = !!inviteCode;
+  $('#invite').hidden = !inv; $('#inviteBtns').hidden = !inv;
+  $('#mainBtns').hidden = inv; $('#joinForm').hidden = inv;
+  $('#inviteCode').textContent = inviteCode;
+  $('#splash').hidden = false;
+}
+let shareFrom = null;
+function openShare(from){
+  shareFrom = from; if (from) $(from).hidden = true;
+  const atTable = online() && net.code;
+  const url = atTable ? joinUrl(net.code) : siteUrl();
+  $('#shareTitle').textContent = atTable ? 'Invite friends' : 'Share Callbreak';
+  $('#shareSub').textContent = atTable ? 'Friends scan this code to join your table.' : 'Friends scan this code to open Callbreak on their phone.';
+  $('#shareLink').value = url;
+  drawQR($('#qrBox'), url);
+  $('#share').hidden = false; setPaused(true); $('#copyBtn').focus();
+}
+
+/* ---------- controls ---------- */
+$('#playBtn').addEventListener('click', () => { readName(); sfx('turn'); resetOnline(); hostGame(soloSeats()); });
+$('#inviteSolo').addEventListener('click', () => { readName(); sfx('turn'); resetOnline(); hostGame(soloSeats()); });
+$('#hostBtn').addEventListener('click', () => { sfx('turn'); createTable(); });
+$('#inviteJoin').addEventListener('click', () => { sfx('turn'); joinTable(inviteCode); });
+$('#joinForm').addEventListener('submit', e => { e.preventDefault(); sfx('turn'); joinTable($('#joinCode').value); });
+$('#startBtn').addEventListener('click', () => { if (net.mode === 'host' && net.code) startOnline(); });
+$('#leaveBtn').addEventListener('click', () => leaveOnline());
+$('#lobbyCopy').addEventListener('click', () => copyInput($('#lobbyLink'), $('#lobbyCopy')));
+$('#noticeOk').addEventListener('click', () => { $('#notice').hidden = true; showSplashScreen(); });
+$('#menuBtn').addEventListener('click', () => {
+  $('#menuTitle').textContent = online() ? 'Menu' : 'Paused';
+  $('#newBtn').textContent = online() ? 'Leave table' : 'New game';
+  $('#menu').hidden = false; setPaused(true); $('#resumeBtn').focus();
 });
+$('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; setPaused(false); });
+$('#newBtn').addEventListener('click', () => { if (online()) leaveOnline(); else hostGame(soloSeats()); });
+$('#scoreBtn').addEventListener('click', () => { if ($('#scores').hidden) showScores('view'); });
+$('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+$('#shareBtn').addEventListener('click', () => openShare(null));
+$('#splashShare').addEventListener('click', () => openShare('#splash'));
+$('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else setPaused(false); });
+$('#copyBtn').addEventListener('click', () => copyInput($('#shareLink'), $('#copyBtn')));
 let rulesFrom = null;
 const openRules = from => { rulesFrom = from; $(from).hidden = true; $('#rules').hidden = false; $('#rulesClose').focus(); };
 $('#splashRules').addEventListener('click', () => openRules('#splash'));
 $('#menuRules').addEventListener('click', () => openRules('#menu'));
 $('#rulesClose').addEventListener('click', () => { $('#rules').hidden = true; if (rulesFrom) $(rulesFrom).hidden = false; });
+window.addEventListener('pagehide', () => { try { net.peer && net.peer.destroy(); } catch(e){} });
 
 const fan = $('#fanshow');
 [{s:'D',r:11},{s:'C',r:12},{s:'H',r:13},{s:'S',r:14}].forEach((c, i) => {
@@ -891,9 +1327,12 @@ const fan = $('#fanshow');
 });
 
 buildSeats();
-G = freshState();
-for (let i = 0; i < 4; i++) updateSeat(i);
+G = freshState(soloSeats());
+updateAll();
 sizeCards();
 window.addEventListener('resize', sizeCards);
+$('#playerName').value = myName;
+try { inviteCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); } catch(e){}
+showSplashScreen();
 })();
 </script>
