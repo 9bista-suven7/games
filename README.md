@@ -18,6 +18,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 
 | Game | Folder | Description |
 | --- | --- | --- |
+| Kauda | [`games/board-games/kauda`](games/board-games/kauda) | Tihar cowrie-shell game: bet on how many of 16 shells land open; play chips only |
 | Ludo | [`games/board-games/ludo`](games/board-games/ludo) | Classic Ludo vs bots or pass & play on one device |
 | Baagchaal | [`games/board-games/baagchaal`](games/board-games/baagchaal) | Nepali tigers-and-goats hunt game vs the computer or 2 players |
 | Chess | [`games/board-games/chess`](games/board-games/chess) | Full-rules chess vs a built-in engine (3 levels) or 2 players on one device |
