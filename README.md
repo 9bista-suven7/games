@@ -19,6 +19,7 @@ Play online: **https://9bista-suven7.github.io/games/**
 | Game | Folder | Description |
 | --- | --- | --- |
 | Ludo | [`games/board-games/ludo`](games/board-games/ludo) | Classic Ludo vs bots or pass & play on one device |
+| Snakes & Ladders | [`games/board-games/snakes-and-ladders`](games/board-games/snakes-and-ladders) | Classic or random board, exact roll to 100, bots or pass & play |
 
 ## Adding a game
 
