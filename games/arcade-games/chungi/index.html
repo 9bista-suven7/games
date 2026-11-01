@@ -290,6 +290,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
     </div>
   </div>
 
+  <div id="exitAsk" class="overlay" style="z-index:60" hidden role="dialog" aria-modal="true" aria-labelledby="exitAskTitle">
+    <div class="panel" style="width:min(340px,100%)">
+      <h2 class="ptitle" id="exitAskTitle">Leave the game?</h2>
+      <p class="psub">Your current game will end.</p>
+      <div class="btnrow"><a class="btn" id="exitYes" href="../../../">Yes, exit</a><button class="btn green" id="exitNo">Keep playing</button></div>
+    </div>
+  </div>
+
   <div id="menu" class="overlay" hidden>
     <div class="panel" style="width:min(340px,100%)">
       <h2 class="ptitle">Paused</h2>
@@ -1868,3 +1876,13 @@ window.addEventListener('resize', () => { sizeAll(); clearTimeout(rzT); rzT = se
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { sizeAll(); });
 })();
 </script>
+<script>
+(() => {
+  const btn = document.getElementById('homeBtn'), ask = document.getElementById('exitAsk'), no = document.getElementById('exitNo');
+  if (!btn || !ask || !no) return;
+  btn.addEventListener('click', e => { e.preventDefault(); ask.hidden = false; no.focus(); });
+  no.addEventListener('click', () => { ask.hidden = true; btn.focus(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ask.hidden){ e.stopImmediatePropagation(); ask.hidden = true; btn.focus(); } }, true);
+})();
+</script>
+
