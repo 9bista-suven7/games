@@ -4,199 +4,237 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Suven's Game Room</title>
+<meta name="description" content="Nepali card, board, arcade and party games that run in your browser. Callbreak, Marriage, Teen Patti, Baagchaal, Carrom, Chor Police and more.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#f5c851;--gold-lo:#b98a25;--text:#fbf5e3;--muted:#c9bfa8;--ground:#140b05;color-scheme:dark}
+:root{
+  --gold:#f5c851; --gold-lo:#b98a25; --text:#fbf5e3; --muted:#c3b7a0; --faint:#8f8270;
+  --ground:#140b05; --panel:rgba(255,244,220,.045); --panel-hi:rgba(255,244,220,.085); --line:rgba(245,200,81,.16);
+  --green:#7be495;
+  color-scheme:dark;
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(120% 80% at 50% 0%,#3d2513,#1a0e06 60%,var(--ground));color:var(--text);
-  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;padding:48px 16px 64px}
-main{max-width:880px;margin:0 auto}
-h1{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:clamp(40px,8vw,68px);line-height:1;margin:0;color:var(--gold);
-  text-shadow:0 3px 0 #8a5a12,0 10px 24px rgba(0,0,0,.5);text-wrap:balance}
-.lede{color:var(--muted);font-weight:800;font-size:16px;margin:12px 0 0;max-width:60ch}
-h2{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:40px 0 12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-.game{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--text);border-radius:22px;padding:20px;min-height:180px;position:relative;overflow:hidden;
-  border:2px solid rgba(245,200,81,.35);box-shadow:0 14px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .15s,border-color .15s}
-.game:hover,.game:focus-visible{transform:translateY(-3px);border-color:var(--gold);outline:none}
-.game:focus-visible{box-shadow:0 0 0 3px #fff}
-.game.cb{background:radial-gradient(ellipse at 70% 30%,#24a468,#0b4a2d)}
-.game.tp{background:radial-gradient(ellipse at 70% 30%,#b8314a,#4a0a1c)}
-.game.kt{background:radial-gradient(ellipse at 70% 30%,#2f6fd0,#0a2459)}
-.game.dh{background:radial-gradient(ellipse at 70% 30%,#21a39a,#06403c)}
-.game.mr{background:radial-gradient(ellipse at 70% 30%,#7a4cc4,#22104a)}
-.game.sl{background:radial-gradient(ellipse at 70% 30%,#e0a526,#7a3d0c)}
-.game.ch{background:repeating-conic-gradient(#6b4423 0 25%,#3a2210 0 50%) 0 0/56px 56px}
-.game.ch::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(20,11,5,.35),rgba(20,11,5,.8));z-index:0}
-.game.ch>*{position:relative;z-index:1}
-.game.bc{background:radial-gradient(ellipse at 70% 30%,#c98a3a,#5a2e0c)}
-.game.kd{background:radial-gradient(ellipse at 70% 30%,#a8243a,#3d0a14)}
-.game.cr{background:radial-gradient(ellipse at 50% 50%,#e9cf9a 0 28%,#6b4423 29%,#2e1a0b)}
-.game.tt{background:radial-gradient(ellipse at 40% 30%,#4a5a55,#1c2422)}
-.game.jm{background:radial-gradient(ellipse at 70% 30%,#1f7a3a,#0a2e15)}
-.game.jp{background:radial-gradient(ellipse at 70% 30%,#d9822b,#4a2006)}
-.game.tn{background:radial-gradient(ellipse at 70% 30%,#6b7a2e,#222a0b)}
-.game.db{background:linear-gradient(180deg,#5d9fd6 0%,#9cc7e6 45%,#5e9a3a 46%,#2f5c1c 100%)}
-.game.db h3,.game.db p{text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.game.sn{background:radial-gradient(ellipse at 50% 40%,#9bbc0f,#306230 70%,#0f380f)}
-.game.cc{background:linear-gradient(180deg,#5aa6e6 0%,#a9d4f2 55%,#c0623d 56%,#7a3220 100%)}
-.game.cc h3,.game.cc p{text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.game.pp{background:linear-gradient(90deg,#1f5fb5 0 49.4%,#f4f4f4 49.4% 50.6%,#1f5fb5 50.6%)}
-.game.pp::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,20,40,.25),rgba(10,20,40,.7));z-index:0}
-.game.pp>*{position:relative;z-index:1}
-.game.cg{background:radial-gradient(ellipse at 60% 30%,#e8a04a,#8a3b1c 60%,#3a160a)}
-.game.cp{background:repeating-linear-gradient(0deg,#fbf7ea 0 22px,#bcd3ea 22px 23px);color:#1e2a3a}
-.game.cp h3{color:#7a1020;text-shadow:none}
-.game.cp p{color:#2a3442}
-.game.cp .tags span{background:rgba(30,42,58,.12);color:#1e2a3a}
-.game.ld{background:linear-gradient(135deg,#1d6a36 0 25%,#8e6c0e 25% 50%,#1c4a92 50% 75%,#8e2424 75%)}
-.game h3{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:30px;margin:0;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
-.game p{margin:0;font-weight:700;font-size:14px;line-height:1.45;color:rgba(255,255,255,.85);max-width:30ch}
-.game .suit{position:absolute;right:14px;bottom:-14px;font-size:120px;line-height:1;color:rgba(0,0,0,.18);pointer-events:none}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
-.tags span{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.35);border-radius:999px;padding:3px 10px}
-.soon{border:2px dashed rgba(245,200,81,.3);border-radius:22px;padding:20px;color:var(--muted);font-weight:800;min-height:120px;display:flex;flex-direction:column;gap:6px}
-.soon b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:22px;color:var(--text)}
-footer{margin-top:48px;color:var(--muted);font-size:13px;font-weight:700}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--text);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:radial-gradient(120% 70% at 50% -10%,#47291a 0%,#1d0f07 55%,var(--ground) 100%) fixed,var(--ground)}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px}
+
+/* header */
+header{padding-block:calc(28px + env(safe-area-inset-top,0px)) 8px;display:flex;align-items:center;gap:14px}
+.logo{flex:none;width:52px;height:52px;border-radius:15px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#ffe08a,#c58a1c);color:#3a2300;font-family:'Lilita One',Impact,sans-serif;font-size:30px;line-height:1;
+  box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+h1{margin:0;font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:clamp(28px,6vw,42px);line-height:1.02;color:var(--gold);
+  text-shadow:0 2px 0 #7a4e10,0 8px 20px rgba(0,0,0,.45);text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);font-weight:700;font-size:14px;line-height:1.4}
+.sub b{color:var(--text);font-weight:900}
+
+/* toolbar */
+.bar{position:sticky;top:0;z-index:10;padding-block:calc(10px + env(safe-area-inset-top,0px)) 10px;margin-top:12px;
+  background:linear-gradient(var(--ground) 70%,rgba(20,11,5,0));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font:inherit;font-weight:900;font-size:14px;color:var(--muted);background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,color .15s,border-color .15s}
+.chip em{font-style:normal;font-size:11px;color:var(--faint);background:rgba(0,0,0,.3);border-radius:999px;padding:1px 7px}
+.chip:hover{color:var(--text);border-color:rgba(245,200,81,.4)}
+.chip.on{color:#3a2300;background:linear-gradient(#ffe08a,#e2a92b);border-color:#fff3c4}
+.chip.on em{color:#3a2300;background:rgba(255,255,255,.4)}
+.search{flex:0 1 220px;min-width:150px;position:relative}
+.search input{width:100%;font:inherit;font-weight:800;font-size:15px;color:var(--text);background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px 8px 36px;outline:none}
+.search input::placeholder{color:var(--faint)}
+.search input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,200,81,.2)}
+.search svg{position:absolute;left:12px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+@media (max-width:560px){.search{flex:1 1 100%;order:-1}}
+
+/* sections and tiles */
+.cat{margin-top:22px}
+.cat h2{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cat h2 em{font-style:normal;letter-spacing:0;font-size:11px;color:var(--faint);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.cat h2::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.g{display:grid;grid-template-columns:52px minmax(0,1fr);gap:14px;align-items:start;padding:12px 14px 12px 12px;border-radius:16px;
+  text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);
+  transition:transform .15s ease,background .15s ease,border-color .15s ease,box-shadow .15s ease}
+.g:hover{background:var(--panel-hi);border-color:rgba(245,200,81,.45);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.g:active{transform:translateY(0)}
+.g:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;color:#fff8e6;
+  background:linear-gradient(145deg,var(--a),var(--b));box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.22),0 4px 10px rgba(0,0,0,.35)}
+.ic svg{width:30px;height:30px;overflow:visible;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.tx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.tx b{font-family:'Lilita One',Impact,sans-serif;font-weight:400;font-size:20px;line-height:1.1;letter-spacing:.01em;color:var(--text)}
+.d{color:var(--muted);font-weight:700;font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tg{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.tg i{font-style:normal;font-size:10.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,.28);border-radius:999px;padding:2px 8px}
+.tg i.on{color:#06331a;background:var(--green);display:inline-flex;align-items:center;gap:4px}
+.tg i.on::before{content:"";width:6px;height:6px;border-radius:50%;background:#06331a}
+@media (max-width:420px){.grid{grid-template-columns:minmax(0,1fr)}.g{grid-template-columns:46px minmax(0,1fr);gap:12px}.ic{width:46px;height:46px;border-radius:13px}.ic svg{width:26px;height:26px}}
+
+.empty{margin:40px 0;text-align:center;color:var(--muted);font-weight:800}
+footer{margin-top:40px;padding-block:20px calc(28px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--faint);font-size:13px;font-weight:700;
+  display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
 footer a{color:var(--gold)}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<main>
-  <h1>Suven's Game Room</h1>
-  <p class="lede">Nepali card, board, arcade and party games that run right in your browser. No install, no sign-up. Open one on your phone and play.</p>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">&#9824;&#xFE0E;</div>
+    <div>
+      <h1>Suven's Game Room</h1>
+      <p class="sub"><b>21 Nepali games</b> to play in your browser. No install, no sign-up.</p>
+    </div>
+  </header>
 
-  <h2>Card games</h2>
-  <div class="grid">
-    <a class="game cb" href="games/card-games/callbreak/">
-      <h3>Callbreak</h3>
-      <p>Call your tricks, spades are trump. Play the bots or invite friends with a QR code.</p>
-      <div class="tags"><span>4 players</span><span>Online with friends</span></div>
-      <span class="suit" aria-hidden="true">&#9824;&#xFE0E;</span>
-    </a>
-    <a class="game tp" href="games/card-games/teen-patti/">
-      <h3>Teen Patti</h3>
-      <p>Three cards, blind or seen. Chaal, raise, show and sideshow against four bots.</p>
-      <div class="tags"><span>5 players</span><span>Play chips only</span></div>
-      <span class="suit" aria-hidden="true">&#9829;&#xFE0E;</span>
-    </a>
-    <a class="game kt" href="games/card-games/kitty/">
-      <h3>Kitty</h3>
-      <p>Nine cards, three hands. Win two of three shows to take the pot, or it's Kitty and the pot carries over.</p>
-      <div class="tags"><span>4 players</span><span>Play chips only</span></div>
-      <span class="suit" aria-hidden="true">&#9827;&#xFE0E;</span>
-    </a>
-    <a class="game dh" href="games/card-games/dhumbal/">
-      <h3>Dhumbal</h3>
-      <p>Throw singles, sets or runs and keep your hand total low. Call Dhumbal at 5 or less, but don't get caught.</p>
-      <div class="tags"><span>4 players</span><span>Out at 100</span></div>
-      <span class="suit" aria-hidden="true">&#9830;&#xFE0E;</span>
-    </a>
-    <a class="game mr" href="games/card-games/marriage/">
-      <h3>Marriage</h3>
-      <p>Nepali rummy with three decks. Show three pure sequences to see the Maal, then finish with jokers.</p>
-      <div class="tags"><span>4 players</span><span>21 cards</span></div>
-      <span class="suit" aria-hidden="true">&#9829;&#xFE0E;</span>
-    </a>
-    <a class="game kd" href="games/card-games/kauda/">
-      <h3>Kauda</h3>
-      <p>The Tihar cowrie game. Bet on how many of the 16 shells land open, then watch them fly.</p>
-      <div class="tags"><span>Tihar</span><span>Play chips only</span></div>
-    </a>
-    <a class="game jm" href="games/card-games/jhandi-munda/">
-      <h3>Jhandi Munda</h3>
-      <p>Langur Burja, the Dashain dice game. Bet on heart, spade, diamond, club, flag or crown and roll six dice.</p>
-      <div class="tags"><span>Dashain</span><span>Play chips only</span></div>
-    </a>
-    <a class="game jp" href="games/card-games/jutpatti/">
-      <h3>Jutpatti</h3>
-      <p>Draw blind from your neighbour and throw down pairs of the same colour. Don't get stuck with the odd card.</p>
-      <div class="tags"><span>4 players</span><span>Easy for kids</span></div>
-      <span class="suit" aria-hidden="true">&#9830;&#xFE0E;</span>
-    </a>
-    <a class="game tn" href="games/card-games/twenty-nine/">
-      <h3>Twenty-Nine</h3>
-      <p>Partner up and bid for points with a hidden trump. Jacks and nines rule; first team to six wins.</p>
-      <div class="tags"><span>2 vs 2</span><span>Bid 16&ndash;28</span></div>
-      <span class="suit" aria-hidden="true">&#9827;&#xFE0E;</span>
-    </a>
+  <div class="bar">
+    <nav class="chips" aria-label="Filter games"><button class="chip on" data-f="all" aria-pressed="true">All <em>21</em></button><button class="chip" data-f="card" aria-pressed="false">Card <em>9</em></button><button class="chip" data-f="board" aria-pressed="false">Board <em>6</em></button><button class="chip" data-f="arcade" aria-pressed="false">Arcade <em>5</em></button><button class="chip" data-f="party" aria-pressed="false">Party <em>1</em></button></nav>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search games" aria-label="Search games" autocomplete="off">
+    </label>
   </div>
 
-  <h2>Board games</h2>
-  <div class="grid">
-    <a class="game ld" href="games/board-games/ludo/">
-      <h3>Ludo</h3>
-      <p>Roll a six to come out, capture your rivals and race all four tokens home. Play bots or pass the phone around.</p>
-      <div class="tags"><span>2&ndash;4 players</span><span>Pass &amp; play</span></div>
-    </a>
-    <a class="game sl" href="games/board-games/snakes-and-ladders/">
-      <h3>Snakes &amp; Ladders</h3>
-      <p>Climb the ladders, dodge the snakes and land exactly on 100. Classic board or a fresh random one each game.</p>
-      <div class="tags"><span>2&ndash;4 players</span><span>Pass &amp; play</span></div>
-    </a>
-    <a class="game cr" href="games/board-games/carrom/">
-      <h3>Carrom</h3>
-      <p>Flick the striker with real physics. Pocket your coins, cover the queen, and race to 25.</p>
-      <div class="tags"><span>vs Computer</span><span>2&ndash;4 pass &amp; play</span></div>
-    </a>
-    <a class="game ch" href="games/board-games/chess/">
-      <h3>Chess</h3>
-      <p>Full rules with castling, en passant and promotion. Play the computer at three levels or a friend on one device.</p>
-      <div class="tags"><span>1&ndash;2 players</span><span>Undo &amp; hints</span></div>
-    </a>
-    <a class="game bc" href="games/board-games/baagchaal/">
-      <h3>Baagchaal</h3>
-      <p>Nepal's own hunt game: four tigers against twenty goats. Trap the tigers or capture five goats.</p>
-      <div class="tags"><span>1&ndash;2 players</span><span>&#2348;&#2366;&#2328;&#2330;&#2366;&#2354;</span></div>
-    </a>
-    <a class="game tt" href="games/board-games/tic-tac-toe/">
-      <h3>Tic-tac-toe</h3>
-      <p>Chalk-board classic on 3&times;3, or five in a row on a big 15&times;15 board. The Hard computer never loses.</p>
-      <div class="tags"><span>1&ndash;2 players</span><span>Five in a row</span></div>
-    </a>
-  </div>
+  <main>
+  <section class="cat" data-cat="card">
+    <h2><span>Card games</span><em>9</em></h2>
+    <div class="grid">
+      <a class="g" href="games/card-games/callbreak/" data-cat="card" data-k="callbreak call your tricks, spades are trump. play bots or invite friends with a qr code. callbreak" style="--a:#24a468;--b:#0b4a2d">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4c4 5 10 8 10 13a5 5 0 0 1-8.6 3.5L19 27h-6l1.6-6.5A5 5 0 0 1 6 17c0-5 6-8 10-13z" fill="currentColor"/></svg></span>
+        <span class="tx"><b>Callbreak</b><span class="d">Call your tricks, spades are trump. Play bots or invite friends with a QR code.</span><span class="tg"><i class="on">Online</i><i>4 players</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/teen-patti/" data-cat="card" data-k="teen patti three cards, blind or seen. chaal, raise, show and sideshow. teen-patti" style="--a:#c23a52;--b:#4a0a1c">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="6" width="11" height="16" rx="2" transform="rotate(-18 14 22)"/><rect x="11" y="6" width="11" height="16" rx="2" transform="rotate(14 16 22)"/><rect x="10.5" y="7" width="11" height="17" rx="2" fill="#0000"/></g></svg></span>
+        <span class="tx"><b>Teen Patti</b><span class="d">Three cards, blind or seen. Chaal, raise, show and sideshow.</span><span class="tg"><i>5 players</i><i>Play chips</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/kitty/" data-cat="card" data-k="kitty nine cards, three hands. win two of three shows to take the pot. kitty" style="--a:#2f6fd0;--b:#0a2459">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="7" height="11" rx="1.6"/><rect x="12.5" y="9" width="7" height="11" rx="1.6"/><rect x="21.5" y="9" width="7" height="11" rx="1.6"/><path d="M5 25h22"/></g></svg></span>
+        <span class="tx"><b>Kitty</b><span class="d">Nine cards, three hands. Win two of three shows to take the pot.</span><span class="tg"><i>4 players</i><i>Play chips</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/dhumbal/" data-cat="card" data-k="dhumbal keep your hand total low and call dhumbal at 5 or less. don’t get caught. dhumbal" style="--a:#21a39a;--b:#06403c">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="5" width="13" height="18" rx="2"/><path d="M14.5 10v7m-3-3 3 3 3-3"/><path d="M6 27h20"/></g></svg></span>
+        <span class="tx"><b>Dhumbal</b><span class="d">Keep your hand total low and call Dhumbal at 5 or less. Don’t get caught.</span><span class="tg"><i>4 players</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/marriage/" data-cat="card" data-k="marriage nepali rummy with three decks. show three pure sequences to see the maal. marriage" style="--a:#7a4cc4;--b:#22104a">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="18" r="7"/><circle cx="20" cy="18" r="7"/><path d="M14 8l2-3 2 3"/></g></svg></span>
+        <span class="tx"><b>Marriage</b><span class="d">Nepali rummy with three decks. Show three pure sequences to see the Maal.</span><span class="tg"><i>4 players</i><i>21 cards</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/twenty-nine/" data-cat="card" data-k="twenty-nine partner up and bid with a hidden trump. jacks and nines rule. twenty-nine" style="--a:#7c8c34;--b:#222a0b">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><text x="16" y="22.5" text-anchor="middle" font-family="Lilita One, Impact, sans-serif" font-size="17" fill="currentColor">29</text></svg></span>
+        <span class="tx"><b>Twenty-Nine</b><span class="d">Partner up and bid with a hidden trump. Jacks and nines rule.</span><span class="tg"><i>2 vs 2</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/jutpatti/" data-cat="card" data-k="jutpatti draw from your neighbour and pair same-colour cards. don’t keep the odd one. jutpatti" style="--a:#e08a30;--b:#4a2006">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="10" height="15" rx="2"/><rect x="17" y="7" width="10" height="15" rx="2"/><path d="M9 26h14"/></g><g fill="currentColor"><path d="M10 12l2 2.5-2 2.5-2-2.5z"/><path d="M22 12l2 2.5-2 2.5-2-2.5z"/></g></svg></span>
+        <span class="tx"><b>Jutpatti</b><span class="d">Draw from your neighbour and pair same-colour cards. Don’t keep the odd one.</span><span class="tg"><i>4 players</i><i>Kids</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/kauda/" data-cat="card" data-k="kauda the tihar cowrie game. bet on how many of 16 shells land open. kauda" style="--a:#b8283f;--b:#3d0a14">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="16" rx="8" ry="11"/><path d="M16 7v18"/><path d="M13 10h-1.5M13 14h-2M13 18h-2M13 22h-1.5M19 10h1.5M19 14h2M19 18h2M19 22h1.5"/></g></svg></span>
+        <span class="tx"><b>Kauda</b><span class="d">The Tihar cowrie game. Bet on how many of 16 shells land open.</span><span class="tg"><i>Tihar</i><i>Play chips</i></span></span>
+      </a>
+      <a class="g" href="games/card-games/jhandi-munda/" data-cat="card" data-k="jhandi munda langur burja, the dashain dice game. six symbols, six dice. jhandi-munda" style="--a:#22883f;--b:#0a2e15">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="20" height="20" rx="4"/></g><g fill="currentColor"><circle cx="11.5" cy="11.5" r="2"/><circle cx="20.5" cy="20.5" r="2"/><circle cx="16" cy="16" r="2"/></g></svg></span>
+        <span class="tx"><b>Jhandi Munda</b><span class="d">Langur Burja, the Dashain dice game. Six symbols, six dice.</span><span class="tg"><i>Dashain</i><i>Play chips</i></span></span>
+      </a>
+    </div>
+  </section>
+  <section class="cat" data-cat="board">
+    <h2><span>Board games</span><em>6</em></h2>
+    <div class="grid">
+      <a class="g" href="games/board-games/ludo/" data-cat="board" data-k="ludo roll a six, capture rivals and race all four tokens home. ludo" style="--a:#3b4a6b;--b:#141b2c">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g><rect x="5" y="5" width="10" height="10" rx="2.5" fill="#4ade80"/><rect x="17" y="5" width="10" height="10" rx="2.5" fill="#facc15"/><rect x="5" y="17" width="10" height="10" rx="2.5" fill="#f87171"/><rect x="17" y="17" width="10" height="10" rx="2.5" fill="#60a5fa"/></g></svg></span>
+        <span class="tx"><b>Ludo</b><span class="d">Roll a six, capture rivals and race all four tokens home.</span><span class="tg"><i>2–4 players</i><i>Pass &amp; play</i></span></span>
+      </a>
+      <a class="g" href="games/board-games/snakes-and-ladders/" data-cat="board" data-k="snakes &amp; ladders climb ladders, dodge snakes and land exactly on 100. snakes-and-ladders" style="--a:#e0a526;--b:#7a3d0c">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 27V5M15 27V5M8 10h7M8 16h7M8 22h7"/><path d="M26 6c-6 2 2 7-4 10s3 7-3 10"/><circle cx="26" cy="6" r="1.3" fill="currentColor"/></g></svg></span>
+        <span class="tx"><b>Snakes &amp; Ladders</b><span class="d">Climb ladders, dodge snakes and land exactly on 100.</span><span class="tg"><i>2–4 players</i><i>Pass &amp; play</i></span></span>
+      </a>
+      <a class="g" href="games/board-games/carrom/" data-cat="board" data-k="carrom flick the striker with real physics. pocket coins and cover the queen. carrom" style="--a:#a8743d;--b:#3a220e">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="24" height="24" rx="3"/><circle cx="16" cy="16" r="5"/></g><g fill="currentColor"><circle cx="7.5" cy="7.5" r="1.7"/><circle cx="24.5" cy="7.5" r="1.7"/><circle cx="7.5" cy="24.5" r="1.7"/><circle cx="24.5" cy="24.5" r="1.7"/><circle cx="16" cy="16" r="1.8"/></g></svg></span>
+        <span class="tx"><b>Carrom</b><span class="d">Flick the striker with real physics. Pocket coins and cover the queen.</span><span class="tg"><i>vs Computer</i><i>2–4 players</i></span></span>
+      </a>
+      <a class="g" href="games/board-games/chess/" data-cat="board" data-k="chess full rules. play the computer at three levels or a friend. chess" style="--a:#6b4423;--b:#24140a">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M10 27h13v-3c0-6-1-10-4-14l1-4-4 2c-4 0-7 4-7 7l-1 3 3 1 3-2c1 2-2 4-4 7z" fill="currentColor"/><circle cx="15" cy="11" r="1.1" fill="#0007"/></svg></span>
+        <span class="tx"><b>Chess</b><span class="d">Full rules. Play the computer at three levels or a friend.</span><span class="tg"><i>1–2 players</i><i>Hints</i></span></span>
+      </a>
+      <a class="g" href="games/board-games/baagchaal/" data-cat="board" data-k="baagchaal nepal’s hunt game: four tigers against twenty goats. baagchaal" style="--a:#c98a3a;--b:#5a2e0c">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="22" height="22"/><path d="M16 5v22M5 16h22M5 5l22 22M27 5L5 27M16 5l11 11-11 11L5 16z"/></g></svg></span>
+        <span class="tx"><b>Baagchaal</b><span class="d">Nepal’s hunt game: four tigers against twenty goats.</span><span class="tg"><i>1–2 players</i><i>बाघचाल</i></span></span>
+      </a>
+      <a class="g" href="games/board-games/tic-tac-toe/" data-cat="board" data-k="tic-tac-toe chalk-board 3×3, or five in a row on 15×15. tic-tac-toe" style="--a:#4f625c;--b:#1c2422">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v22M20 5v22M5 12h22M5 20h22"/></g><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l3 3m0-3-3 3"/><circle cx="24" cy="24" r="2"/></g></svg></span>
+        <span class="tx"><b>Tic-tac-toe</b><span class="d">Chalk-board 3×3, or five in a row on 15×15.</span><span class="tg"><i>1–2 players</i></span></span>
+      </a>
+    </div>
+  </section>
+  <section class="cat" data-cat="arcade">
+    <h2><span>Arcade games</span><em>5</em></h2>
+    <div class="grid">
+      <a class="g" href="games/arcade-games/dandi-biyo/" data-cat="arcade" data-k="dandi biyo flick the biyo up and smash it across the village field. dandi-biyo" style="--a:#5b9a3a;--b:#21420f">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 25L25 9" stroke-width="3"/><path d="M19 25h8" stroke-width="3"/><path d="M8 8l2 2M12 6l1 2.5M6 12l2.5 1"/></g></svg></span>
+        <span class="tx"><b>Dandi Biyo</b><span class="d">Flick the biyo up and smash it across the village field.</span><span class="tg"><i>Solo or 2–4</i></span></span>
+      </a>
+      <a class="g" href="games/arcade-games/changa-chet/" data-cat="arcade" data-k="changa chet dashain kite fighting over the kathmandu rooftops. changa-chet" style="--a:#3d8fd6;--b:#123e6b">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l9 10-9 12-9-12z"/><path d="M16 3v22M7 13h18"/><path d="M16 25c-2 2 2 3 0 5"/></g></svg></span>
+        <span class="tx"><b>Changa Chet</b><span class="d">Dashain kite fighting over the Kathmandu rooftops.</span><span class="tg"><i>Dashain</i></span></span>
+      </a>
+      <a class="g" href="games/arcade-games/chungi/" data-cat="arcade" data-k="chungi keep the rubber-band chungi up in a kathmandu galli. chungi" style="--a:#e08a3a;--b:#6b2a10">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16L9 6M16 16l7-10M16 16l9 4M16 16L7 20M16 16l-2 10M16 16l4 10"/></g><circle cx="16" cy="16" r="3" fill="currentColor"/></svg></span>
+        <span class="tx"><b>Chungi</b><span class="d">Keep the rubber-band chungi up in a Kathmandu galli.</span><span class="tg"><i>Solo or 2–4</i></span></span>
+      </a>
+      <a class="g" href="games/arcade-games/snake/" data-cat="arcade" data-k="snake the nokia classic. eat, grow and don’t bite yourself. snake" style="--a:#7fa30d;--b:#1f4a1f">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 24h6V16h6v-6h8" stroke-width="3.2"/><circle cx="26" cy="10" r="2.6" fill="currentColor"/></g><circle cx="9" cy="7" r="2" fill="#f87171"/></svg></span>
+        <span class="tx"><b>Snake</b><span class="d">The Nokia classic. Eat, grow and don’t bite yourself.</span><span class="tg"><i>Solo</i></span></span>
+      </a>
+      <a class="g" href="games/arcade-games/ping-pong/" data-cat="arcade" data-k="ping pong table tennis with real bounces and spin. ping-pong" style="--a:#2a6fc4;--b:#0d2a55">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="13" r="8"/><path d="M18.5 18.5L26 26" stroke-width="3.2"/></g><circle cx="25" cy="8" r="2.2" fill="currentColor"/></svg></span>
+        <span class="tx"><b>Ping Pong</b><span class="d">Table tennis with real bounces and spin.</span><span class="tg"><i>1–2 players</i></span></span>
+      </a>
+    </div>
+  </section>
+  <section class="cat" data-cat="party">
+    <h2><span>Party games</span><em>1</em></h2>
+    <div class="grid">
+      <a class="g" href="games/party-games/chor-police/" data-cat="party" data-k="chor police pick a folded slip. the police has to catch the chor. up to 10 players. chor-police" style="--a:#c0392b;--b:#4a0f0a">
+        <span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13c4-3 8-3 12 0 4-3 8-3 12 0-1 5-4 7-7 7-2 0-3-2-5-2s-3 2-5 2c-3 0-6-2-7-7z"/></g><g fill="currentColor"><ellipse cx="10.5" cy="14.5" rx="2" ry="1.3"/><ellipse cx="21.5" cy="14.5" rx="2" ry="1.3"/></g></svg></span>
+        <span class="tx"><b>Chor Police</b><span class="d">Pick a folded slip. The Police has to catch the Chor. Up to 10 players.</span><span class="tg"><i class="on">Online</i><i>3–10 players</i></span></span>
+      </a>
+    </div>
+  </section>
+    <p class="empty" id="empty" hidden>No games match. Try another word.</p>
+  </main>
 
-  <h2>Arcade games</h2>
-  <div class="grid">
-    <a class="game db" href="games/arcade-games/dandi-biyo/">
-      <h3>Dandi Biyo</h3>
-      <p>Flick the biyo up, then smash it across the village field. Dodge the catchers and beat your best distance.</p>
-      <div class="tags"><span>Solo or 2&ndash;4</span><span>Village game</span></div>
-    </a>
-    <a class="game sn" href="games/arcade-games/snake/">
-      <h3>Snake</h3>
-      <p>The Nokia classic: eat, grow and don't bite yourself. Swipe, D-pad or arrow keys, with maze and wrap-around modes.</p>
-      <div class="tags"><span>Solo</span><span>Nokia LCD look</span></div>
-    </a>
-    <a class="game cc" href="games/arcade-games/changa-chet/">
-      <h3>Changa Chet</h3>
-      <p>Dashain kite fighting over the Kathmandu rooftops. Cross strings, win the pecha and shout "changa chet!"</p>
-      <div class="tags"><span>Dashain</span><span>Endless or battle</span></div>
-    </a>
-    <a class="game pp" href="games/arcade-games/ping-pong/">
-      <h3>Ping Pong</h3>
-      <p>Table tennis with real bounces and spin. Play the computer at three levels or a friend on the same phone.</p>
-      <div class="tags"><span>1&ndash;2 players</span><span>First to 11</span></div>
-    </a>
-    <a class="game cg" href="games/arcade-games/chungi/">
-      <h3>Chungi</h3>
-      <p>Keep the rubber-band chungi in the air in a Kathmandu galli while the kids count. Mix knee, inside and heel tricks.</p>
-      <div class="tags"><span>Solo or 2&ndash;4</span><span>Street game</span></div>
-    </a>
-  </div>
-
-  <h2>Party games</h2>
-  <div class="grid">
-    <a class="game cp" href="games/party-games/chor-police/">
-      <h3>Chor Police</h3>
-      <p>Pick a folded slip and keep a straight face. The Police has to catch the Chor. Includes Raja Mantri Chor Sipahi.</p>
-      <div class="tags"><span>3&ndash;10 players</span><span>Online with friends</span></div>
-    </a>
-  </div>
-
-  <footer>Source on <a href="https://github.com/9bista-suven7/games">GitHub</a>.</footer>
-</main>
+  <footer><span>Made with love for Nepali game nights.</span><span>Source on <a href="https://github.com/9bista-suven7/games">GitHub</a></span></footer>
+</div>
+<script>
+(() => {
+  const chips = [...document.querySelectorAll('.chip')], cats = [...document.querySelectorAll('.cat')], tiles = [...document.querySelectorAll('.g')];
+  const q = document.getElementById('q'), empty = document.getElementById('empty');
+  let filter = 'all';
+  try { const f = localStorage.getItem('room-filter'); if (f && chips.some(c => c.dataset.f === f)) filter = f; } catch(e){}
+  function apply(){
+    const term = q.value.trim().toLowerCase();
+    let shown = 0;
+    tiles.forEach(t => {
+      const ok = (filter === 'all' || t.dataset.cat === filter) && (!term || t.dataset.k.includes(term));
+      t.hidden = !ok; if (ok) shown++;
+    });
+    cats.forEach(c => { c.hidden = !c.querySelector('.g:not([hidden])'); });
+    empty.hidden = shown > 0;
+    chips.forEach(c => { const on = c.dataset.f === filter; c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); });
+  }
+  chips.forEach(c => c.addEventListener('click', () => {
+    filter = c.dataset.f;
+    try { localStorage.setItem('room-filter', filter); } catch(e){}
+    apply();
+  }));
+  q.addEventListener('input', apply);
+  apply();
+})();
+</script>
 </body>
 </html>
