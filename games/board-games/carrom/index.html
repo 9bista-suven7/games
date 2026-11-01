@@ -322,7 +322,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <h2 class="ptitle">Paused</h2>
       <div class="menu-list">
         <button class="btn green" id="resumeBtn">Resume</button>
-        <a class="btn ghost" id="homeBtn" href="../../../">Exit to all games</a>
+        <a class="btn ghost" id="exitGamesBtn" href="../../../">Exit to all games</a>
         <button class="btn" id="newBtn">New game</button>
         <button class="btn ghost" id="ctlBtn">Controls: Slingshot</button>
         <button class="btn ghost" id="menuRules">How to play</button>
@@ -1882,7 +1882,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(sizeBoard)
 </script>
 <script>
 (() => {
-  const btn = document.getElementById('homeBtn'), ask = document.getElementById('exitAsk'), no = document.getElementById('exitNo');
+  const btn = document.getElementById('exitGamesBtn'), ask = document.getElementById('exitAsk'), no = document.getElementById('exitNo');
   if (!btn || !ask || !no) return;
   btn.addEventListener('click', e => { e.preventDefault(); ask.hidden = false; no.focus(); });
   no.addEventListener('click', () => { ask.hidden = true; btn.focus(); });

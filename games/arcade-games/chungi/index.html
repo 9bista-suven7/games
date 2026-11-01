@@ -203,6 +203,11 @@ button,select{font:inherit}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 
+/* chungi style picker */
+.lookpick{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;margin:2px 0 6px;font-weight:900;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lk{font:inherit;font-size:13px;letter-spacing:0;text-transform:none;font-weight:900;padding:6px 12px;border-radius:999px;border:1px solid rgba(245,200,81,.45);background:rgba(0,0,0,.3);color:var(--text);cursor:pointer}
+.lk.on{background:linear-gradient(#ffe08a,#e2a92b);color:#3a2300;border-color:#fff3c4}
+.lk:focus-visible{outline:3px solid #fff;outline-offset:2px}
 /* back to the game list */
 a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
 .homelink{position:absolute;z-index:5;top:calc(12px + env(safe-area-inset-top,0px));left:calc(14px + env(safe-area-inset-left,0px));display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid rgba(245,200,81,.5);color:#f5c851;font:900 13px/1 'Nunito',system-ui,sans-serif;text-decoration:none}
@@ -258,6 +263,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <div class="demo" aria-hidden="true"><span class="sh"></span><span class="chu"></span><span class="leg"></span></div>
       <p class="tag"><b>1 to 4 players</b> · Keep it up with your feet</p>
       <p class="best" id="splashBest"></p>
+      <div class="lookpick" role="group" aria-label="Chungi style"><span>Chungi</span><button class="lk" data-look="bands" aria-pressed="false">Rubber bands</button><button class="lk" data-look="colour" aria-pressed="false">Colourful</button></div>
       <div class="btnrow" style="margin-top:0">
         <button class="btn green" id="soloBtn">Solo</button>
         <button class="btn" id="multiBtn">Friends &amp; bots</button>
@@ -303,10 +309,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
       <h2 class="ptitle">Paused</h2>
       <div class="menu-list">
         <button class="btn green" id="resumeBtn">Resume</button>
-        <a class="btn ghost" id="homeBtn" href="../../../">Exit to all games</a>
+        <a class="btn ghost" id="exitGamesBtn" href="../../../">Exit to all games</a>
         <button class="btn" id="newBtn">New game</button>
         <button class="btn ghost" id="menuRules">How to play</button>
         <button class="btn ghost" id="soundBtn">Sound: On</button>
+        <button class="btn ghost" id="lookBtn">Chungi: Rubber bands</button>
       </div>
     </div>
   </div>
@@ -1143,7 +1150,38 @@ function audAll(st, len){ AUD.forEach((a, i) => { a.st = st; a.t0 = clock + i*.0
 
 /* ---------- the chungi ---------- */
 const BANDS = ['#e8463a', '#f5c851', '#2f9a52', '#2f6fd0', '#e84a7f', '#ff8a3d'];
+// the real thing: a fat bunch of black rubber bands tied tight in the middle, with a few coloured ones mixed in
+let chungiLook = (() => { try { return localStorage.getItem('chungi-look') === 'colour' ? 'colour' : 'bands'; } catch(e){ return 'bands'; } })();
+const REAL = {back:'#1b1c20', front:'#33343a', knot:'#111215', edge:'#4a4b52', accents:{5:'#c9a15a', 17:'#5f8f3e', 28:'#c4492f'}};
+function drawChungiReal(X0, Y0c, r, rot, vx, vy){
+  const tx = -vx*.03*S, ty = vy*.03*S, N = 36, lw = Math.max(1.2, r*.085);
+  // a soft light halo so the dark bunch still reads against the brick
+  const halo = ctx.createRadialGradient(X0, Y0c, r*.3, X0, Y0c, r*1.7);
+  halo.addColorStop(0, 'rgba(255,244,220,.22)'); halo.addColorStop(1, 'rgba(255,244,220,0)');
+  ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(X0, Y0c, r*1.7, 0, Math.PI*2); ctx.fill();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let pass = 0; pass < 2; pass++){
+    for (let i = 0; i < N; i++){
+      const depth = Math.sin(i*1.7 + rot*.6);                    // loops behind the knot first, then in front
+      if ((depth >= 0) !== (pass === 1)) continue;
+      const a = rot + i*2.39996 + Math.sin(clock*12 + i*1.3)*.12;
+      const L = r*(1.05 + .45*((i*37 % 11)/11))*(.8 + .2*Math.abs(depth));
+      const dx = Math.cos(a), dy = Math.sin(a), px = -dy, py = dx, h = r*(.15 + .06*((i*13 % 7)/7));
+      const ex = X0 + dx*L + tx*(.5 + .25*(i % 3)), ey = Y0c + dy*L + ty*(.5 + .17*(i % 4));
+      ctx.beginPath(); ctx.moveTo(X0, Y0c);
+      ctx.bezierCurveTo(X0 + dx*L*.35 + px*h, Y0c + dy*L*.35 + py*h, ex + px*h*1.1 - dx*L*.12, ey + py*h*1.1 - dy*L*.12, ex, ey);
+      ctx.bezierCurveTo(ex - px*h*1.1 - dx*L*.12, ey - py*h*1.1 - dy*L*.12, X0 + dx*L*.35 - px*h, Y0c + dy*L*.35 - py*h, X0, Y0c);
+      ctx.strokeStyle = REAL.accents[i] || (pass ? REAL.front : REAL.back);
+      ctx.lineWidth = lw; ctx.stroke();
+      if (pass){ ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = Math.max(.6, lw*.32); ctx.stroke(); }
+    }
+  }
+  ctx.fillStyle = REAL.knot; ctx.beginPath(); ctx.arc(X0, Y0c, r*.22, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = REAL.edge; ctx.lineWidth = Math.max(1, r*.07);
+  for (let k = 0; k < 2; k++){ ctx.beginPath(); ctx.ellipse(X0, Y0c, r*.22, r*.08, rot*1.2 + k*1.4, 0, Math.PI*2); ctx.stroke(); }
+}
 function drawChungi(X0, Y0c, r, rot, vx, vy){
+  if (chungiLook === 'bands') return drawChungiReal(X0, Y0c, r, rot, vx, vy);
   // rubber bands trail away from the way it is moving, and flutter
   const tx = -vx*.035*S, ty = vy*.035*S;
   ctx.lineCap = 'round';
@@ -1851,6 +1889,15 @@ $('#menuBtn').addEventListener('click', () => { if (G && G.running) openMenu(); 
 $('#resumeBtn').addEventListener('click', () => { $('#menu').hidden = true; resume(); });
 $('#newBtn').addEventListener('click', () => showSplash());
 $('#soundBtn').addEventListener('click', e => { soundOn = !soundOn; e.target.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off'); });
+function setLook(l){
+  chungiLook = l === 'colour' ? 'colour' : 'bands';
+  try { localStorage.setItem('chungi-look', chungiLook); } catch(e){}
+  document.querySelectorAll('.lk').forEach(b => { const on = b.dataset.look === chungiLook; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  $('#lookBtn').textContent = 'Chungi: ' + (chungiLook === 'bands' ? 'Rubber bands' : 'Colourful');
+}
+document.querySelectorAll('.lk').forEach(b => b.addEventListener('click', () => setLook(b.dataset.look)));
+$('#lookBtn').addEventListener('click', () => setLook(chungiLook === 'bands' ? 'colour' : 'bands'));
+setLook(chungiLook);
 $('#shareBtn').addEventListener('click', () => { if ($('#share').hidden && $('#rules').hidden) openShare(coveringOverlay()); });
 $('#shareClose').addEventListener('click', () => { $('#share').hidden = true; if (shareFrom) $(shareFrom).hidden = false; else resume(); });
 $('#copyBtn').addEventListener('click', () => {
@@ -1878,7 +1925,7 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { si
 </script>
 <script>
 (() => {
-  const btn = document.getElementById('homeBtn'), ask = document.getElementById('exitAsk'), no = document.getElementById('exitNo');
+  const btn = document.getElementById('exitGamesBtn'), ask = document.getElementById('exitAsk'), no = document.getElementById('exitNo');
   if (!btn || !ask || !no) return;
   btn.addEventListener('click', e => { e.preventDefault(); ask.hidden = false; no.focus(); });
   no.addEventListener('click', () => { ask.hidden = true; btn.focus(); });
